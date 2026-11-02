@@ -1,0 +1,393 @@
+{
+  "pdfHeadwordRows": 5001,
+  "pdfStudySlots": 5948,
+  "pdfDistinctSpellings": 4953,
+  "catalogDistinctSpellings": 4958,
+  "missingHeadwords": [],
+  "referenceMetadataDifferences": [
+    {
+      "key": "cannot|verb|A1|",
+      "word": "cannot",
+      "pos": "verb",
+      "cefr": "A1",
+      "qualifier": "",
+      "homograph": "",
+      "pdfFile": "official-oxford-3000",
+      "pdfPage": 2,
+      "pdfText": "cannot v. A1",
+      "currentWebsiteRecords": [
+        {
+          "pos": "modal verb",
+          "cefr": "A1",
+          "sourceUrl": "https://www.oxfordlearnersdictionaries.com/definition/english/cannot"
+        }
+      ]
+    },
+    {
+      "key": "coach|verb|A2|",
+      "word": "coach",
+      "pos": "verb",
+      "cefr": "A2",
+      "qualifier": "",
+      "homograph": "",
+      "pdfFile": "official-oxford-3000",
+      "pdfPage": 2,
+      "pdfText": "coach n., v. A2",
+      "currentWebsiteRecords": [
+        {
+          "pos": "noun",
+          "cefr": "A2",
+          "sourceUrl": "https://www.oxfordlearnersdictionaries.com/definition/english/coach_1"
+        },
+        {
+          "pos": "verb",
+          "cefr": "B1",
+          "sourceUrl": "https://www.oxfordlearnersdictionaries.com/definition/english/coach_2"
+        }
+      ]
+    },
+    {
+      "key": "common|noun|A1|",
+      "word": "common",
+      "pos": "noun",
+      "cefr": "A1",
+      "qualifier": "",
+      "homograph": "",
+      "pdfFile": "official-oxford-3000",
+      "pdfPage": 2,
+      "pdfText": "common adj., n. A1",
+      "currentWebsiteRecords": [
+        {
+          "pos": "adjective",
+          "cefr": "A1",
+          "sourceUrl": "https://www.oxfordlearnersdictionaries.com/definition/english/common_1"
+        }
+      ]
+    },
+    {
+      "key": "house|verb|A1|",
+      "word": "house",
+      "pos": "verb",
+      "cefr": "A1",
+      "qualifier": "",
+      "homograph": "",
+      "pdfFile": "official-oxford-3000",
+      "pdfPage": 5,
+      "pdfText": "house n., v. A1",
+      "currentWebsiteRecords": [
+        {
+          "pos": "noun",
+          "cefr": "A1",
+          "sourceUrl": "https://www.oxfordlearnersdictionaries.com/definition/english/house_1"
+        },
+        {
+          "pos": "verb",
+          "cefr": "B2",
+          "sourceUrl": "https://www.oxfordlearnersdictionaries.com/definition/english/house_2"
+        }
+      ]
+    },
+    {
+      "key": "mess|verb|B1|",
+      "word": "mess",
+      "pos": "verb",
+      "cefr": "B1",
+      "qualifier": "",
+      "homograph": "",
+      "pdfFile": "official-oxford-3000",
+      "pdfPage": 6,
+      "pdfText": "mess n., v. B1",
+      "currentWebsiteRecords": [
+        {
+          "pos": "noun",
+          "cefr": "B1",
+          "sourceUrl": "https://www.oxfordlearnersdictionaries.com/definition/english/mess_1"
+        }
+      ]
+    },
+    {
+      "key": "produce|verb|B2|",
+      "word": "produce",
+      "pos": "verb",
+      "cefr": "B2",
+      "qualifier": "",
+      "homograph": "",
+      "pdfFile": "official-oxford-3000",
+      "pdfPage": 8,
+      "pdfText": "produce v. A2, v. B2",
+      "currentWebsiteRecords": [
+        {
+          "pos": "noun",
+          "cefr": "B2",
+          "sourceUrl": "https://www.oxfordlearnersdictionaries.com/definition/english/produce_2"
+        },
+        {
+          "pos": "verb",
+          "cefr": "A2",
+          "sourceUrl": "https://www.oxfordlearnersdictionaries.com/definition/english/produce_1"
+        }
+      ]
+    },
+    {
+      "key": "progress|verb|A2|",
+      "word": "progress",
+      "pos": "verb",
+      "cefr": "A2",
+      "qualifier": "",
+      "homograph": "",
+      "pdfFile": "official-oxford-3000",
+      "pdfPage": 8,
+      "pdfText": "progress n., v. A2",
+      "currentWebsiteRecords": [
+        {
+          "pos": "noun",
+          "cefr": "A2",
+          "sourceUrl": "https://www.oxfordlearnersdictionaries.com/definition/english/progress_1"
+        },
+        {
+          "pos": "verb",
+          "cefr": "B2",
+          "sourceUrl": "https://www.oxfordlearnersdictionaries.com/definition/english/progress_2"
+        }
+      ]
+    },
+    {
+      "key": "seem|verb|A2|",
+      "word": "seem",
+      "pos": "verb",
+      "cefr": "A2",
+      "qualifier": "",
+      "homograph": "",
+      "pdfFile": "official-oxford-3000",
+      "pdfPage": 9,
+      "pdfText": "seem v. A2",
+      "currentWebsiteRecords": [
+        {
+          "pos": "linking verb",
+          "cefr": "A2",
+          "sourceUrl": "https://www.oxfordlearnersdictionaries.com/definition/english/seem"
+        }
+      ]
+    },
+    {
+      "key": "spring|verb|B1|",
+      "word": "spring",
+      "pos": "verb",
+      "cefr": "B1",
+      "qualifier": "",
+      "homograph": "",
+      "pdfFile": "official-oxford-3000",
+      "pdfPage": 10,
+      "pdfText": "spring n. A1, v. B1",
+      "currentWebsiteRecords": [
+        {
+          "pos": "noun",
+          "cefr": "A1",
+          "sourceUrl": "https://www.oxfordlearnersdictionaries.com/definition/english/spring_1"
+        },
+        {
+          "pos": "verb",
+          "cefr": "B2",
+          "sourceUrl": "https://www.oxfordlearnersdictionaries.com/definition/english/spring_2"
+        }
+      ]
+    },
+    {
+      "key": "diplomatic|noun|C1|",
+      "word": "diplomatic",
+      "pos": "noun",
+      "cefr": "C1",
+      "qualifier": "",
+      "homograph": "",
+      "pdfFile": "official-oxford-5000-additions",
+      "pdfPage": 3,
+      "pdfText": "diplomatic n. C1",
+      "currentWebsiteRecords": [
+        {
+          "pos": "adjective",
+          "cefr": "C1",
+          "sourceUrl": "https://www.oxfordlearnersdictionaries.com/definition/english/diplomatic"
+        }
+      ]
+    },
+    {
+      "key": "hook|verb|B2|",
+      "word": "hook",
+      "pos": "verb",
+      "cefr": "B2",
+      "qualifier": "",
+      "homograph": "",
+      "pdfFile": "official-oxford-5000-additions",
+      "pdfPage": 4,
+      "pdfText": "hook n., v. B2",
+      "currentWebsiteRecords": [
+        {
+          "pos": "noun",
+          "cefr": "B2",
+          "sourceUrl": "https://www.oxfordlearnersdictionaries.com/definition/english/hook_1"
+        },
+        {
+          "pos": "verb",
+          "cefr": "C1",
+          "sourceUrl": "https://www.oxfordlearnersdictionaries.com/definition/english/hook_2"
+        }
+      ]
+    },
+    {
+      "key": "major|noun|C1|",
+      "word": "major",
+      "pos": "noun",
+      "cefr": "C1",
+      "qualifier": "",
+      "homograph": "",
+      "pdfFile": "official-oxford-5000-additions",
+      "pdfPage": 5,
+      "pdfText": "major n. C1",
+      "currentWebsiteRecords": [
+        {
+          "pos": "adjective",
+          "cefr": "A2",
+          "sourceUrl": "https://www.oxfordlearnersdictionaries.com/definition/english/major_1"
+        }
+      ]
+    },
+    {
+      "key": "nursing|adjective|B2|",
+      "word": "nursing",
+      "pos": "adjective",
+      "cefr": "B2",
+      "qualifier": "",
+      "homograph": "",
+      "pdfFile": "official-oxford-5000-additions",
+      "pdfPage": 5,
+      "pdfText": "nursing adj. B2",
+      "currentWebsiteRecords": [
+        {
+          "pos": "noun",
+          "cefr": "B2",
+          "sourceUrl": "https://www.oxfordlearnersdictionaries.com/definition/english/nursing"
+        }
+      ]
+    },
+    {
+      "key": "specialize|verb|B1|",
+      "word": "specialize",
+      "pos": "verb",
+      "cefr": "B1",
+      "qualifier": "",
+      "homograph": "",
+      "pdfFile": "official-oxford-5000-additions",
+      "pdfPage": 7,
+      "pdfText": "specialize v. B1",
+      "currentWebsiteRecords": [
+        {
+          "pos": "verb",
+          "cefr": "B2",
+          "sourceUrl": "https://www.oxfordlearnersdictionaries.com/definition/english/specialize"
+        }
+      ]
+    },
+    {
+      "key": "striking|adjective|B2|",
+      "word": "striking",
+      "pos": "adjective",
+      "cefr": "B2",
+      "qualifier": "",
+      "homograph": "",
+      "pdfFile": "official-oxford-5000-additions",
+      "pdfPage": 7,
+      "pdfText": "striking adj. B2",
+      "currentWebsiteRecords": [
+        {
+          "pos": "adjective",
+          "cefr": "C1",
+          "sourceUrl": "https://www.oxfordlearnersdictionaries.com/definition/english/striking"
+        }
+      ]
+    },
+    {
+      "key": "tackle|noun|B2|",
+      "word": "tackle",
+      "pos": "noun",
+      "cefr": "B2",
+      "qualifier": "",
+      "homograph": "",
+      "pdfFile": "official-oxford-5000-additions",
+      "pdfPage": 7,
+      "pdfText": "tackle v., n. B2",
+      "currentWebsiteRecords": [
+        {
+          "pos": "noun",
+          "cefr": "C1",
+          "sourceUrl": "https://www.oxfordlearnersdictionaries.com/definition/english/tackle_2"
+        },
+        {
+          "pos": "verb",
+          "cefr": "B2",
+          "sourceUrl": "https://www.oxfordlearnersdictionaries.com/definition/english/tackle_1"
+        }
+      ]
+    },
+    {
+      "key": "trace|noun|B2|",
+      "word": "trace",
+      "pos": "noun",
+      "cefr": "B2",
+      "qualifier": "",
+      "homograph": "",
+      "pdfFile": "official-oxford-5000-additions",
+      "pdfPage": 7,
+      "pdfText": "trace v., n. B2",
+      "currentWebsiteRecords": [
+        {
+          "pos": "noun",
+          "cefr": "C1",
+          "sourceUrl": "https://www.oxfordlearnersdictionaries.com/definition/english/trace_2"
+        },
+        {
+          "pos": "verb",
+          "cefr": "B2",
+          "sourceUrl": "https://www.oxfordlearnersdictionaries.com/definition/english/trace_1"
+        }
+      ]
+    },
+    {
+      "key": "versus|conjunction|C1|",
+      "word": "versus",
+      "pos": "conjunction",
+      "cefr": "C1",
+      "qualifier": "",
+      "homograph": "",
+      "pdfFile": "official-oxford-5000-additions",
+      "pdfPage": 8,
+      "pdfText": "versus conj. C1",
+      "currentWebsiteRecords": [
+        {
+          "pos": "preposition",
+          "cefr": "C1",
+          "sourceUrl": "https://www.oxfordlearnersdictionaries.com/definition/english/versus"
+        }
+      ]
+    },
+    {
+      "key": "whilst|conjunction|B2|",
+      "word": "whilst",
+      "pos": "conjunction",
+      "cefr": "B2",
+      "qualifier": "",
+      "homograph": "",
+      "pdfFile": "official-oxford-5000-additions",
+      "pdfPage": 8,
+      "pdfText": "whilst conj. B2",
+      "currentWebsiteRecords": [
+        {
+          "pos": "conjunction",
+          "cefr": "C1",
+          "sourceUrl": "https://www.oxfordlearnersdictionaries.com/definition/english/whilst"
+        }
+      ]
+    }
+  ],
+  "headwordCoveragePercent": 100,
+  "scope": "Every headword in the two official Oxford 3000/5000 PDF downloads; POS/CEFR discrepancies retained for review."
+}

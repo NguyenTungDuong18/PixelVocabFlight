@@ -8,7 +8,7 @@
 4. Đợi nạp package và nhập asset; lần đầu có thể lâu hơn.
 5. Nội dung riêng của game sẽ nằm ở `Assets/_Project`.
 
-Project được khởi tạo từ template 2D có sẵn cùng Editor. Scene và cấu hình của template được giữ để mở dự án; chưa có gameplay riêng được thêm trong bước tạo thư mục.
+Project được khởi tạo từ template 2D có sẵn cùng Editor. Mở scene riêng `Assets/_Project/Scenes/Flight.unity` rồi nhấn Play để chạy prototype. Các file template còn lại được giữ riêng.
 
 ## VS Code
 
@@ -25,7 +25,7 @@ Có thể mở thư mục `PixelVocabFlight` để xem cả tài liệu và mã,
 
 ## Bước phát triển kế tiếp
 
-Tạo scene gameplay thử với ba máy bay, từ trên thân, nghĩa Việt dưới màn hình và ô nhập. Kiểm chứng luật chọn mục tiêu trước khi làm đồ họa hoàn chỉnh.
+Đọc [hướng dẫn thư viện và chọn bộ học bản 0.2](07-Oxford-Library.md). Trước khi bay có thể chọn danh mục, khoảng CEFR, nhiều chủ đề, tìm kiếm và khoảng thứ tự. Bài ôn riêng không hiện đáp án và duyệt chất lượng toàn bộ nghĩa/audio vẫn là công việc tiếp theo.
 
 Tài liệu Unity về khởi tạo project từ dòng lệnh:
 https://docs.unity.com/en-us/engine/6000.6/manual/unity-editor/command-line-arguments/editor

@@ -1,0 +1,33 @@
+{
+  "rows": 5981,
+  "uniqueWords": 4958,
+  "playable": 5981,
+  "missing": 0,
+  "oxford3000": 3817,
+  "cefr": {
+    "A1": 1078,
+    "A2": 995,
+    "B1": 907,
+    "B2": 1579,
+    "C1": 1422
+  },
+  "topics": {
+    "food": 96,
+    "travel": 126,
+    "work": 139,
+    "education": 82,
+    "technology": 97,
+    "health": 108,
+    "nature": 98,
+    "people": 230,
+    "home": 97,
+    "clothing": 59,
+    "sports": 87,
+    "arts": 137,
+    "society": 193,
+    "feelings": 166,
+    "time": 183,
+    "general": 4154
+  },
+  "curated": 505
+}

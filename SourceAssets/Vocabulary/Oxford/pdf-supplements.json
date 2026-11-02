@@ -1,0 +1,8 @@
+[
+  {"word":"bank","pos":"noun","cefr":"B1","qualifier":"river","meaning":"bờ sông","topics":["nature","travel"],"pdfFile":"official-oxford-3000","pdfPage":1},
+  {"word":"light","pos":"adjective","cefr":"A2","qualifier":"not heavy","meaning":"nhẹ; không nặng","topics":["general"],"pdfFile":"official-oxford-3000","pdfPage":6},
+  {"word":"rest","pos":"noun","cefr":"A2","qualifier":"sleep/relax","meaning":"sự nghỉ ngơi","topics":["health","general"],"pdfFile":"official-oxford-3000","pdfPage":9},
+  {"word":"rock","pos":"noun","cefr":"A2","qualifier":"music","meaning":"nhạc rock","topics":["arts"],"pdfFile":"official-oxford-3000","pdfPage":9},
+  {"word":"proceedings","pos":"noun","cefr":"C1","qualifier":"","meaning":"thủ tục tố tụng; quá trình diễn ra sự việc","topics":["society"],"pdfFile":"official-oxford-5000-additions","pdfPage":6},
+  {"word":"race","pos":"noun","cefr":"B1","qualifier":"of people","meaning":"chủng tộc; nhóm người cùng nguồn gốc","topics":["people","society"],"pdfFile":"official-oxford-3000","pdfPage":8}
+]

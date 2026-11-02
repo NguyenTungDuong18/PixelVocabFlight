@@ -1,0 +1,20 @@
+﻿{
+    "importedOn":  "2026-11-02",
+    "oxfordMetadataUrl":  "https://www.oxfordlearnersdictionaries.com/wordlists/oxford3000-5000",
+    "oxfordHtmlSha256":  "6E6041212CCA9595DFD1BBB33AA24EE459C07CA235FDB037A52D71F710DE06F0",
+    "vietnameseDictionary":  "https://github.com/thichhoc-org/thichhoc-dict",
+    "dictionaryCommit":  "4d6e92e8bcf8e3e762410c2b0a9f98fea8e62e5b",
+    "vietnameseDerivedDataLicense":  "CC BY-SA 4.0",
+    "meaningsHumanReviewed":  false,
+    "topicSource":  "Wordwing curated word groups and Vietnamese semantic hints; not official Oxford topics",
+    "sourceScope":  "Oxford 3000/5000 list metadata, not full Oxford dictionary",
+    "generatedFileSha256":  "527406DAF62B20EDA079CE921D286C612F04BEEDE742F2D8026FABD9FC6A0CD3",
+    "officialPdfAudit":  {
+                             "oxford3000Sha256":  "61A2201C44B390EC579365B4CA805F6AB536BD7B2CB61C78BC599D43B5958112",
+                             "oxford5000AdditionsSha256":  "120EDB45005A27B909A412676C7AD23F96A6769C111ABB4F0C352FCAC042D783",
+                             "missingHeadwords":  0,
+                             "headwordCoveragePercent":  100,
+                             "metadataDifferencesRetained":  19
+                         },
+    "gameVersion":  "0.3.0"
+}

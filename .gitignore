@@ -24,6 +24,17 @@
 !/Builds/Windows/
 !/Builds/Windows/.gitkeep
 /Tools/*.log
+/Tools/RulesChecks/bin/
+/Tools/RulesChecks/obj/
+/Tools/Smoke/
+/Tools/Smoke-Oxford/
+/Tools/Smoke-FullOxford/
+/Tools/PdfAudit/node_modules/
+/Tools/BuildWorkspace/
+/SourceAssets/Vocabulary/Oxford/Raw/
+/SourceAssets/Vocabulary/Oxford/dictionary-commit.json
+/SourceAssets/Vocabulary/Oxford/dictionary-tree.json
+/SourceAssets/Vocabulary/Oxford/dictionary-sample.jsonl
 
 # Local secrets and operating system files
 .env

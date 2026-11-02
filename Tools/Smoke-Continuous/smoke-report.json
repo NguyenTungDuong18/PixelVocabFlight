@@ -1,0 +1,4 @@
+{
+  "version": "0.4.0",
+  "checks": ["full-library:PASS","filter:PASS","mouse-controls-horizontal-drive:PASS","continuous-spawn-sticky-target:PASS","driving-blocks-fire:PASS","tab-switches-mode-and-freezes-position:PASS","desert-requires-pos:PASS","typing-kill-retains-other-aircraft:PASS","roll:PASS","pause:PASS","ice-shield-and-retarget:PASS","ocean-carrier-missiles:PASS","missile-correct:PASS","missile-two-errors-survive:PASS","missile-third-error-gameover:PASS","screenshots:PASS"]
+}

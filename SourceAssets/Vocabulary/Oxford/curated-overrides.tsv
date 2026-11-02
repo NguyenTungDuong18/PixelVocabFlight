@@ -1,0 +1,457 @@
+# word	part of speech (* = every POS)	Vietnamese prompt	topic
+a	*	một (mạo từ trước âm phụ âm)	general
+an	*	một (mạo từ trước âm nguyên âm)	general
+about	preposition	về; liên quan đến	general
+above	preposition	ở phía trên	general
+according to	*	theo như; theo lời của	general
+across	preposition	ngang qua; bên kia	general
+after	*	sau; sau khi	time
+against	*	chống lại; đối lập với	general
+ah	*	à! (thán từ khi nhận ra)	general
+albeit	*	mặc dù; dẫu cho	general
+all	*	tất cả; toàn bộ	general
+all right	*	được rồi; ổn rồi	general
+along	preposition	dọc theo	travel
+alongside	*	ở bên cạnh; song song với	general
+although	*	mặc dù; tuy rằng	general
+amid	*	ở giữa; trong lúc	general
+among	*	ở giữa một nhóm	general
+analytics	*	phân tích dữ liệu	technology
+and	*	và	general
+another	*	một người hoặc vật khác	general
+any	*	bất kỳ; một chút nào	general
+anybody	*	bất cứ ai	people
+anyone	*	bất cứ người nào	people
+any more	*	nữa (trong câu phủ định hoặc nghi vấn)	time
+anything	*	bất cứ điều gì	general
+anywhere	*	bất cứ nơi nào	travel
+app	*	ứng dụng phần mềm	technology
+around	preposition	xung quanh	general
+as	conjunction	khi; bởi vì; như	general
+as	preposition	với tư cách là	general
+associated	*	có liên quan; có liên kết	general
+at	preposition	ở; tại một địa điểm hoặc thời điểm	general
+attention	exclamation	nghiêm! (khẩu lệnh)	general
+audio	adjective	thuộc âm thanh	technology
+because	*	bởi vì	general
+because of	*	bởi; do nguyên nhân	general
+before	*	trước; trước khi	time
+behind	preposition	ở phía sau	general
+below	preposition	ở bên dưới	general
+beneath	preposition	ở bên dưới; phía dưới	general
+beside	*	ở bên cạnh	general
+besides	preposition	ngoài ra; ngoài ... còn	general
+between	*	ở giữa hai người hoặc vật	general
+beyond	preposition	ở phía bên kia; vượt ngoài	general
+billion	number	một tỷ	general
+born	verb	được sinh ra	people
+both	*	cả hai	general
+broadband	*	mạng băng thông rộng	technology
+but	conjunction	nhưng	general
+but	preposition	ngoại trừ	general
+by	preposition	bởi; bằng; bên cạnh	general
+bye	*	tạm biệt (cách nói thân mật)	general
+cannot	*	không thể	general
+cheap	adverb	với giá rẻ	work
+core	adjective	cốt lõi; chủ chốt	general
+could	modal verb	có thể (khả năng hoặc lời đề nghị)	general
+cream	adjective	có màu kem	general
+cryptocurrency	*	tiền mã hóa	technology,work
+cult	adjective	được một nhóm người hâm mộ cuồng nhiệt	arts
+dairy	adjective	thuộc sữa và các sản phẩm từ sữa	food
+dear	exclamation	ôi trời! (biểu lộ lo lắng hoặc ngạc nhiên)	feelings
+decision-making	*	việc ra quyết định	work
+despite	*	mặc dù; bất chấp	general
+double	determiner	gấp đôi số lượng	general
+double	pronoun	lượng gấp đôi	general
+down	preposition	xuống dọc theo	general
+download	noun	bản tải xuống; việc tải xuống	technology
+dozen	determiner	một tá; mười hai	general
+during	*	trong suốt khoảng thời gian	time
+each	*	mỗi; từng người hoặc vật	general
+eight	number	số tám	general
+eighteen	number	số mười tám	general
+eighty	number	số tám mươi	general
+either	determiner	một trong hai	general
+either	pronoun	bất kỳ một trong hai	general
+eleven	number	số mười một	general
+else	adverb	khác; thêm nữa	general
+enough	*	đủ	general
+every	*	mọi; mỗi một	general
+everybody	*	tất cả mọi người	people
+everyone	*	mọi người	people
+everything	*	mọi thứ; mọi việc	general
+except	*	ngoại trừ; trừ khi	general
+family	adjective	thuộc gia đình; dành cho gia đình	people
+fellow	adjective	cùng nhóm; cùng hoàn cảnh	people
+few	*	một vài; một số ít	general
+fifteen	number	số mười lăm	general
+fifth	ordinal number	thứ năm trong thứ tự	general
+fifty	number	số năm mươi	general
+film-maker	*	nhà làm phim	arts
+first	determiner	đầu tiên trong một dãy	general
+first	ordinal number	thứ nhất trong thứ tự	general
+five	number	số năm	general
+folk	adjective	thuộc dân gian	arts
+following	preposition	sau một sự kiện	time
+follow-up	adjective	tiếp nối; nhằm theo dõi thêm	general
+for	preposition	dành cho; để	general
+forty	number	số bốn mươi	general
+four	number	số bốn	general
+fourteen	number	số mười bốn	general
+fourth	ordinal number	thứ tư trong thứ tự	general
+from	preposition	từ một nơi hoặc thời điểm	general
+fun	adjective	vui; thú vị	feelings
+fundraising	*	việc gây quỹ	work,society
+goodbye	*	lời chào tạm biệt	general
+goods	*	hàng hóa	work
+half	*	một nửa	general
+have to	*	phải; buộc phải	general
+he	*	anh ấy; ông ấy	people
+hello	*	xin chào	general
+her	determiner	của cô ấy (đứng trước danh từ)	people
+her	pronoun	cô ấy (làm tân ngữ)	people
+hers	*	cái của cô ấy	people
+herself	*	chính cô ấy; tự cô ấy	people
+hey	*	này! (gọi sự chú ý)	general
+hi	*	chào! (thân mật)	general
+high-profile	*	nổi bật; được công chúng chú ý	society
+him	*	anh ấy (làm tân ngữ)	people
+himself	*	chính anh ấy; tự anh ấy	people
+his	determiner	của anh ấy (đứng trước danh từ)	people
+his	pronoun	cái của anh ấy	people
+how	*	như thế nào; bằng cách nào	general
+however	conjunction	tuy nhiên; dù ... thế nào	general
+hundred	number	một trăm	general
+I	pronoun	tôi (đại từ làm chủ ngữ)	people
+if	*	nếu; liệu rằng	general
+in	preposition	ở trong	general
+including	*	bao gồm cả	general
+inside	preposition	ở phía trong	general
+instead of	*	thay vì	general
+into	preposition	vào bên trong	general
+it	*	nó (vật hoặc sự việc)	general
+its	*	của nó	general
+itself	*	chính nó; tự nó	general
+last	determiner	cuối cùng; vừa qua	time
+least	determiner	ít nhất về số lượng	general
+least	pronoun	phần ít nhất	general
+less	determiner	ít hơn về lượng	general
+less	pronoun	một lượng ít hơn	general
+like	preposition	giống như	general
+line-up	*	danh sách người hoặc tiết mục tham gia	general
+little	determiner	rất ít; một lượng nhỏ	general
+little	pronoun	một chút ít	general
+long-term	adverb	về lâu dài	time
+lot	adverb	nhiều; rất nhiều	general
+lot	determiner	một lượng lớn	general
+lot	pronoun	một số lượng lớn	general
+luxury	adjective	sang trọng; xa xỉ	work
+mainstream	adjective	thuộc dòng chính; phổ biến	society
+many	*	nhiều (với danh từ đếm được)	general
+may	modal verb	có thể; được phép	general
+me	pronoun	tôi (đại từ làm tân ngữ)	people
+media	noun	các phương tiện truyền thông	arts,society
+might	modal verb	có lẽ; có thể xảy ra	general
+million	number	một triệu	general
+mine	pronoun	cái của tôi	people
+more	*	nhiều hơn; thêm nữa	general
+most	*	nhiều nhất; phần lớn	general
+much	*	nhiều (với danh từ không đếm được)	general
+must	modal verb	phải; chắc hẳn	general
+my	*	của tôi	people
+myself	*	chính tôi; tự tôi	people
+near	preposition	ở gần	general
+neither	*	không bên nào trong hai bên	general
+next	noun	người hoặc thứ kế tiếp	time
+next to	*	ở ngay cạnh	general
+nine	number	số chín	general
+nineteen	number	số mười chín	general
+ninety	number	số chín mươi	general
+no	determiner	không có một ... nào	general
+no	exclamation	không! (lời phủ định)	general
+nobody	*	không một người nào	people
+none	*	không có cái nào; không có ai	general
+non-profit	*	phi lợi nhuận	society,work
+no one	*	chẳng có ai	people
+nor	*	cũng không; mà cũng không	general
+nothing	*	không có gì	general
+now	conjunction	bây giờ khi mà	time
+of	preposition	của; thuộc về	general
+off	preposition	rời khỏi; cách ra khỏi	general
+oh	*	ôi! (biểu lộ cảm xúc)	feelings
+OK	exclamation	được; đồng ý	general
+on	preposition	ở trên bề mặt	general
+once	conjunction	một khi; ngay khi	time
+one	determiner	một (đứng trước danh từ)	general
+one	number	số một	general
+one	pronoun	một người hoặc vật được nhắc đến	general
+online	adverb	trực tuyến; qua mạng	technology
+onto	*	lên trên một bề mặt	general
+opposite	preposition	ở đối diện	general
+or	*	hoặc; hay là	general
+other	pronoun	người hoặc thứ còn lại	general
+ought	modal verb	nên; phải nên	general
+our	*	của chúng tôi; của chúng ta	people
+ours	*	cái của chúng tôi	people
+ourselves	*	chính chúng tôi; tự chúng ta	people
+out	preposition	ra khỏi	general
+outside	preposition	ở bên ngoài	general
+over	preposition	ở phía trên; vượt qua	general
+overall	adverb	nhìn chung; xét tổng thể	general
+own	pronoun	cái riêng của một người	general
+past	preposition	qua khỏi; sau một thời điểm	time
+per	*	mỗi; tính theo từng	general
+per cent	*	phần trăm	general
+please	exclamation	làm ơn; xin vui lòng	general
+plenty	pronoun	một lượng dồi dào	general
+plus	conjunction	cộng thêm; và còn	general
+plus	preposition	cộng với	general
+podcast	*	chương trình âm thanh phát trên mạng	technology,arts
+rival	adjective	cạnh tranh; đối địch	general
+round	preposition	vòng quanh	general
+same	*	cùng một; giống hệt	general
+second	determiner	đứng ngay sau thứ nhất	general
+second	ordinal number	thứ hai trong thứ tự	general
+set-up	*	cách tổ chức; sự sắp đặt	general
+seven	number	số bảy	general
+seventeen	number	số mười bảy	general
+seventy	number	số bảy mươi	general
+several	*	một vài; một số	general
+shall	modal verb	sẽ (đề nghị hoặc dự định)	general
+she	*	cô ấy; bà ấy	people
+should	modal verb	nên; cần phải	general
+since	*	kể từ khi; vì	time
+six	number	số sáu	general
+sixteen	number	số mười sáu	general
+sixty	number	số sáu mươi	general
+ski	adjective	thuộc môn trượt tuyết	sports
+smartphone	*	điện thoại thông minh	technology
+so	conjunction	vì vậy; cho nên	general
+some	*	một vài; một ít	general
+somebody	*	một người nào đó	people
+someone	*	ai đó	people
+something	*	một điều gì đó	general
+somewhere	pronoun	một nơi nào đó	travel
+sorry	exclamation	xin lỗi! (lời xin lỗi)	feelings
+specialist	adjective	chuyên biệt; thuộc chuyên môn	work
+start-up	noun	doanh nghiệp khởi nghiệp	work
+start-up	adjective	thuộc giai đoạn khởi nghiệp	work
+state	adjective	thuộc nhà nước	society
+such	*	như vậy; như thế	general
+ten	number	số mười	general
+text	verb	nhắn tin bằng văn bản	technology
+than	*	hơn (dùng trong so sánh)	general
+thanks	exclamation	cảm ơn! (lời cảm ơn)	general
+that	adverb	đến mức ấy	general
+that	conjunction	rằng; để mà	general
+that	determiner	... đó; ... kia	general
+that	pronoun	người hoặc vật đó	general
+the	*	mạo từ chỉ người hoặc vật đã xác định	general
+their	*	của họ	people
+theirs	*	cái của họ	people
+them	*	họ (làm tân ngữ)	people
+themselves	*	chính họ; tự họ	people
+they	*	họ (làm chủ ngữ)	people
+third	ordinal number	thứ ba trong thứ tự	general
+thirteen	number	số mười ba	general
+thirty	number	số ba mươi	general
+this	adverb	đến mức này	general
+this	determiner	... này (đứng trước danh từ)	general
+this	pronoun	người hoặc vật này	general
+though	conjunction	tuy rằng; mặc dầu	general
+thousand	number	một nghìn	general
+three	number	số ba	general
+through	preposition	xuyên qua; thông qua	general
+throughout	*	khắp; trong suốt	general
+till	*	cho tới; cho đến khi	time
+to	infinitive marker	dấu hiệu trước động từ nguyên mẫu	general
+to	preposition	đến; tới	general
+towards	*	về phía; hướng tới	general
+toy	adjective	cỡ nhỏ; như đồ chơi	general
+trafficking	*	việc buôn bán trái phép	society
+trans	adjective	chuyển giới	people
+trillion	number	một nghìn tỷ	general
+twelve	number	số mười hai	general
+twenty	number	số hai mươi	general
+two	number	số hai	general
+under	preposition	bên dưới; ít hơn	general
+unless	*	trừ khi; nếu không	general
+unlike	*	không giống như	general
+until	*	cho đến lúc	time
+up	preposition	lên dọc theo	general
+upon	*	trên; ngay khi	general
+us	*	chúng tôi (làm tân ngữ)	people
+used to	*	đã từng (thói quen trong quá khứ)	time
+vegan	adjective	thuần chay	food
+versus	*	đối đầu với; so với	general
+via	*	qua; bằng đường	travel
+we	*	chúng tôi; chúng ta (làm chủ ngữ)	people
+welcome	exclamation	chào mừng!	general
+well	exclamation	ừm; nào (dẫn vào lời nói)	general
+what	*	cái gì; điều gì	general
+whatever	*	bất cứ điều gì; dù gì đi nữa	general
+whatsoever	*	chút nào (nhấn mạnh phủ định)	general
+when	*	khi nào; vào lúc mà	time
+whenever	*	bất cứ khi nào	time
+where	*	ở đâu; tại nơi mà	travel
+whereas	*	trong khi đó (đối lập)	general
+wherever	*	bất cứ nơi đâu	travel
+whether	*	liệu ... hay không	general
+which	*	cái nào; người nào	general
+while	conjunction	trong khi; còn thì	time
+whilst	*	trong lúc; trong khi	time
+who	*	ai (hỏi người làm chủ ngữ)	people
+whoever	*	bất kỳ ai mà	people
+whom	*	ai (đại từ làm tân ngữ)	people
+whose	*	của ai	people
+why	*	tại sao; vì sao	general
+wi-fi	*	mạng không dây Wi-Fi	technology
+with	*	với; cùng với	general
+within	*	trong phạm vi; trong vòng	general
+without	*	không có	general
+worldwide	adverb	trên toàn thế giới	general
+would	modal verb	sẽ; muốn (trong tình huống giả định)	general
+wow	*	ồ! (biểu lộ thán phục)	feelings
+yeah	*	ừ; vâng (thân mật)	general
+yes	*	vâng; có (lời khẳng định)	general
+yet	conjunction	tuy nhiên; nhưng mà	general
+you	*	bạn; các bạn	people
+your	*	của bạn	people
+yours	*	cái của bạn	people
+yourself	*	chính bạn; tự bạn	people
+zero	number	số không	general
+apple	noun	quả táo	food
+bread	noun	bánh mì	food
+carrot	noun	củ cà rốt	food
+cheese	noun	phô mai	food
+rice	noun	gạo; cơm	food
+milk	noun	sữa	food
+egg	noun	quả trứng	food
+beef	noun	thịt bò	food
+chicken	noun	thịt gà	food
+soup	noun	món súp	food
+sugar	noun	đường ăn	food
+salt	noun	muối	food
+butter	noun	bơ làm từ sữa	food
+honey	noun	mật ong	food
+onion	noun	củ hành tây	food
+potato	noun	khoai tây	food
+tomato	noun	quả cà chua	food
+banana	noun	quả chuối	food
+lemon	noun	quả chanh vàng	food
+noodle	noun	mì sợi	food
+pepper	noun	hạt tiêu	food
+yogurt	noun	sữa chua	food
+yoghurt	noun	sữa chua	food
+sausage	noun	xúc xích	food
+cabbage	noun	bắp cải	food
+recipe	noun	công thức nấu ăn	food
+ingredient	noun	nguyên liệu chế biến món ăn	food
+diet	noun	chế độ ăn uống	food
+vegetarian	noun	người ăn chay	food
+vegetarian	adjective	thuộc chế độ ăn chay	food
+spicy	adjective	cay; có nhiều gia vị	food
+delicious	adjective	ngon miệng	food
+meal	noun	bữa ăn	food
+flour	noun	bột mì	food
+bank	noun	ngân hàng	work
+passport	noun	hộ chiếu	travel
+ticket	noun	vé đi lại	travel
+airport	noun	sân bay	travel
+luggage	noun	hành lý	travel
+hotel	noun	khách sạn	travel
+station	noun	nhà ga	travel
+journey	noun	cuộc hành trình	travel
+map	noun	bản đồ	travel
+island	noun	hòn đảo	travel
+beach	noun	bãi biển	travel
+bridge	noun	cây cầu	travel
+train	noun	tàu hỏa	travel
+flight	noun	chuyến bay	travel
+suitcase	noun	va li	travel
+tourist	noun	khách du lịch	travel
+museum	noun	bảo tàng	travel,arts
+@lie2_1	verb	nói dối	general
+@march_2	noun	cuộc diễu hành; cuộc hành quân	society
+@ring1_1	noun	chiếc nhẫn; vòng tròn	clothing
+@ring2_2	noun	tiếng chuông	general
+@tear1_2	noun	vết rách	general
+@tear2_2	noun	giọt nước mắt	feelings
+alcohol	noun	rượu; cồn	food
+alcoholic	adjective	có cồn	food
+appetite	noun	sự thèm ăn	food
+bake	verb	nướng bằng lò	food
+beer	noun	bia	food
+biscuit	noun	bánh quy	food
+bitter	adjective	có vị đắng	food
+boil	verb	đun sôi	food
+bowl	noun	bát; tô	food
+breakfast	noun	bữa sáng	food
+cake	noun	bánh ngọt	food
+chef	noun	đầu bếp chuyên nghiệp	food,work
+chocolate	noun	sô-cô-la	food
+coffee	noun	cà phê	food
+cook	noun	người nấu ăn	food,work
+cook	verb	nấu ăn	food
+cooking	noun	việc nấu nướng	food
+cream	noun	kem sữa	food
+dairy	noun	sản phẩm từ sữa	food
+dessert	noun	món tráng miệng	food
+dinner	noun	bữa tối	food
+drink	noun	đồ uống	food
+drink	verb	uống	food
+eat	verb	ăn	food
+fish	noun	cá	food,nature
+flavour	noun	hương vị	food
+fork	noun	nĩa dùng khi ăn	food
+fresh	adjective	tươi; mới chế biến	food
+frozen	adjective	đông lạnh	food
+fruit	noun	trái cây	food,nature
+fry	verb	chiên; rán	food
+herb	noun	rau thơm; cây thảo mộc	food,nature
+hungry	adjective	đói bụng	food
+jam	noun	mứt trái cây	food
+juice	noun	nước ép	food
+kitchen	noun	nhà bếp	food,home
+knife	noun	con dao	food,home
+lunch	noun	bữa trưa	food
+meat	noun	thịt	food
+menu	noun	thực đơn	food
+nut	noun	hạt hoặc quả hạch ăn được	food,nature
+nutrition	noun	dinh dưỡng	food,health
+oven	noun	lò nướng	food,home
+pan	noun	chảo	food,home
+pizza	noun	bánh pizza	food
+plate	noun	đĩa đựng thức ăn	food
+raw	adjective	còn sống; chưa được nấu chín	food
+restaurant	noun	nhà hàng	food,travel
+sandwich	noun	bánh mì kẹp	food
+sauce	noun	nước xốt; nước chấm	food
+spice	noun	gia vị	food
+spoon	noun	thìa; muỗng	food
+sweet	adjective	có vị ngọt	food
+sweet	noun	kẹo; đồ ngọt	food
+taste	noun	vị của thức ăn	food
+taste	verb	nếm thử	food
+tea	noun	trà	food
+thirsty	adjective	khát nước	food
+vegan	noun	người ăn thuần chay	food,people
+vegetable	noun	rau củ	food
+waiter	noun	nhân viên phục vụ bàn	food,work
+water	noun	nước	food,nature
+water	verb	tưới nước cho cây	nature
+wine	noun	rượu vang	food
+train	verb	huấn luyện; đào tạo	education,sports,work
+book	verb	đặt chỗ trước	travel
+light	adjective	có ánh sáng; sáng	general
+rest	noun	phần còn lại	general
+rock	noun	đá; khối đá	nature
+kind	adjective	tốt bụng; tử tế	feelings
+kind	noun	loại; kiểu	general
+bear	noun	con gấu	nature
+bear	verb	chịu đựng	feelings
+mine	noun	mỏ khai thác	nature,work
+like	noun	sở thích; điều được yêu thích	feelings
+like	verb	thích	feelings
+race	noun	cuộc đua	sports

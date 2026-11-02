@@ -8,6 +8,7 @@ PixelVocabFlight/
 |   |-- Assets/
 |   |   |-- _Project/             Nội dung riêng của game
 |   |   |   |-- Scripts/
+|   |   |   |   |-- Art/          Sprite pixel tạo bằng C#
 |   |   |   |   |-- Core/
 |   |   |   |   |-- Aircraft/
 |   |   |   |   |-- Combat/
@@ -19,6 +20,8 @@ PixelVocabFlight/
 |   |   |   |   |-- UI/
 |   |   |   |   `-- Persistence/
 |   |   |   |-- Scenes/
+|   |   |   |   `-- Flight.unity  Scene của prototype
+|   |   |   |-- Editor/          Công cụ tạo scene và build
 |   |   |   |-- Prefabs/
 |   |   |   |   |-- Aircraft/
 |   |   |   |   |-- Items/
@@ -40,6 +43,7 @@ PixelVocabFlight/
 |   |   |   |       `-- US/
 |   |   |   |-- Data/
 |   |   |   |   |-- Vocabulary/
+|   |   |   |   |   `-- Resources/prototype-vocabulary.json
 |   |   |   |   `-- Settings/
 |   |   |   `-- UI/
 |   |   |       `-- Textures/
@@ -51,7 +55,12 @@ PixelVocabFlight/
 |   |-- 01-Game-Plan.md
 |   |-- 02-Folder-Structure.md
 |   |-- 03-Getting-Started.md
-|   `-- 04-Asset-Sources.md
+|   |-- 04-Asset-Sources.md
+|   |-- 05-Prototype-0.1.md
+|   |-- 06-Validation.md
+|   |-- 07-Oxford-Library.md
+|   |-- 08-Oxford-Validation.md
+|   `-- 09-Full-Oxford-5000.md
 |-- SourceAssets/                 File gốc để biên tập
 |   |-- PixelArt/
 |   |-- Audio/
@@ -60,6 +69,11 @@ PixelVocabFlight/
 |-- Builds/
 |   `-- Windows/                  Bản .exe và các file đi kèm sau này
 `-- Tools/                        Script hỗ trợ và log cục bộ
+    |-- Build-Windows.ps1
+    |-- Generate-Pronunciation.ps1
+    |-- RulesChecks/
+    |-- Smoke/                    Ảnh và báo cáo kiểm tra
+    `-- BuildWorkspace/           Bản sao/cache để build khi Editor đang mở
 ```
 
 ## Đặt file ở đâu?
