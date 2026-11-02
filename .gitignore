@@ -1,0 +1,33 @@
+# Unity-generated files
+/Game/[Ll]ibrary/
+/Game/[Tt]emp/
+/Game/[Oo]bj/
+/Game/[Ll]ogs/
+/Game/[Uu]ser[Ss]ettings/
+/Game/[Mm]emoryCaptures/
+/Game/[Rr]ecordings/
+/Game/[Bb]uild/
+/Game/[Bb]uilds/
+/Game/.vs/
+/Game/.idea/
+/Game/*.csproj
+/Game/*.sln
+/Game/*.slnx
+/Game/*.user
+/Game/*.pidb
+/Game/*.booproj
+/Game/*.opendb
+/Game/*.VC.db
+
+# Generated builds and local logs
+/Builds/**
+!/Builds/Windows/
+!/Builds/Windows/.gitkeep
+/Tools/*.log
+
+# Local secrets and operating system files
+.env
+.env.*
+!.env.example
+Thumbs.db
+.DS_Store
