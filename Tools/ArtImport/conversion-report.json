@@ -1,0 +1,20 @@
+[
+  {
+    "source": "stealth-bomber-pixel-art-style-260nw-2646708681.jpg",
+    "detectedFormat": "webp",
+    "destination": "UserEnemy.png",
+    "width": 260,
+    "height": 280,
+    "decodedPixelsIdentical": true,
+    "pixelSha256": "67f47829f0501c3a133afb93a21f1dc35588d71f5eabfe540a1780be50917237"
+  },
+  {
+    "source": "missile-pixel-art-style-260nw-2514365451.jpg",
+    "detectedFormat": "webp",
+    "destination": "UserMissile.png",
+    "width": 260,
+    "height": 280,
+    "decodedPixelsIdentical": true,
+    "pixelSha256": "17196254a4955b47a83e7b5268b051044f376a8fa5130a308d0da14e80c53560"
+  }
+]

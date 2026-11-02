@@ -30,6 +30,15 @@
 /Tools/Smoke-Oxford/
 /Tools/Smoke-FullOxford/
 /Tools/PdfAudit/node_modules/
+/Tools/ArtImport/node_modules/
+/Tools/Smoke-Continuous/
+/Tools/Smoke-Health/
+/Tools/Smoke-Hover/
+/Tools/Smoke-Hover-Final/
+/Tools/Smoke-Player-Carrier/
+/Tools/Smoke-Carrier-Route/
+/Tools/Smoke-Ocean/
+/Tools/Smoke-Heading/
 /Tools/BuildWorkspace/
 /SourceAssets/Vocabulary/Oxford/Raw/
 /SourceAssets/Vocabulary/Oxford/dictionary-commit.json

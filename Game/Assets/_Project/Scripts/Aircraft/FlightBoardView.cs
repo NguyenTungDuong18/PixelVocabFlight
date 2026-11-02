@@ -8,12 +8,19 @@ namespace PixelVocabFlight
     public sealed class FlightBoardView
     {
         public const float Width = 1360, Height = 548;
-        private sealed class EnemyVisual { public RectTransform Root; public Image Shield; }
-        private sealed class MissileVisual { public RectTransform Root; public Text Status; public Button[] Buttons; public RectTransform Marker; }
+        private sealed class EnemyVisual { public RectTransform Root; public Image Shield, Body; public Text Threat; }
+        private sealed class MissileVisual
+        {
+            public RectTransform Root, Marker;
+            public Text Status;
+            public Button[] Buttons;
+            public Image Body, Feedback;
+            public float Flash;
+        }
         private sealed class Effect { public RectTransform Rect; public float Remaining, Lifetime; public Vector2 Velocity; }
         private readonly RectTransform field, player;
         private readonly Image flame;
-        private readonly Sprite friendly, ring;
+        private readonly Sprite friendly, ring, damageFrame;
         private readonly FlightGame game;
         private readonly ScrollingTerrain terrain;
         private readonly Dictionary<int, EnemyVisual> enemies = new Dictionary<int, EnemyVisual>();
@@ -22,6 +29,18 @@ namespace PixelVocabFlight
         private readonly Dictionary<int, RectTransform> supplies = new Dictionary<int, RectTransform>();
         private readonly List<Effect> effects = new List<Effect>();
         private int focusedMissile;
+        private float hoverGrace;
+        private float wakeTimer;
+        public float OceanAnimationSeconds=>terrain.OceanAnimationSeconds;
+        public int OceanImageIndex=>terrain.OceanImageIndex;
+        public float CarrierVisualAngle(int id)=>carriers[id].localEulerAngles.z;
+        public Vector2 CarrierVisualScreenCenter(int id)=>RectTransformUtility.WorldToScreenPoint(null,carriers[id].TransformPoint(Vector3.zero));
+        public int OpenMissileId => focusedMissile;
+        public int VisibleMissilePopupCount => missiles.Values.Count(v => v.Root.gameObject.activeSelf);
+        public int BlastEffects { get; private set; }
+        public bool PointerOverMissile => missiles.Values.Any(v => ContainsPointer(v.Marker) || (v.Root.gameObject.activeSelf && ContainsPointer(v.Root)));
+        public bool IsMissileFlashing(int id) => missiles.TryGetValue(id, out var visual) && visual.Flash > 0;
+        public Vector2 MissilePopupChoiceScreenPoint(int id, int choice) => RectTransformUtility.WorldToScreenPoint(null, missiles[id].Buttons[choice].transform.TransformPoint(new Vector3(78,-17)));
         public void SetEnvironment(FlightEnvironment environment) => terrain.Snap(environment);
 
         public FlightBoardView(Transform parent, FlightGame game)
@@ -30,8 +49,9 @@ namespace PixelVocabFlight
             field = UiKit.Box("Wide flight field", parent, 40, 103, Width, Height, UiKit.Hex("102C34")).rectTransform;
             field.gameObject.AddComponent<RectMask2D>();
             terrain = new ScrollingTerrain(field, Width, Height);
-            friendly = PixelAircraft.Create(true);
+            friendly = UserArt.Player;
             ring = CreateRing();
+            damageFrame = CreateDamageFrame();
             player = UiKit.Rect("Pilot aircraft", field, Width * .5f - 33, Height * ContinuousFlight.PlayerY - 30, 66, 66);
             flame = UiKit.Box("Engine", player, 29, 48, 8, 20, UiKit.Orange);
             UiKit.Box("Player", player, 0, 0, 66, 66, Color.white).sprite = friendly;
@@ -58,7 +78,7 @@ namespace PixelVocabFlight
             foreach (var e in missiles.Values) { Object.Destroy(e.Root.gameObject); Object.Destroy(e.Marker.gameObject); }
             foreach (var e in supplies.Values) Object.Destroy(e.gameObject);
             foreach (var e in effects) Object.Destroy(e.Rect.gameObject);
-            enemies.Clear(); carriers.Clear(); missiles.Clear(); supplies.Clear(); effects.Clear(); focusedMissile = 0;
+            enemies.Clear(); carriers.Clear(); missiles.Clear(); supplies.Clear(); effects.Clear(); focusedMissile = 0; BlastEffects = 0;
         }
 
         public void Animate(float delta, ContinuousFlight flight, FlightEnvironment menuEnvironment)
@@ -68,7 +88,7 @@ namespace PixelVocabFlight
             if (flight != null)
             {
                 Place(player, flight.PlayerX, ContinuousFlight.PlayerY, 33, 30);
-                SyncEnemies(flight); SyncCarriers(flight); SyncMissiles(flight); SyncSupplies(flight);
+                SyncEnemies(flight); SyncCarriers(flight,delta); SyncMissiles(flight, delta); SyncSupplies(flight);
                 player.SetAsLastSibling();
             }
             for (int i = effects.Count - 1; i >= 0; i--)
@@ -93,87 +113,143 @@ namespace PixelVocabFlight
                 if (!enemies.TryGetValue(enemy.Id, out var visual))
                 {
                     var root = UiKit.Rect("Enemy " + enemy.Entry.word, field, 0, 0, 146, 88);
-                    var shield = UiKit.Box("Ice shield", root, 35, -6, 76, 76, UiKit.Hex("A4DDE9")); shield.sprite = ring;
-                    var body = UiKit.Box("Aircraft", root, 44, 1, 58, 58, Tint(enemy.Environment)); body.sprite = PixelAircraft.CreateEnemy(enemy.Environment);
+                    var shield = UiKit.Box("Ice shield", root, 27, -16, 92, 92, UiKit.Hex("A4DDE9")); shield.sprite = ring;
+                    var body = UiKit.Box("Selected bomber artwork", root, 32, -14, 82, 88, Color.white); body.sprite = UserArt.Enemy;
                     body.rectTransform.pivot = new Vector2(.5f, .5f); body.rectTransform.anchoredPosition = new Vector2(73, -30);
                     body.rectTransform.localEulerAngles = new Vector3(0, 0, 180);
                     var plate = UiKit.Box("English word", root, 0, 43, 146, 26, UiKit.Ink);
                     var word = UiKit.Label(enemy.Entry.word, plate.transform, 4, 0, 138, 26, 19, UiKit.Cream, true, TextAnchor.MiddleCenter);
                     word.resizeTextForBestFit = true; word.resizeTextMinSize = 10; word.resizeTextMaxSize = 19;
-                    UiKit.Label(enemy.RequiresPartOfSpeech ? "+ TỪ LOẠI" : enemy.Environment == FlightEnvironment.Ice ? "BĂNG" : "", root, 0, 69, 146, 15, 9, UiKit.Muted, true, TextAnchor.MiddleCenter);
-                    visual = new EnemyVisual { Root = root, Shield = shield }; enemies.Add(enemy.Id, visual);
+                    var threat = UiKit.Label("", root, 0, 69, 146, 15, 10, UiKit.Coral, true, TextAnchor.MiddleCenter);
+                    visual = new EnemyVisual { Root = root, Shield = shield, Body = body, Threat = threat }; enemies.Add(enemy.Id, visual);
                 }
                 visual.Shield.gameObject.SetActive(enemy.Health > 1);
                 float scale = Mathf.Clamp(Mathf.Sqrt(40f / Mathf.Max(40, flight.Enemies.Count)), .55f, 1);
                 visual.Root.localScale = new Vector3(scale, scale, 1);
-                Place(visual.Root, enemy.X, enemy.Y, 73 * scale, 0);
+                Place(visual.Root, enemy.X, enemy.Y, 73 * scale, 30 * scale);
+                visual.Threat.text = enemy.Charging ? (enemy.ChargeDelay > 0 ? "! CHUẨN BỊ LAO TỚI !" : "LAO TỚI / NÉ!") : enemy.RequiresPartOfSpeech ? "+ TỪ LOẠI" : enemy.Environment == FlightEnvironment.Ice ? "BĂNG" : "";
+                visual.Body.color = enemy.Charging && Time.unscaledTime % .3f < .15f ? UiKit.Coral : Color.white;
+                visual.Body.rectTransform.localEulerAngles = new Vector3(0, 0, enemy.Charging ? Vector2.SignedAngle(Vector2.up, new Vector2(enemy.VelocityX * Width, -enemy.VelocityY * Height)) : 180);
             }
         }
 
-        private void SyncCarriers(ContinuousFlight flight)
+        private void SyncCarriers(ContinuousFlight flight,float delta)
         {
+            wakeTimer+=delta;bool wake=wakeTimer>=.35f;if(wake)wakeTimer=0;
             foreach (int id in carriers.Keys.Where(id => !flight.Carriers.Any(e => e.Id == id)).ToArray())
             { Object.Destroy(carriers[id].gameObject); carriers.Remove(id); }
             foreach (var carrier in flight.Carriers)
             {
                 if (!carriers.TryGetValue(carrier.Id, out var rect))
                 {
-                    rect = UiKit.Rect("Carrier", field, 0, 0, 66, 150);
-                    UiKit.Box("Hull", rect, 6, 0, 50, 143, UiKit.Hex("607A82"));
-                    UiKit.Box("Deck", rect, 10, 8, 42, 127, UiKit.Hex("344D58"));
-                    for (int i = 0; i < 7; i++) UiKit.Box("Runway", rect, 28, 12 + i * 17, 3, 9, UiKit.Cream);
-                    UiKit.Box("Bridge", rect, 49, 40, 15, 32, UiKit.Muted);
-                    UiKit.Label("CV", rect, 8, 109, 38, 20, 11, UiKit.Cream, true);
-                    carriers.Add(carrier.Id, rect); rect.SetSiblingIndex(4);
+                    rect = UiKit.Rect("Carrier 78", field, 0, 0, 144, 204);
+                    rect.pivot = new Vector2(.5f,.5f);
+                    var body = UiKit.Box("Selected carrier artwork", rect, 0, 0, 144, 204, Color.white);
+                    body.sprite = UserArt.Carrier;
+                    body.preserveAspect = true;
+                    carriers.Add(carrier.Id, rect); rect.SetSiblingIndex(1);
                 }
-                Place(rect, carrier.X, carrier.Y, 33, 0);
+                Place(rect, carrier.X, carrier.Y);
+                rect.localEulerAngles=new Vector3(0,0,180+carrier.HeadingDegrees);
+                if(wake&&(Mathf.Abs(carrier.VelocityX)+Mathf.Abs(carrier.VelocityY)>.002f))
+                {
+                    float angle=carrier.HeadingDegrees*Mathf.Deg2Rad;
+                    terrain.Wake(carrier.X-Mathf.Sin(angle)*95/Width,carrier.Y-Mathf.Cos(angle)*95/Height);
+                }
             }
         }
 
-        private void SyncMissiles(ContinuousFlight flight)
+        private static bool ContainsPointer(RectTransform rect)
+        {
+            var mouse = UnityEngine.InputSystem.Mouse.current;
+            return mouse != null && RectTransformUtility.RectangleContainsScreenPoint(rect, mouse.position.ReadValue(), null);
+        }
+
+        public void FlashMissile(int id)
+        {
+            if (missiles.TryGetValue(id, out var visual)) visual.Flash = .36f;
+        }
+
+        private void SyncMissiles(ContinuousFlight flight, float delta)
         {
             foreach (int id in missiles.Keys.Where(id => !flight.Missiles.Any(e => e.Id == id)).ToArray())
             { Object.Destroy(missiles[id].Root.gameObject); Object.Destroy(missiles[id].Marker.gameObject); missiles.Remove(id); }
-            if (!flight.Missiles.Any(m => m.Id == focusedMissile)) focusedMissile = flight.Missiles.FirstOrDefault()?.Id ?? 0;
+            if (!flight.Missiles.Any(m => m.Id == focusedMissile && !m.Failed)) focusedMissile = 0;
             foreach (var missile in flight.Missiles)
             {
                 if (!missiles.TryGetValue(missile.Id, out var visual))
                 {
-                    var root = UiKit.Rect("Missile quiz " + missile.Id, field, 0, 0, 302, 157);
-                    UiKit.Box("Missile card", root, 0, 0, 302, 157, UiKit.Hex("172935"));
-                    var clue = UiKit.Label(missile.Answer.meaning, root, 8, 1, 286, 42, 16, UiKit.Orange, true, TextAnchor.MiddleCenter);
-                    clue.resizeTextForBestFit = true; clue.resizeTextMinSize = 11; clue.resizeTextMaxSize = 16;
-                    UiKit.Box("Rocket", root, 145, 71, 12, 34, UiKit.Coral);
-                    UiKit.Box("Nose", root, 148, 65, 6, 10, UiKit.Cream);
-                    UiKit.Box("Exhaust", root, 147, 105, 8, 12, UiKit.Orange);
+                    var marker = UiKit.Rect("Missile compact " + missile.Id, field, 0, 0, 188, 120);
+                    var body = UiKit.Box("Selected missile artwork", marker, 54, 0, 80, 86, Color.white);
+                    body.sprite = UserArt.Missile;
+                    body.rectTransform.pivot = new Vector2(.5f,.5f); body.rectTransform.anchoredPosition = new Vector2(94,-43);
+                    var plate = UiKit.Box("Vietnamese on missile", marker, 2, 34, 184, 46, UiKit.Ink);
+                    var clue = UiKit.Label(missile.Answer.meaning, plate.transform, 4, 1, 176, 44, 17, UiKit.Orange, true, TextAnchor.MiddleCenter);
+                    clue.resizeTextForBestFit = true; clue.resizeTextMinSize = 10; clue.resizeTextMaxSize = 17;
+                    var feedback = UiKit.Box("Wrong answer red edges", marker, -3, -7, 194, 113, Color.clear);
+                    feedback.sprite = damageFrame;
+
+                    var popup = UiKit.Box("Missile hover choices " + missile.Id, field, 0, 0, 342, 143, UiKit.Hex("172935")).rectTransform;
+                    var title = UiKit.Label("CHỌN TỪ TIẾNG ANH", popup, 10, 4, 322, 25, 12, UiKit.Muted, true);
                     var buttons = new Button[4];
                     for (int i = 0; i < 4; i++)
                     {
                         int choice = i, id = missile.Id;
-                        buttons[i] = UiKit.Button(missile.Choices[i].word, root, i % 2 == 0 ? 6 : 166, 45 + i / 2 * 40, 130, 34, UiKit.Line, UiKit.Cream, () => game.AnswerMissile(id, choice));
-                        var label = buttons[i].GetComponentInChildren<Text>(); label.fontSize = 15; label.resizeTextForBestFit = true; label.resizeTextMinSize = 10; label.resizeTextMaxSize = 15;
+                        buttons[i] = UiKit.Button(missile.Choices[i].word, popup, 9+(i%2)*167, 34+(i/2)*39, 157, 34, UiKit.Line, UiKit.Cream, () => game.AnswerMissile(id,choice));
+                        var label = buttons[i].GetComponentInChildren<Text>();
+                        label.resizeTextForBestFit = true; label.resizeTextMinSize = 10; label.resizeTextMaxSize = 16;
                     }
-                    var status = UiKit.Label("", root, 6, 125, 203, 25, 11, UiKit.Coral, true, TextAnchor.MiddleCenter);
-                    UiKit.Button("ĐỔI TL →", root, 214, 127, 81, 24, UiKit.Line, UiKit.Cream, () =>
-                    {
-                        int current = flight.Missiles.ToList().FindIndex(m => m.Id == focusedMissile);
-                        if (flight.Missiles.Count > 0) focusedMissile = flight.Missiles[(current + 1) % flight.Missiles.Count].Id;
-                    }).GetComponentInChildren<Text>().fontSize = 10;
-                    int markerId = missile.Id;
-                    var marker = UiKit.Button("!", field, 0, 0, 30, 38, UiKit.Coral, UiKit.Ink, () => focusedMissile = markerId).GetComponent<RectTransform>();
-                    visual = new MissileVisual { Root = root, Status = status, Buttons = buttons, Marker = marker }; missiles.Add(missile.Id, visual);
+                    var status = UiKit.Label("", popup, 10, 113, 322, 24, 12, UiKit.Coral, true, TextAnchor.MiddleCenter);
+                    popup.gameObject.SetActive(false);
+                    visual = new MissileVisual { Root=popup, Marker=marker, Body=body, Feedback=feedback, Status=status, Buttons=buttons };
+                    missiles.Add(missile.Id,visual);
                 }
-                bool focused = missile.Id == focusedMissile;
-                // The quiz surrounds the actual rocket; blast coordinates match its position.
-                float x = Mathf.Clamp(missile.X * Width - 151, 0, Width - 302);
-                visual.Root.anchoredPosition = new Vector2(x, -missile.Y * Height + 90);
-                visual.Root.gameObject.SetActive(focused); visual.Marker.gameObject.SetActive(!focused);
-                Place(visual.Marker, missile.X, missile.Y, 15, 19);
+                Place(visual.Marker,missile.X,missile.Y,94,43);
+                visual.Flash = Mathf.Max(0,visual.Flash-delta);
+                float flash = visual.Flash/.36f;
+                float shake = Mathf.Sin(visual.Flash*90)*5*flash;
+                visual.Body.rectTransform.anchoredPosition = new Vector2(94+shake,-43);
+                visual.Body.rectTransform.localEulerAngles = new Vector3(0,0,Vector2.SignedAngle(new Vector2(1,1),new Vector2(missile.VelocityX*Width,-missile.VelocityY*Height)));
+                visual.Body.color = flash>0 ? Color.Lerp(Color.white,UiKit.Coral,flash*.6f) : missile.Failed ? UiKit.Coral : Color.white;
+                visual.Feedback.color = new Color(1,.12f,.08f,.85f*flash);
+                visual.Status.text = (flight.Driving ? "Tab: sang BẮN để chọn · " : "") + "SAI " + missile.WrongAttempts + "/3";
+                foreach (var button in visual.Buttons) button.interactable = !flight.Driving && !missile.Failed;
                 visual.Marker.SetAsLastSibling();
-                visual.Status.text = (flight.Driving ? "SANG BẮN · " : "") + "SAI " + missile.WrongAttempts + "/3 · " + flight.Missiles.Count + " TÊN LỬA";
-                foreach (var button in visual.Buttons) button.interactable = !flight.Driving;
-                visual.Root.SetAsLastSibling();
             }
+
+            bool overOpen = focusedMissile != 0 && missiles.TryGetValue(focusedMissile,out var open) &&
+                (ContainsPointer(open.Marker) || (open.Root.gameObject.activeSelf && ContainsPointer(open.Root)));
+            if (overOpen) hoverGrace=.16f;
+            else
+            {
+                var hovered = flight.Missiles.LastOrDefault(m => !m.Failed && ContainsPointer(missiles[m.Id].Marker));
+                if (hovered != null)
+                {
+                    focusedMissile=hovered.Id;hoverGrace=.16f;
+                    // Freeze the popup where it opens while the actual projectile keeps flying.
+                    float x=Mathf.Clamp(hovered.X*Width-171,8,Width-350);
+                    float y=hovered.Y*Height+55;
+                    if(y+143>Height-8)y=hovered.Y*Height-175;
+                    missiles[focusedMissile].Root.anchoredPosition=new Vector2(x,-Mathf.Clamp(y,8,Height-151));
+                }
+                else { hoverGrace-=delta; if(hoverGrace<=0)focusedMissile=0; }
+            }
+            foreach(var pair in missiles)
+            {
+                pair.Value.Root.gameObject.SetActive(pair.Key==focusedMissile);
+                if(pair.Key==focusedMissile)pair.Value.Root.SetAsLastSibling();
+            }
+        }
+
+        private static Sprite CreateDamageFrame()
+        {
+            var texture=new Texture2D(64,64,TextureFormat.RGBA32,false){filterMode=FilterMode.Bilinear};
+            for(int y=0;y<64;y++)for(int x=0;x<64;x++)
+            {
+                float edge=Mathf.Min(Mathf.Min(x,63-x),Mathf.Min(y,63-y));
+                texture.SetPixel(x,y,new Color(1,1,1,Mathf.Clamp01(1-edge/13)));
+            }
+            texture.Apply();return Sprite.Create(texture,new Rect(0,0,64,64),new Vector2(.5f,.5f));
         }
 
         private void SyncSupplies(ContinuousFlight flight)
@@ -214,6 +290,7 @@ namespace PixelVocabFlight
 
         public void Blast(float x, float y)
         {
+            BlastEffects++;
             float radius = ContinuousFlight.BlastRadius * Width;
             var rect = UiKit.Box("Blast radius", field, x * Width - radius, y * Height - radius, radius * 2, radius * 2, UiKit.Orange).rectTransform;
             rect.GetComponent<Image>().sprite = ring;

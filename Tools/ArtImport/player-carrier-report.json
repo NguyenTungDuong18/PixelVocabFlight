@@ -1,0 +1,42 @@
+[
+  {
+    "file": "UserPlayer.png",
+    "width": 1254,
+    "height": 1254,
+    "hasAlpha": true,
+    "transparentPixels": 1066625,
+    "opaquePixels": 2700,
+    "cornerTransparent": true,
+    "sha256": "966304ad615f4312ba74bc0b79bfb996a4405291c40b8fc2b856a716cac7c0f4"
+  },
+  {
+    "file": "UserCarrier.png",
+    "width": 1086,
+    "height": 1448,
+    "hasAlpha": true,
+    "transparentPixels": 974862,
+    "opaquePixels": 993,
+    "cornerTransparent": true,
+    "sha256": "52942274b76a0a6c7006165af9ad81309b8073a71b55bf663162cca72be007b7"
+  },
+  {
+    "file": "UserEnemy.png",
+    "width": 1254,
+    "height": 1254,
+    "hasAlpha": true,
+    "transparentPixels": 1055286,
+    "opaquePixels": 2396,
+    "cornerTransparent": true,
+    "sha256": "1aaf76ae11c9e84fe1fbaf92d66064088d8f2af85c50270b5116d9704a9a1556"
+  },
+  {
+    "file": "UserMissile.png",
+    "width": 1254,
+    "height": 1254,
+    "hasAlpha": true,
+    "transparentPixels": 1122973,
+    "opaquePixels": 2394,
+    "cornerTransparent": true,
+    "sha256": "819cd7f23aa19a4167a64ae9b8865c2134fe818454cb1d82b9017b6f40028aec"
+  }
+]

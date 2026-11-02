@@ -10,7 +10,7 @@ using UnityEngine.InputSystem.LowLevel;
 
 namespace PixelVocabFlight
 {
-    public sealed class FlightGame : MonoBehaviour
+    public sealed partial class FlightGame : MonoBehaviour
     {
         private enum Mode { Menu, Flying, Paused, Dying, Results, Error }
         private Mode mode;
@@ -79,12 +79,13 @@ namespace PixelVocabFlight
             if (mode != Mode.Flying) return;
             if (keyboard != null && keyboard.tabKey.wasPressedThisFrame) ToggleControlMode();
             flight.MovePlayer(view.Board.PointerX(flight.PlayerX));
-            Cursor.visible = !flight.Driving || !view.Board.PointerOverField;
+            Cursor.visible = !flight.Driving || !view.Board.PointerOverField || view.Board.PointerOverMissile;
             flight.Tick(Time.deltaTime);
             DrainEvents();
             view.Board.Animate(Time.deltaTime, flight, StartingEnvironment);
             if (progress.IsOver)
             {
+                view.Refresh(flight);
                 if (progress.Health <= 0) { mode = Mode.Dying; endingTimer = .7f; Cursor.visible = true; }
                 else EndFlight();
                 return;
@@ -165,7 +166,7 @@ namespace PixelVocabFlight
             if (poolError != null) { ShowMenu(poolError); return; }
             audioPlayer.Stop(); speech.Clear(); voiceRemaining = 0; Time.timeScale = 1;
             // New rules have a separate leaderboard from the old three-aircraft waves.
-            bestKey = "continuous-v1:" + StartingEnvironment + ":" + VocabularyQuery.SelectionKey(pool);
+            bestKey = "collision-v2:" + StartingEnvironment + ":" + VocabularyQuery.SelectionKey(pool);
             flightPool = pool; SaveSelection();
             flight = new ContinuousFlight(pool, System.Environment.TickCount, StartingEnvironment);
             progress = flight.Progress; firstTry = 0; mistakes.Clear(); reviewWords.Clear(); typed = "";
@@ -225,24 +226,33 @@ namespace PixelVocabFlight
                 {
                     case FlightEventKind.Retarget: typed = ""; view.SetQuestion(ev.Entry, flight.TargetChanges); break;
                     case FlightEventKind.Wrong:
+                    case FlightEventKind.MissileWrong:
                         if (ev.Entry != null) { mistakes.Add(ev.Entry.id); if (!reviewWords.Any(e => e.id == ev.Entry.id)) reviewWords.Add(ev.Entry); }
-                        audioPlayer.Wrong(); view.Feedback("Chưa đúng. Kiểm tra từ, từ loại hoặc lựa chọn tên lửa.", true); break;
+                        if (ev.Kind == FlightEventKind.MissileWrong) { view.Board.FlashMissile(ev.EntityId); audioPlayer.MissileReject(); }
+                        else audioPlayer.Wrong();
+                        view.Feedback("Chưa đúng. Kiểm tra từ, từ loại hoặc lựa chọn tên lửa.", true); break;
                     case FlightEventKind.Hit:
                         view.Board.Hit(ev.X, ev.Y, ev.Value == 0, flight.PlayerX);
                         if (ev.Value > 0) { audioPlayer.Success(); view.Feedback("Đã phá khiên băng. Nghĩa chuyển sang một máy bay khác."); }
                         break;
                     case FlightEventKind.Kill:
                         bool first = !mistakes.Contains(ev.Entry.id); if (first) firstTry++;
-                        view.Log(ev.Entry, true); audioPlayer.Success(); speech.Enqueue(ev.Entry);
+                        view.Log(ev.Entry, true); audioPlayer.Success();
+                        if (ev.ShouldPronounce) speech.Enqueue(ev.Entry);
                         profile.Record(ev.Entry, true, first, bestKey, progress.Score);
                         view.Feedback(ev.Entry.word + "  +" + ev.Value + " điểm"); break;
                     case FlightEventKind.Pickup:
-                        audioPlayer.Pickup(); view.Feedback(ev.Supply == SupplyKind.Roll ? "Đón R+ thành công: +1 lượt đổi nghĩa." : ev.Supply == SupplyKind.Fuel ? "+50 xăng" : "+1 kim loại"); break;
+                        audioPlayer.Pickup(); view.Feedback(ev.Supply == SupplyKind.Roll ? "Đón R+ thành công: +1 lượt đổi nghĩa." : ev.Supply == SupplyKind.Fuel ? "+50 xăng" : "+1 kim loại / hồi 1 máu (tối đa 5)"); break;
                     case FlightEventKind.MissileBlast:
                         view.Board.Blast(ev.X, ev.Y); audioPlayer.Success(); view.Feedback("Tên lửa nổ! Máy bay trong vòng nổ bị hạ, kể cả còn khiên."); break;
                     case FlightEventKind.MissileFailure:
-                        view.Board.FatalMissile(ev.X, ev.Y, flight.PlayerX);
-                        view.Feedback("Sai tên lửa 3 lần: máy bay bị phá hủy.", true); break;
+                        view.Feedback("Sai 3 lần: tên lửa tăng tốc! Sang LÁI để né; trúng mất 2 kim loại.", true); break;
+                    case FlightEventKind.AircraftImpact:
+                    case FlightEventKind.MissileImpact:
+                        view.Board.Burst(ev.X, ev.Y, UiKit.Coral, 20); audioPlayer.Wrong();
+                        view.Feedback((ev.Kind == FlightEventKind.MissileImpact ? "Tên lửa trúng!" : "Máy bay địch đâm trúng!") + " −" + ev.Value + " kim loại / còn " + progress.Metal + "/5 máu.", true);
+                        if (ev.Entry != null && !reviewWords.Any(e => e.id == ev.Entry.id)) reviewWords.Add(ev.Entry);
+                        break;
                 }
             }
         }
@@ -254,76 +264,6 @@ namespace PixelVocabFlight
         }
         public void ToggleMute() { if (!audioPlayer) return; audioPlayer.ToggleMute(); view.SetMuted(audioPlayer.Muted); EventSystem.current?.SetSelectedGameObject(null); }
         private void EndFlight() { mode = Mode.Results; Cursor.visible = true; view.ShowResults(progress, firstTry, profile.Best(bestKey), reviewWords); }
-
-        private IEnumerator SmokeTest()
-        {
-            // Bounded checks in a real built player, separate save file and deterministic fixtures.
-            string[] args = System.Environment.GetCommandLineArgs(); int at = Array.IndexOf(args, "--smoke-output");
-            string output = at >= 0 && at + 1 < args.Length ? args[at + 1] : Application.persistentDataPath;
-            Directory.CreateDirectory(output); var checks = new List<string>();
-            SelectFullOxford(); ReturnToMenu();
-            yield return new WaitForSecondsRealtime(.4f);
-            bool captured = view.Capture(Path.Combine(output, "01-hangar.png"));
-            SelectFullOxford(); yield return null;
-            checks.Add(selection.to == catalog.Entries.Length ? "full-library:PASS" : "full-library:FAIL");
-            captured &= view.Capture(Path.Combine(output, "02-vocabulary.png"));
-            selection.minimumLevel = selection.maximumLevel = 2; selection.topics = new[] { "food" }; ResetSelectionRange();
-            checks.Add(catalog.Filter(selection).All(e => e.cefr == "B1" && e.topics.Contains("food")) ? "filter:PASS" : "filter:FAIL");
-            SelectFullOxford(); StartingEnvironment = FlightEnvironment.Desert; StartFlight(); yield return new WaitForSecondsRealtime(.5f);
-            var qaMouse = InputSystem.AddDevice<Mouse>("Wordwing QA pointer");
-            InputSystem.QueueStateEvent(qaMouse, new MouseState { position = view.Board.ScreenPoint(.22f, .6f) });
-            yield return null; yield return null;
-            checks.Add(Math.Abs(flight.PlayerX - .22f) < .01 ? "mouse-controls-horizontal-drive:PASS" : "mouse-controls-horizontal-drive:FAIL");
-            int initial = flight.Enemies.Count; int targetId = flight.Target.Id;
-            flight.Tick(10.1f); DrainEvents();
-            checks.Add(flight.Enemies.Count == initial + 2 && flight.Target.Id == targetId ? "continuous-spawn-sticky-target:PASS" : "continuous-spawn-sticky-target:FAIL");
-            yield return SmokeType(flight.Target.Entry.word);
-            checks.Add(progress.Correct == 0 ? "driving-blocks-fire:PASS" : "driving-blocks-fire:FAIL");
-            yield return SmokeKey(Key.Tab);
-            float fixedX = flight.PlayerX;
-            InputSystem.QueueStateEvent(qaMouse, new MouseState { position = view.Board.ScreenPoint(.82f, .4f) });
-            yield return null; yield return null;
-            checks.Add(!flight.Driving && Math.Abs(flight.PlayerX-fixedX)<.001 ? "tab-switches-mode-and-freezes-position:PASS" : "tab-switches-mode-and-freezes-position:FAIL");
-            view.SelectPartOfSpeech(""); yield return SmokeType(flight.Target.Entry.word);
-            checks.Add(progress.Correct == 0 && progress.WrongAttempts == 1 ? "desert-requires-pos:PASS" : "desert-requires-pos:FAIL");
-            view.SelectPartOfSpeech(flight.Target.Entry.pos); yield return new WaitForSecondsRealtime(.3f); yield return SmokeType(flight.Target.Entry.word);
-            checks.Add(progress.Correct == 1 && flight.Enemies.Count >= 2 ? "typing-kill-retains-other-aircraft:PASS" : "typing-kill-retains-other-aircraft:FAIL");
-            yield return null; captured &= view.Capture(Path.Combine(output, "03-desert.png"));
-            int old = flight.Target.Id; int rolls = flight.Rolls; RollMeaning();
-            checks.Add(flight.Target.Id != old && flight.Rolls == rolls - 1 ? "roll:PASS" : "roll:FAIL");
-            TogglePause(); double time = progress.ActiveSeconds; yield return new WaitForSecondsRealtime(.3f);
-            checks.Add(progress.ActiveSeconds == time ? "pause:PASS" : "pause:FAIL");
-            captured &= view.Capture(Path.Combine(output, "04-paused.png")); TogglePause();
-            ReturnToMenu(); StartingEnvironment = FlightEnvironment.Ice; StartFlight(); flight.Tick(10); DrainEvents(); ToggleControlMode();
-            var shield = flight.Target; yield return new WaitForSecondsRealtime(.3f); yield return SmokeType(shield.Entry.word);
-            checks.Add(flight.Enemies.Contains(shield) && shield.Health == 1 && flight.Target != shield ? "ice-shield-and-retarget:PASS" : "ice-shield-and-retarget:FAIL");
-            yield return null; captured &= view.Capture(Path.Combine(output, "05-ice.png"));
-            ReturnToMenu(); StartingEnvironment = FlightEnvironment.Jungle; StartFlight(); flight.Tick(24); DrainEvents();
-            yield return null; captured &= view.Capture(Path.Combine(output, "06-jungle.png"));
-            ReturnToMenu(); StartingEnvironment = FlightEnvironment.Ocean; StartFlight();
-            // Seeded ocean fixture guarantees a carrier in the bounded QA run.
-            flight = new ContinuousFlight(flightPool, 42, FlightEnvironment.Ocean); progress = flight.Progress;
-            int guard = 0; while (flight.Missiles.Count < 2 && guard++ < 300) flight.Tick(1);
-            DrainEvents(); flight.SetDriving(false); view.Refresh(flight); yield return null;
-            captured &= view.Capture(Path.Combine(output, "07-ocean-missiles.png"));
-            bool ocean = flight.Carriers.Count > 0 && flight.Missiles.Count >= 2;
-            checks.Add(ocean ? "ocean-carrier-missiles:PASS" : "ocean-carrier-missiles:FAIL");
-            if (ocean)
-            {
-                var missile = flight.Missiles[0]; AnswerMissile(missile.Id, missile.CorrectIndex); yield return null;
-                captured &= view.Capture(Path.Combine(output, "08-blast.png"));
-                checks.Add(!flight.Missiles.Contains(missile) ? "missile-correct:PASS" : "missile-correct:FAIL");
-                missile = flight.Missiles[0]; int wrong = (missile.CorrectIndex + 1) % 4;
-                AnswerMissile(missile.Id, wrong); AnswerMissile(missile.Id, wrong);
-                checks.Add(!progress.IsOver && missile.WrongAttempts == 2 ? "missile-two-errors-survive:PASS" : "missile-two-errors-survive:FAIL");
-                AnswerMissile(missile.Id, wrong); yield return new WaitForSecondsRealtime(.9f);
-                checks.Add(mode == Mode.Results ? "missile-third-error-gameover:PASS" : "missile-third-error-gameover:FAIL");
-            }
-            yield return null; captured &= view.Capture(Path.Combine(output, "09-results.png"));
-            checks.Add(captured ? "screenshots:PASS" : "screenshots:FAIL");
-            File.WriteAllText(Path.Combine(output, "smoke-report.json"), "{\n  \"version\": \"0.4.0\",\n  \"checks\": [" + string.Join(",", checks.Select(c => "\"" + c + "\"")) + "]\n}");
-            Application.Quit(checks.Any(c => c.EndsWith(":FAIL")) ? 1 : 0);
-        }
 
         private IEnumerator SmokeType(string value)
         {

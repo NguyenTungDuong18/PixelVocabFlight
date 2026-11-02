@@ -12,6 +12,9 @@ namespace PixelVocabFlight
         private AudioClip good;
         private AudioClip wrong;
         private AudioClip pickup;
+        private AudioClip missileReject;
+        public int MissileRejectCount { get; private set; }
+        public int PronunciationCount { get; private set; }
         public bool Muted { get; private set; }
 
         public void Initialize(VocabularyEntry[] entries)
@@ -23,6 +26,7 @@ namespace PixelVocabFlight
             good = Tone("Confirmed", 680, 1100, 0.17f);
             wrong = Tone("Retry", 170, 95, 0.12f);
             pickup = Tone("Pickup", 900, 1500, 0.15f);
+            missileReject = Tone("Missile rejected", 290, 140, .16f);
         }
 
         public float Say(VocabularyEntry entry)
@@ -44,11 +48,13 @@ namespace PixelVocabFlight
             }
             voice.clip = clip;
             voice.Play();
+            PronunciationCount++;
             return clip.length;
         }
 
         public void Success() => effects.PlayOneShot(good);
         public void Wrong() => effects.PlayOneShot(wrong);
+        public void MissileReject() { MissileRejectCount++; effects.PlayOneShot(missileReject, .7f); }
         public void Pickup() => effects.PlayOneShot(pickup);
         public void Pause(bool paused) { if (paused) { voice.Pause(); effects.Pause(); } else { voice.UnPause(); effects.UnPause(); } }
         public void Stop() { voice.Stop(); effects.Stop(); }

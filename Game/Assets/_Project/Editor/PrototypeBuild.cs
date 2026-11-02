@@ -54,7 +54,8 @@ namespace PixelVocabFlight.Editor
         public static void BuildWindows()
         {
             if (!File.Exists(ScenePath)) CreateScene();
-            PlayerSettings.bundleVersion = "0.4.0";
+            ConfigureUserArt();
+            PlayerSettings.bundleVersion = "0.10.0";
             AssetDatabase.SaveAssets();
             string projectRoot = Path.GetFullPath(Path.Combine(Application.dataPath, "../.."));
             string output = Path.Combine(projectRoot, "Builds", "Windows", "Wordwing.exe");
@@ -70,6 +71,24 @@ namespace PixelVocabFlight.Editor
             if (report.summary.result != BuildResult.Succeeded)
                 throw new InvalidOperationException("Windows build failed: " + report.summary.totalErrors + " errors.");
             Debug.Log("WORDWING: Windows build succeeded: " + output);
+        }
+
+        private static void ConfigureUserArt()
+        {
+            foreach (string name in new[] { "Art/UserEnemy", "Art/UserMissile", "Art/UserPlayer", "Art/UserCarrier", "Ocean/Ocean01", "Ocean/Ocean02", "Ocean/Ocean03", "Ocean/OceanWide" })
+            {
+                string path = "Assets/_Project/Art/Resources/" + name + ".png";
+                var importer = AssetImporter.GetAtPath(path) as TextureImporter;
+                if (!importer) throw new InvalidOperationException("Missing selected artwork: " + path);
+                importer.textureType = TextureImporterType.Default;
+                importer.npotScale = TextureImporterNPOTScale.None;
+                importer.filterMode = FilterMode.Point;
+                importer.wrapMode = name=="Ocean/OceanWide"?TextureWrapMode.Repeat:TextureWrapMode.Clamp;
+                importer.mipmapEnabled = false;
+                importer.textureCompression = TextureImporterCompression.Uncompressed;
+                importer.maxTextureSize = 2048;
+                importer.SaveAndReimport();
+            }
         }
     }
 }

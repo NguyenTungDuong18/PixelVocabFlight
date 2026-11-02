@@ -2,7 +2,7 @@
 
 Game bắn máy bay pixel art học từ vựng tiếng Anh, viết bằng C# và Unity.
 
-**Trạng thái:** bản 0.4 chuyển sang chuyến bay liên tục: sinh một máy bay mỗi 5 giây, bốn môi trường luân phiên mỗi 3 phút, chế độ lái/bắn, tên lửa, vật phẩm ngẫu nhiên và lượt đổi nghĩa. Có hangar xem máy bay trước khi cất cánh. Kho Oxford 5000 vẫn có 5.981 mục học, nghĩa Việt, phát âm offline và bộ lọc CEFR/chủ đề/khoảng thứ tự.
+**Trạng thái:** bản 0.10 sửa tàu xoay mũi tại chỗ trước khi rời đi, thân tàu đi đúng hướng mũi. Nền biển gốc được giảm kích thước khoảng 35%, có thêm lớp biển rộng đồng phong cách để phủ kín hai bên. Xem [thay đổi và kiểm tra 0.10](Docs/16-Carrier-Heading-and-Ocean-Scale.md). Giữ thời gian thả quân 20 giây, nhịp sinh 12 giây, tên lửa giảm tốc 20%, hiệu ứng nước, sprite trong suốt và đủ 5.981 mục học Oxford.
 
 Tên hiển thị trong game: **WORDWING**. Thư mục dự án vẫn là `PixelVocabFlight`.
 
@@ -14,7 +14,7 @@ Tên hiển thị trong game: **WORDWING**. Thư mục dự án vẫn là `Pixel
 4. Đợi Unity hoàn tất nhập asset và package ở lần mở đầu.
 5. Mở scene `Assets/_Project/Scenes/Flight.unity`, rồi nhấn Play.
 
-Bản chạy độc lập nằm ở `Builds/Windows/Wordwing.exe`. Đọc [luật chơi và kiểm tra bản 0.4](Docs/10-Continuous-Flight.md). Trong chuyến bay, rê chuột ngang để lái; nhấn **Tab** hoặc công tắc để chuyển sang bắn, rồi gõ từ + **Enter**. Sa mạc cần chọn thêm từ loại. Xem [hướng dẫn thư viện và chọn bộ học](Docs/07-Oxford-Library.md). Tài liệu 0.1–0.3 lưu lại lịch sử; cơ chế theo đợt trong bản đầu đã được thay thế.
+Bản chạy độc lập nằm ở `Builds/Windows/Wordwing.exe`. Đọc [thay đổi tên lửa và phát âm bản 0.6](Docs/12-Missile-Hover-and-Audio.md), [máu và va chạm bản 0.5](Docs/11-Metal-Health.md) và [môi trường, chọn từ bản 0.4](Docs/10-Continuous-Flight.md). Trong chuyến bay, rê chuột ngang để lái; nhấn **Tab** hoặc công tắc để chuyển sang bắn, rồi gõ từ + **Enter**. Sa mạc cần chọn thêm từ loại. Rê vào tên lửa để mở đáp án. Khi địch báo lao tới, chuyển sang lái để né. Xem [hướng dẫn thư viện và chọn bộ học](Docs/07-Oxford-Library.md). Tài liệu phiên bản cũ lưu lại lịch sử; ưu tiên luật của phiên bản mới hơn.
 
 Xem [đối chiếu trọn bộ và thay đổi bản 0.3](Docs/09-Full-Oxford-5000.md). Mở lại game sau khi cập nhật; nút **TOÀN BỘ OXFORD 5000** chọn toàn kho bằng một lần bấm.
 

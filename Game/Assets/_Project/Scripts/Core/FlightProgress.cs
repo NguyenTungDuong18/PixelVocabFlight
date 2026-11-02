@@ -7,13 +7,15 @@ namespace PixelVocabFlight
     {
         public double ActiveSeconds { get; private set; }
         public float Fuel { get; private set; } = 100;
-        public int Health { get; private set; } = 3;
+        public const int MaximumMetal = 5;
+        public int Health => Metal;
         public int Score { get; private set; }
         public int Correct { get; private set; }
         public int WrongAttempts { get; private set; }
         public int Missed { get; private set; }
         public int Streak { get; private set; }
-        public int Metal { get; private set; }
+        public int Metal { get; private set; } = MaximumMetal;
+        public int UpgradePickups { get; private set; }
         public float PowerSeconds { get; private set; }
         public bool IsOver => Health <= 0 || Fuel <= 0;
         public bool Powered => PowerSeconds > 0;
@@ -47,15 +49,23 @@ namespace PixelVocabFlight
         public void CollectMetal()
         {
             if (IsOver) return;
-            Metal++;
-            if (Metal >= 5)
+            Metal = Math.Min(MaximumMetal, Metal + 1);
+            UpgradePickups++;
+            if (UpgradePickups >= 5)
             {
-                Metal -= 5;
+                UpgradePickups = 0;
                 PowerSeconds = Math.Min(24, PowerSeconds + 12);
             }
         }
 
-        public void Lose() { Health = 0; Streak = 0; }
+        public int Damage(int amount)
+        {
+            if (IsOver || amount <= 0) return 0;
+            int lost = Math.Min(Metal, amount);
+            Metal -= lost;
+            Streak = 0;
+            return lost;
+        }
 
         public void CollectFuel(float amount)
         {
@@ -65,7 +75,7 @@ namespace PixelVocabFlight
         public void Miss()
         {
             if (IsOver) return;
-            Health = Math.Max(0, Health - 1);
+            Damage(1);
             Missed++;
             Streak = 0;
         }

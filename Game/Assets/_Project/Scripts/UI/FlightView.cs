@@ -18,6 +18,7 @@ namespace PixelVocabFlight
         private readonly RectTransform root, overlay;
         private readonly Text score, combo, clock, speed, health, fuelValue, metal, power, question, kind, input, feedback, wave, topic, region, recent;
         private readonly Image fuelFill;
+        private readonly Image[] hullCells = new Image[FlightProgress.MaximumMetal];
         private readonly Text muteLabel, controlLabel, rollLabel;
         private readonly Button fireButton, rollButton;
         private readonly Dropdown pos;
@@ -53,12 +54,13 @@ namespace PixelVocabFlight
             UiKit.Box("Divider", root, 40, 91, 1360, 1, UiKit.Line);
             Board = new FlightBoardView(root, game);
             UiKit.Box("Telemetry", root, 40, 657, 1360, 37, UiKit.Panel);
-            health = UiKit.Label("GIÁP 03", root, 53, 660, 126, 30, 14, UiKit.Cream, true);
+            health = UiKit.Label("MÁU", root, 53, 660, 45, 30, 12, UiKit.Cream, true);
+            for (int i = 0; i < hullCells.Length; i++) hullCells[i] = UiKit.Box("Metal health " + (i+1), root, 104+i*15, 668, 11, 16, UiKit.Mint);
             fuelValue = UiKit.Label("XĂNG 100%", root, 190, 660, 146, 30, 14, UiKit.Mint, true);
             UiKit.Box("Fuel track", root, 337, 672, 100, 5, UiKit.Line);
             fuelFill = UiKit.Box("Fuel level", root, 337, 672, 100, 5, UiKit.Mint);
-            metal = UiKit.Label("KIM LOẠI 0/5", root, 463, 660, 174, 30, 14, UiKit.Cream, true);
-            power = UiKit.Label("5 mảnh → cường hóa 12s", root, 651, 660, 290, 30, 13, UiKit.Muted);
+            metal = UiKit.Label("KIM LOẠI 5/5", root, 463, 660, 174, 30, 14, UiKit.Cream, true);
+            power = UiKit.Label("Nhặt kim loại để hồi máu", root, 651, 660, 290, 30, 13, UiKit.Muted);
             clock = UiKit.Label("00:00", root, 1000, 660, 124, 30, 15, UiKit.Cream, true, TextAnchor.MiddleRight);
             speed = UiKit.Label("TỐC ĐỘ 100%", root, 1144, 660, 242, 30, 13, UiKit.Muted, true, TextAnchor.MiddleRight);
             UiKit.Box("Question panel", root, 40, 705, 1360, 151, UiKit.Panel);
@@ -102,9 +104,9 @@ namespace PixelVocabFlight
             preview.gameObject.AddComponent<RectMask2D>(); hangarTerrain = new ScrollingTerrain(preview, 510, 488);
             UiKit.Label("01 / YOUR AIRCRAFT", preview, 24, 17, 450, 26, 14, UiKit.Mint, true);
             for (int i = 0; i < 7; i++) UiKit.Box("Hangar runway", preview, 252, 65 + i * 53, 4, 24, new Color(1, 1, 1, .13f));
-            UiKit.Box("Pilot preview aircraft", preview, 151, 110, 208, 208, Color.white).sprite = PixelAircraft.Create(true);
+            UiKit.Box("Pilot preview aircraft", preview, 151, 110, 208, 208, Color.white).sprite = UserArt.Player;
             UiKit.Label("SKYLARK / 01", preview, 35, 354, 440, 39, 25, UiKit.Cream, true, TextAnchor.MiddleCenter);
-            UiKit.Label("Di chuyển ngang bằng chuột\nĐổi sang BẮN để nhập từ tiếng Anh", preview, 35, 403, 440, 58, 17, UiKit.Muted, false, TextAnchor.MiddleCenter);
+            UiKit.Label("5 KIM LOẠI = 5 MÁU\nTab: đổi LÁI/BẮN · Chuột: di chuyển", preview, 35, 403, 440, 58, 17, UiKit.Muted, false, TextAnchor.MiddleCenter);
             UiKit.Label("VÙNG BẮT ĐẦU", panel, 580, 135, 650, 26, 13, UiKit.Muted, true);
             string[] descriptions = { "Sinh máy bay nhanh hơn 30%", "Nhập từ + chọn đúng từ loại", "Khiên băng: cần hai lần bắn đúng", "Tàu sân bay + tên lửa bốn lựa chọn" };
             for (int i = 0; i < 4; i++)
@@ -119,7 +121,7 @@ namespace PixelVocabFlight
             UiKit.Label("BỘ HỌC: " + count.ToString("N0") + " MỤC  ·  3 LƯỢT ĐỔI MIỄN PHÍ", panel, 580, 537, 660, 34, 17, UiKit.Mint, true);
             UiKit.Button("CHỌN TỪ VỰNG / CHỦ ĐỀ", panel, 580, 586, 660, 49, UiKit.Line, UiKit.Cream, game.OpenVocabulary);
             UiKit.Button("CẤT CÁNH →", panel, 580, 653, 660, 55, UiKit.Mint, UiKit.Ink, game.StartFlight);
-            UiKit.Label("BẢN 0.4 / CHUYẾN BAY LIÊN TỤC", panel, 32, 659, 510, 35, 13, UiKit.Muted, true);
+            UiKit.Label("BẢN 0.10 / NHỊP SINH 12 GIÂY", panel, 32, 659, 510, 35, 13, UiKit.Muted, true);
         }
 
         public void AnimateHangar(float delta, FlightEnvironment environment) => hangarTerrain?.Animate(delta, environment, .25f);
@@ -139,7 +141,7 @@ namespace PixelVocabFlight
             string text = "Danh mục từ, từ loại và CEFR: Oxford Learner’s Dictionaries, Oxford 3000/5000.\nhttps://www.oxfordlearnersdictionaries.com/wordlists/oxford3000-5000\nĐây không phải sản phẩm Oxford chính thức; không sao chép định nghĩa hoặc audio Oxford.\n\n" +
                 "Dữ liệu từ điển: thichhoc.com (thichhoc-dict), giấy phép CC BY-SA 4.0.\nhttps://github.com/thichhoc-org/thichhoc-dict\nNguồn gốc: WordNet 3.1 (Princeton), CMUdict (CMU), Wiktionary.\nĐã chọn/lược nghĩa, ghép danh mục CEFR, thêm chủ đề và mục biên soạn.\n\n" +
                 "Phần nghĩa Việt phái sinh giữ CC BY-SA 4.0; ghi nguồn và giấy phép đầy đủ nằm trong Attribution đi kèm game. Nguồn beta chưa được duyệt toàn bộ.\n\n" +
-                "Phát âm: giọng máy Microsoft David en-US tạo cục bộ. Chủ đề do game phân loại. Nền và máy bay pixel được tạo bằng mã trong game.";
+                "Phát âm: giọng máy Microsoft David en-US tạo cục bộ. Chủ đề do game phân loại.\nNền biển: ba ảnh người dùng cung cấp; các vùng khác tạo bằng mã. Sprite địch/tên lửa tạo bằng imagegen. Máy bay người chơi từ maybayta.jpg; tàu từ Pixel-Art Aircraft Carrier 78.png, chuẩn bị nền bằng imagegen.";
             UiKit.Label(text, panel, 35, 100, 950, 465, 18, UiKit.Muted);
             UiKit.Button("QUAY LẠI CHỌN BỘ TỪ", panel, 35, 586, 950, 52, UiKit.Mint, UiKit.Ink, game.OpenVocabulary);
         }
@@ -157,7 +159,7 @@ namespace PixelVocabFlight
             var panel = ClearOverlay(255, 130, 930, 640);
             UiKit.Box("Accent", panel, 0, 0, 930, 4, UiKit.Orange);
             UiKit.Label("CHUYẾN BAY ĐÃ KẾT THÚC", panel, 40, 29, 850, 34, 15, UiKit.Orange, true);
-            UiKit.Label(progress.Health <= 0 ? "TÊN LỬA ĐÃ PHÁ HỦY MÁY BAY." : "HẾT NHIÊN LIỆU.", panel, 40, 80, 850, 67, 30, UiKit.Cream, true);
+            UiKit.Label(progress.Health <= 0 ? "HẾT KIM LOẠI. MÁY BAY BỊ PHÁ HỦY." : "HẾT NHIÊN LIỆU.", panel, 40, 80, 850, 67, 30, UiKit.Cream, true);
             UiKit.Label(progress.Score.ToString("N0"), panel, 40, 160, 360, 90, 67, UiKit.Mint, true);
             UiKit.Label("ĐIỂM CHUYẾN BAY", panel, 43, 251, 350, 27, 13, UiKit.Muted, true);
             UiKit.Label("HẠ ĐÚNG: " + progress.Correct + "\nKỶ LỤC BỘ NÀY: " + best.ToString("N0"), panel, 450, 174, 400, 80, 21, UiKit.Cream, true);
@@ -197,11 +199,12 @@ namespace PixelVocabFlight
         {
             var p = flight.Progress;
             score.text = p.Score.ToString("000000"); combo.text = "COMBO ×" + GameRules.ComboMultiplier(p.Streak).ToString("0.00") + "  /  HẠ " + p.Correct;
-            health.text = "GIÁP " + p.Health.ToString("00");
+            health.text = "MÁU";
+            for (int i = 0; i < hullCells.Length; i++) hullCells[i].color = i < p.Metal ? (p.Metal <= 2 ? UiKit.Coral : UiKit.Mint) : UiKit.Line;
             fuelValue.text = "XĂNG " + Mathf.CeilToInt(p.Fuel) + "%";
             fuelFill.rectTransform.sizeDelta = new Vector2(100 * p.Fuel / 100, 5); fuelFill.color = p.Fuel < 20 ? UiKit.Coral : UiKit.Mint;
             metal.text = "KIM LOẠI " + p.Metal + "/5";
-            power.text = p.Powered ? "CƯỜNG HÓA " + Mathf.CeilToInt(p.PowerSeconds) + "s / ĐIỂM ×1.5" : "5 mảnh → cường hóa 12s";
+            power.text = p.Powered ? "CƯỜNG HÓA " + Mathf.CeilToInt(p.PowerSeconds) + "s / ĐIỂM ×1.5" : "Hồi 1 máu/mảnh · tiếp tế " + p.UpgradePickups + "/5";
             int seconds = (int)p.ActiveSeconds; clock.text = (seconds / 60).ToString("00") + ":" + (seconds % 60).ToString("00");
             speed.text = "TỐC ĐỘ " + Mathf.RoundToInt(GameRules.SpeedMultiplier(p.ActiveSeconds) * 100) + "%";
             region.text = EnvironmentNames[(int)flight.Environment] + "  /  " + flight.Enemies.Count + " MÁY BAY";
