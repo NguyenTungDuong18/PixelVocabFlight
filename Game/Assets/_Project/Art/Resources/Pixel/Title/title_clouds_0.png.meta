@@ -1,0 +1,678 @@
+fileFormatVersion: 2
+guid: d96c32051ebdabb48abe64483724ac8f
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -5393046546281921033
+    second: title_clouds_0_0
+  - first:
+      213: -5113942998826834243
+    second: title_clouds_0_1
+  - first:
+      213: 5327836440680757230
+    second: title_clouds_0_2
+  - first:
+      213: 507654101508608447
+    second: title_clouds_0_3
+  - first:
+      213: 8318481404197349652
+    second: title_clouds_0_4
+  - first:
+      213: 7077329178171351233
+    second: title_clouds_0_5
+  - first:
+      213: -4966476259497435059
+    second: title_clouds_0_6
+  - first:
+      213: 3685653112078302338
+    second: title_clouds_0_7
+  - first:
+      213: -3599833156282056352
+    second: title_clouds_0_8
+  - first:
+      213: 8885336252747753136
+    second: title_clouds_0_9
+  - first:
+      213: -3326210297004351800
+    second: title_clouds_0_10
+  - first:
+      213: 6055487837141674200
+    second: title_clouds_0_11
+  - first:
+      213: 1270942040091012256
+    second: title_clouds_0_12
+  - first:
+      213: 4749158758679796360
+    second: title_clouds_0_13
+  - first:
+      213: -7285288035203829095
+    second: title_clouds_0_14
+  - first:
+      213: 7303807394626519637
+    second: title_clouds_0_15
+  - first:
+      213: -105568709619250634
+    second: title_clouds_0_16
+  - first:
+      213: 6560484575007063691
+    second: title_clouds_0_17
+  - first:
+      213: 2582029047403866195
+    second: title_clouds_0_18
+  - first:
+      213: -4565452668822146104
+    second: title_clouds_0_19
+  - first:
+      213: -1438242705993922487
+    second: title_clouds_0_20
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 0
+    wrapV: 0
+    wrapW: 0
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationMethod: 0
+  spriteTessellationDetail: -1
+  spriteGeometrySubdivision: -1
+  textureType: 0
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: title_clouds_0_0
+      rect:
+        serializedVersion: 2
+        x: 41
+        y: 106
+        width: 209
+        height: 119
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7f508bf5dbc0825b0800000000000000
+      internalID: -5393046546281921033
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: title_clouds_0_1
+      rect:
+        serializedVersion: 2
+        x: 303
+        y: 211
+        width: 16
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: db6a459ffef9709b0800000000000000
+      internalID: -5113942998826834243
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: title_clouds_0_2
+      rect:
+        serializedVersion: 2
+        x: 23
+        y: 183
+        width: 7
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ee77824c30740f940800000000000000
+      internalID: 5327836440680757230
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: title_clouds_0_3
+      rect:
+        serializedVersion: 2
+        x: 250
+        y: 176
+        width: 59
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fb1d03537bc8b0700800000000000000
+      internalID: 507654101508608447
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: title_clouds_0_4
+      rect:
+        serializedVersion: 2
+        x: 252
+        y: 109
+        width: 75
+        height: 67
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 41920ef83ce217370800000000000000
+      internalID: 8318481404197349652
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: title_clouds_0_5
+      rect:
+        serializedVersion: 2
+        x: 333
+        y: 170
+        width: 8
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1c02967e369b73260800000000000000
+      internalID: 7077329178171351233
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: title_clouds_0_6
+      rect:
+        serializedVersion: 2
+        x: 351
+        y: 144
+        width: 8
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d40ae3fc728831bb0800000000000000
+      internalID: -4966476259497435059
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: title_clouds_0_7
+      rect:
+        serializedVersion: 2
+        x: 57
+        y: 91
+        width: 10
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 28c7dbe5af1162330800000000000000
+      internalID: 3685653112078302338
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: title_clouds_0_8
+      rect:
+        serializedVersion: 2
+        x: 132
+        y: 66
+        width: 99
+        height: 59
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 061822d21d2da0ec0800000000000000
+      internalID: -3599833156282056352
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: title_clouds_0_9
+      rect:
+        serializedVersion: 2
+        x: 218
+        y: 105
+        width: 17
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0b62eeece3e0f4b70800000000000000
+      internalID: 8885336252747753136
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: title_clouds_0_10
+      rect:
+        serializedVersion: 2
+        x: 75
+        y: 65
+        width: 10
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8ce1fce9b5de6d1d0800000000000000
+      internalID: -3326210297004351800
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: title_clouds_0_11
+      rect:
+        serializedVersion: 2
+        x: 236
+        y: 79
+        width: 17
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8d82782ca1a690450800000000000000
+      internalID: 6055487837141674200
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: title_clouds_0_12
+      rect:
+        serializedVersion: 2
+        x: 266
+        y: 64
+        width: 13
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0ac2cbd3d0b43a110800000000000000
+      internalID: 1270942040091012256
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: title_clouds_0_13
+      rect:
+        serializedVersion: 2
+        x: 148
+        y: 42
+        width: 14
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 88a5b099ab668e140800000000000000
+      internalID: 4749158758679796360
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: title_clouds_0_14
+      rect:
+        serializedVersion: 2
+        x: 205
+        y: 49
+        width: 17
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 992b54f812575ea90800000000000000
+      internalID: -7285288035203829095
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: title_clouds_0_15
+      rect:
+        serializedVersion: 2
+        x: 284
+        y: 37
+        width: 16
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 552c590d0265c5560800000000000000
+      internalID: 7303807394626519637
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: title_clouds_0_16
+      rect:
+        serializedVersion: 2
+        x: 167
+        y: 17
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 63a8fb361d1f88ef0800000000000000
+      internalID: -105568709619250634
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: title_clouds_0_17
+      rect:
+        serializedVersion: 2
+        x: 195
+        y: 23
+        width: 8
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b8eb9b746f58b0b50800000000000000
+      internalID: 6560484575007063691
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: title_clouds_0_18
+      rect:
+        serializedVersion: 2
+        x: 284
+        y: 12
+        width: 17
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3586f3a0db535d320800000000000000
+      internalID: 2582029047403866195
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: title_clouds_0_19
+      rect:
+        serializedVersion: 2
+        x: 156
+        y: 0
+        width: 76
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8c33ffb8cf044a0c0800000000000000
+      internalID: -4565452668822146104
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: title_clouds_0_20
+      rect:
+        serializedVersion: 2
+        x: 302
+        y: 0
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9488f6801e55a0ce0800000000000000
+      internalID: -1438242705993922487
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      title_clouds_0_0: -5393046546281921033
+      title_clouds_0_1: -5113942998826834243
+      title_clouds_0_10: -3326210297004351800
+      title_clouds_0_11: 6055487837141674200
+      title_clouds_0_12: 1270942040091012256
+      title_clouds_0_13: 4749158758679796360
+      title_clouds_0_14: -7285288035203829095
+      title_clouds_0_15: 7303807394626519637
+      title_clouds_0_16: -105568709619250634
+      title_clouds_0_17: 6560484575007063691
+      title_clouds_0_18: 2582029047403866195
+      title_clouds_0_19: -4565452668822146104
+      title_clouds_0_2: 5327836440680757230
+      title_clouds_0_20: -1438242705993922487
+      title_clouds_0_3: 507654101508608447
+      title_clouds_0_4: 8318481404197349652
+      title_clouds_0_5: 7077329178171351233
+      title_clouds_0_6: -4966476259497435059
+      title_clouds_0_7: 3685653112078302338
+      title_clouds_0_8: -3599833156282056352
+      title_clouds_0_9: 8885336252747753136
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

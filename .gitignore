@@ -51,3 +51,10 @@
 !.env.example
 Thumbs.db
 .DS_Store
+
+/Tools/UnityCompileChecks/bin/
+/Tools/UnityCompileChecks/obj/
+
+/Tools/Smoke-Interactions/
+/Tools/Smoke-War-*/
+/Tools/Smoke-Pixel-*/

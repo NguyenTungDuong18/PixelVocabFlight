@@ -30,7 +30,7 @@ internal static class CombatChecks
         stream.Tick(11.9f);Check(stream.Enemies.Count==1,"no second aircraft before twelve seconds");
         stream.Tick(.2f);Check(stream.Enemies.Count==2&&stream.Target==original,"twelve-second spawn preserves target and old plane");
         Check(!stream.Submit(original.Entry.word,original.Entry.pos),"driving cannot fire");
-        stream.MovePlayer(10);Check(Math.Abs(stream.PlayerX-.955f)<.0001,"horizontal movement clamped");
+        stream.MovePlayer(10);stream.Tick(.6f);Check(Math.Abs(stream.PlayerX-.955f)<.0001,"horizontal movement clamped");
         stream.SetDriving(false);stream.MovePlayer(.1f);Check(Math.Abs(stream.PlayerX-.955f)<.0001,"shooting locks position");
         Check(!stream.Submit(original.Entry.word,"verb")&&stream.Target==original,"desert requires correct part of speech");
         var distractor=stream.Enemies.First(e=>e!=original);

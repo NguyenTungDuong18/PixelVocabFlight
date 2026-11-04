@@ -1,5 +1,7 @@
 # Pixel Vocab Flight
 
+**Bản 0.13 — Pixel 1944:** toàn bộ máy bay, tàu, rocket, tiếp tế, hiệu ứng và giao diện được vẽ lại thành pixel art lấy cảm hứng Thế chiến II, lưu từng khung hình trong `Game/Assets/_Project/Art/Resources/Pixel`. Màn hình chờ mới là sân bay dã chiến nhìn từ trên xuống, chọn chiến trường bằng phím 1–4 và cất cánh bằng Enter. Đã thống nhất thuật ngữ GIÁP, đổi tia laser thành đạn vạch, thêm rung màn hình khi trúng đòn. Đã build Windows và qua 54/54 smoke test. Xem [báo cáo 0.13](Docs/18-Pixel-Art-1944.md); vẽ lại đồ họa bằng `node Tools/PixelForge/forge.cjs`. Các mục phiên bản cũ bên dưới giữ lại để tra lịch sử.
+
 Game bắn máy bay pixel art học từ vựng tiếng Anh, viết bằng C# và Unity.
 
 **Trạng thái:** bản 0.10 sửa tàu xoay mũi tại chỗ trước khi rời đi, thân tàu đi đúng hướng mũi. Nền biển gốc được giảm kích thước khoảng 35%, có thêm lớp biển rộng đồng phong cách để phủ kín hai bên. Xem [thay đổi và kiểm tra 0.10](Docs/16-Carrier-Heading-and-Ocean-Scale.md). Giữ thời gian thả quân 20 giây, nhịp sinh 12 giây, tên lửa giảm tốc 20%, hiệu ứng nước, sprite trong suốt và đủ 5.981 mục học Oxford.

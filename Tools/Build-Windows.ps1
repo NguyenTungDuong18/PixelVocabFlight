@@ -14,6 +14,9 @@ $sceneHashBefore = Get-SourceHash $sourceScene
 $workingGame = Join-Path $PSScriptRoot 'BuildWorkspace\Game'
 New-Item -ItemType Directory -Path $workingGame -Force | Out-Null
 foreach ($folder in @('Assets', 'Packages', 'ProjectSettings')) {
+    # Mirror (not merge) so assets deleted from the source project never reach the build.
+    $target = Join-Path $workingGame $folder
+    if (Test-Path -LiteralPath $target) { Remove-Item -LiteralPath $target -Recurse -Force }
     Copy-Item -LiteralPath (Join-Path $sourceGame $folder) -Destination $workingGame -Recurse -Force
 }
 $outputExe = Join-Path $projectRoot 'Builds\Windows\Wordwing.exe'

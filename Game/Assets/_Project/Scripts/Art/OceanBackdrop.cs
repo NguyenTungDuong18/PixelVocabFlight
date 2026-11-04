@@ -14,7 +14,7 @@ namespace PixelVocabFlight
         private readonly CanvasGroup alpha;
         private readonly RawImage[] water = new RawImage[2];
         private readonly RawImage extension;
-        public const float SourceImageScale=.65f;
+        public const float SourceImageScale=1f;
         private readonly Image[] glints = new Image[30];
         private readonly Vector2[] glintPositions = new Vector2[30];
         private readonly List<Ripple> ripples = new List<Ripple>();
@@ -34,7 +34,7 @@ namespace PixelVocabFlight
                 textures=new Texture2D[3];
                 for(int i=0;i<3;i++)
                 {
-                    textures[i]=Resources.Load<Texture2D>("Ocean/Ocean0"+(i+1));
+                    textures[i]=PixelTerrain.Get(FlightEnvironment.Ocean,i);
                     if(!textures[i])throw new InvalidOperationException("Thiếu ảnh biển Ocean0"+(i+1));
                     textures[i].filterMode=FilterMode.Point;textures[i].wrapMode=TextureWrapMode.Clamp;
                 }
@@ -42,7 +42,7 @@ namespace PixelVocabFlight
             if(!ring)ring=MakeRing();
             if(!wideTexture)
             {
-                wideTexture=Resources.Load<Texture2D>("Ocean/OceanWide");
+                wideTexture=PixelTerrain.Get(FlightEnvironment.Ocean,3);
                 if(!wideTexture)throw new InvalidOperationException("Thiếu ảnh biển mở rộng OceanWide");
                 wideTexture.filterMode=FilterMode.Point;wideTexture.wrapMode=TextureWrapMode.Repeat;
             }
@@ -70,13 +70,13 @@ namespace PixelVocabFlight
         public void Animate(float delta,float visibility,float multiplier)
         {
             opacity=visibility;root.gameObject.SetActive(visibility>.001f);
-            alpha.alpha=visibility*.82f;
+            alpha.alpha=visibility;
             if(visibility<=.001f)return;
             time+=delta*Mathf.Lerp(.85f,1.1f,Mathf.InverseLerp(1,1.5f,multiplier));
             int index=CurrentImage;float phase=time%30;
             float tileHeight=height*1.4f,tileWidth=tileHeight*wideTexture.width/wideTexture.height;
             extension.uvRect=new Rect(Mathf.Sin(time*.02f)*.02f,Mathf.Repeat(time*.032f,1),width/tileWidth,height/tileHeight);
-            extension.color=new Color(.72f,.9f,1,1);
+            extension.color=Color.white;
             float blend=Mathf.SmoothStep(0,1,Mathf.Clamp01((phase-25)/5));
             SetLayer(water[0],textures[index],phase/30,1);
             SetLayer(water[1],textures[(index+1)%3],0,blend);
@@ -112,7 +112,7 @@ namespace PixelVocabFlight
             image.texture=texture;
             float visibleHeight=Mathf.Clamp01(height/(width*SourceImageScale*texture.height/texture.width));
             image.uvRect=new Rect(0,(1-visibleHeight)*Mathf.Clamp01(progress),1,visibleHeight);
-            image.color=new Color(.72f,.9f,1,alpha);
+            image.color=new Color(1,1,1,alpha);
         }
 
         public void Wake(float x,float y)

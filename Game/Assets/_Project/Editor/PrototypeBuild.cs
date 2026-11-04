@@ -54,8 +54,8 @@ namespace PixelVocabFlight.Editor
         public static void BuildWindows()
         {
             if (!File.Exists(ScenePath)) CreateScene();
-            ConfigureUserArt();
-            PlayerSettings.bundleVersion = "0.10.0";
+            ConfigurePixelArt();
+            PlayerSettings.bundleVersion = "0.13.0";
             AssetDatabase.SaveAssets();
             string projectRoot = Path.GetFullPath(Path.Combine(Application.dataPath, "../.."));
             string output = Path.Combine(projectRoot, "Builds", "Windows", "Wordwing.exe");
@@ -73,22 +73,24 @@ namespace PixelVocabFlight.Editor
             Debug.Log("WORDWING: Windows build succeeded: " + output);
         }
 
-        private static void ConfigureUserArt()
+        // Every frame listed in the PixelForge manifest must exist and import as a point-filtered pixel grid.
+        private static void ConfigurePixelArt()
         {
-            foreach (string name in new[] { "Art/UserEnemy", "Art/UserMissile", "Art/UserPlayer", "Art/UserCarrier", "Ocean/Ocean01", "Ocean/Ocean02", "Ocean/Ocean03", "Ocean/OceanWide" })
+            const string manifest = SelectedArtImporter.PixelFolder + "pixel-manifest.json";
+            if (!File.Exists(manifest)) throw new InvalidOperationException("Missing " + manifest + ". Run: node Tools/PixelForge/forge.cjs");
+            if (!File.Exists("Assets/_Project/Art/Resources/Fonts/VT323-Regular.ttf")) throw new InvalidOperationException("Missing pixel font VT323-Regular.ttf");
+            int count = 0;
+            foreach (string guid in AssetDatabase.FindAssets("t:Texture2D", new[] { SelectedArtImporter.PixelFolder.TrimEnd('/') }))
             {
-                string path = "Assets/_Project/Art/Resources/" + name + ".png";
+                string path = AssetDatabase.GUIDToAssetPath(guid);
                 var importer = AssetImporter.GetAtPath(path) as TextureImporter;
-                if (!importer) throw new InvalidOperationException("Missing selected artwork: " + path);
-                importer.textureType = TextureImporterType.Default;
-                importer.npotScale = TextureImporterNPOTScale.None;
-                importer.filterMode = FilterMode.Point;
-                importer.wrapMode = name=="Ocean/OceanWide"?TextureWrapMode.Repeat:TextureWrapMode.Clamp;
-                importer.mipmapEnabled = false;
-                importer.textureCompression = TextureImporterCompression.Uncompressed;
-                importer.maxTextureSize = 2048;
+                if (!importer) continue;
+                SelectedArtImporter.Configure(importer, path);
                 importer.SaveAndReimport();
+                count++;
             }
+            if (count < 150) throw new InvalidOperationException("Expected at least 150 pixel frames, found " + count);
+            Debug.Log("WORDWING: configured " + count + " pixel frames.");
         }
     }
 }

@@ -1,0 +1,14 @@
+WORDWING 0.13 — PIXEL 1944 (2026-11-04)
+
+All active artwork (player fighter, four bomber liveries, aircraft carrier,
+rockets, supplies, explosions and effects, interface frames, icons, logo,
+battlefield cards and the title-screen airbase) is original pixel art drawn
+procedurally by Tools/PixelForge in this project, one PNG per animation frame:
+Assets/_Project/Art/Resources/Pixel. No external images are used.
+Fictional setting inspired by 1940s aviation; no real insignia or factions.
+
+Terrain: Scripts/Art/PixelTerrain.cs (project code).
+Typeface: VT323 by The VT323 Project Authors, SIL Open Font License 1.1
+(see VT323-OFL.txt).
+Earlier artwork (0.10–0.12) is retired from the build; originals remain in
+SourceAssets/PixelArt. Vocabulary and speech attribution are unchanged.

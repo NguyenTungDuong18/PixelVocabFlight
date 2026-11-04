@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <UnityEditorPath Condition="'$(UnityEditorPath)' == ''">C:/Program Files/Unity/Hub/Editor/6000.6.7f1/Editor</UnityEditorPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../Game/Assets/_Project/Scripts/**/*.cs" />
+    <Compile Include="../../Game/Assets/_Project/Editor/**/*.cs" />
+    <Reference Include="$(UnityEditorPath)/Data/Managed/UnityEngine/*.dll" />
+    <Reference Include="../../Game/Library/ScriptAssemblies/Unity.RenderPipelines.*.Runtime.dll" />
+    <Reference Include="$(UnityEditorPath)/Data/Managed/UnityEditor/*.dll" />
+    <Reference Include="../../Game/Library/ScriptAssemblies/Unity.InputSystem.dll" />
+    <Reference Include="../../Game/Library/ScriptAssemblies/UnityEngine.UI.dll" />
+  </ItemGroup>
+</Project>
+

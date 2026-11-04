@@ -21,7 +21,18 @@ namespace PixelVocabFlight
             void Check(bool pass,string name) => checks.Add(name + (pass ? ":PASS" : ":FAIL"));
             SelectFullOxford(); ReturnToMenu(); yield return new WaitForSecondsRealtime(.3f);
             bool captured = view.Capture(Path.Combine(output,"01-hangar.png"));
-            Check(UserArt.Player.texture.width>0&&UserArt.Carrier.texture.height>0,"player-and-carrier-models-loaded");
+            int frameFiles=0;bool everySpriteLoads=true;
+            foreach(var name in PixelSprites.Names){var frames=PixelSprites.Frames(name);frameFiles+=frames.Length;everySpriteLoads&=frames.All(f=>f&&f.texture.width>0);}
+            Check(everySpriteLoads&&frameFiles>=150&&PixelSprites.FrameCount("fighter_level")==4&&PixelSprites.FrameCount("fx_explosion")==8,"pixel-frame-library-loads:"+frameFiles);
+            Check(UiKit.PixelFontLoaded,"pixel-font-vt323-loaded");
+            Check(view.HangarVisible,"title-screen-visible");
+            string propellerBefore=view.Board.PlayerSpriteName;view.Board.Animate(.07f,null,StartingEnvironment);
+            Check(propellerBefore!=view.Board.PlayerSpriteName,"propeller-frames-advance");
+            yield return SmokeKey(Key.Digit4);
+            Check(StartingEnvironment==FlightEnvironment.Ocean&&view.HangarVisible,"hangar-number-key-selects-battlefield");
+            captured &= view.Capture(Path.Combine(output,"01b-hangar-ocean-selected.png"));
+            yield return SmokeKey(Key.Digit1);
+            Check(PixelTerrain.Get(FlightEnvironment.Jungle)==PixelTerrain.Get(FlightEnvironment.Jungle),"terrain-textures-reused");
             SelectFullOxford(); yield return null;
             Check(selection.to==catalog.Entries.Length,"full-oxford-library");
             captured &= view.Capture(Path.Combine(output,"02-vocabulary.png"));
@@ -32,11 +43,13 @@ namespace PixelVocabFlight
             var mouse=InputSystem.AddDevice<Mouse>("Wordwing QA pointer");
             InputSystem.QueueStateEvent(mouse,new MouseState{position=view.Board.ScreenPoint(.22f,.6f)});
             yield return null;yield return null;
+            Check(flight.PlayerX > .22f && flight.PlayerX < .5f,"mouse-drive-has-travel-time");
+            yield return new WaitForSecondsRealtime(.4f);
             Check(Math.Abs(flight.PlayerX-.22f)<.01,"mouse-horizontal-drive");
             int initial=flight.Enemies.Count,targetId=flight.Target.Id;
             flight.Tick(12.1f);DrainEvents();
             Check(flight.Enemies.Count==initial+1&&flight.Target.Id==targetId,"twelve-second-spawn-keeps-old-plane");
-            Check(UserArt.Enemy.texture.width>0&&UserArt.Missile.texture.width>0,"transparent-enemy-and-missile-loaded");
+            Check(view.Board.EnemySpriteName(targetId).StartsWith("bomber_desert_"),"desert-livery-bomber-rendered");
             yield return SmokeType(flight.Target.Entry.word);Check(progress.Correct==0,"driving-blocks-fire");
             yield return SmokeKey(Key.Tab);float fixedX=flight.PlayerX;
             InputSystem.QueueStateEvent(mouse,new MouseState{position=view.Board.ScreenPoint(.82f,.4f)});
@@ -49,17 +62,23 @@ namespace PixelVocabFlight
             yield return SmokeType(flight.Target.Entry.word);
             Check(progress.Correct==1&&flight.Enemies.Count==1,"correct-answer-only-removes-target");
             Check(audioPlayer.PronunciationCount>spokenBeforeDirect,"direct-shot-pronounces-word");
+            Check(view.Board.AnimatedEffects>0,"tracer-and-explosion-frames-play");
+            yield return new WaitForSecondsRealtime(.2f);
+            captured &= view.Capture(Path.Combine(output,"03b-explosion.png"));
             flight.Tick(12.1f);DrainEvents();yield return null;
             captured &= view.Capture(Path.Combine(output,"03-desert.png"));
             int old=flight.Target.Id,rolls=flight.Rolls;RollMeaning();
             Check(flight.Target.Id!=old&&flight.Rolls==rolls-1,"roll-meaning");
-            TogglePause();double time=progress.ActiveSeconds;yield return new WaitForSecondsRealtime(.3f);
+            TogglePause();double time=progress.ActiveSeconds;string pausedProp=view.Board.PlayerSpriteName;yield return new WaitForSecondsRealtime(.3f);
+            captured &= view.Capture(Path.Combine(output,"03a-pause.png"));
+            Check(pausedProp==view.Board.PlayerSpriteName,"pause-freezes-model-animation");
             Check(progress.ActiveSeconds==time,"pause-freezes-simulation");TogglePause();
 
             SmokeFixture(FlightEnvironment.Ice);flight.Tick(12.1f);DrainEvents();flight.SetDriving(false);
             var shield=flight.Target;yield return new WaitForSecondsRealtime(.3f);yield return SmokeType(shield.Entry.word);
             Check(flight.Enemies.Contains(shield)&&shield.Health==1&&flight.Target!=shield,"ice-shield-retarget");
             yield return null;captured &= view.Capture(Path.Combine(output,"04-ice.png"));
+            Check(view.Board.EnemySpriteName(shield.Id).StartsWith("bomber_ice_damaged_"),"ice-hit-shows-damaged-frames");
 
             SmokeFixture(FlightEnvironment.Jungle);flight.SetDriving(false);var attacker=flight.Target;
             flight.Tick(18.1f);DrainEvents();yield return null;
@@ -78,9 +97,9 @@ namespace PixelVocabFlight
             bool ocean=flight.Missiles.Count>0&&!progress.IsOver;Check(ocean,"carrier-launches-incoming-missile");
             if(ocean)
             {
-                Check(Resources.Load<Texture2D>("Ocean/Ocean01")&&Resources.Load<Texture2D>("Ocean/Ocean02")&&Resources.Load<Texture2D>("Ocean/Ocean03"),"three-supplied-ocean-images-packaged");
-                var wide=Resources.Load<Texture2D>("Ocean/OceanWide");
-                Check(wide&&wide.width/(float)wide.height>2.5f,"wide-ocean-fill-packaged");
+                Check(PixelTerrain.Get(FlightEnvironment.Ocean,0)&&PixelTerrain.Get(FlightEnvironment.Ocean,1)&&PixelTerrain.Get(FlightEnvironment.Ocean,2),"pixel-ocean-variants-loaded");
+                var wide=PixelTerrain.Get(FlightEnvironment.Ocean,3);
+                Check(wide&&wide.width/(float)wide.height>2f,"wide-ocean-fill-packaged");
                 float waterTime=view.Board.OceanAnimationSeconds;view.Board.Animate(.5f,flight,FlightEnvironment.Ocean);
                 Check(view.Board.OceanAnimationSeconds>waterTime,"ocean-water-effects-animate");
                 captured &= view.Capture(Path.Combine(output,"07-ocean-supplied-01.png"));
@@ -119,7 +138,7 @@ namespace PixelVocabFlight
                 foreach(var victim in flight.Enemies.Take(2)){victim.X=missile.X;victim.Y=missile.Y;victim.Age=0;victim.Charging=false;}
                 int spokenBeforeBlast=audioPlayer.PronunciationCount,queuedBeforeBlast=speech.Count,killsBefore=progress.Correct;
                 AnswerMissile(missile.Id,missile.CorrectIndex);
-                Check(progress.Correct>=killsBefore+2&&audioPlayer.PronunciationCount==spokenBeforeBlast&&speech.Count==queuedBeforeBlast,"blast-multikill-does-not-pronounce-words");
+                Check(progress.Correct==killsBefore+1&&progress.BlastKills>=2&&audioPlayer.PronunciationCount==spokenBeforeBlast&&speech.Count==queuedBeforeBlast,"blast-multikill-does-not-pronounce-words");
                 yield return null;
                 Check(!flight.Missiles.Contains(missile),"correct-missile-answer-blasts");
                 captured &= view.Capture(Path.Combine(output,"07c-silent-blast.png"));
@@ -137,7 +156,8 @@ namespace PixelVocabFlight
                     Check(progress.Metal==before-2&&!flight.Missiles.Contains(missile),"missile-impact-minus-two-metal");
                     captured &= view.Capture(Path.Combine(output,"08-missile-damage.png"));
                     // End with one actual aircraft impact at one remaining health.
-                    progress.Damage(progress.Metal-1);SmokeClearOtherHazards(-1);
+                    SmokeClearOtherHazards(-1);flight.Tick(ContinuousFlight.ImpactGraceSeconds + .05f);
+                    progress.Damage(progress.Metal-1);
                     if(flight.Enemies.Count>0)
                     {
                         attacker=flight.Enemies[0];attacker.X=flight.PlayerX;attacker.Y=ContinuousFlight.PlayerY-.12f;
@@ -183,7 +203,7 @@ namespace PixelVocabFlight
             }
             else Check(false,"carrier-route-fixture");
             Check(captured,"rendered-screenshots");
-            File.WriteAllText(Path.Combine(output,"smoke-report.json"),"{\n  \"version\": \"0.10.0\",\n  \"checks\": ["+string.Join(",",checks.Select(c=>"\""+c+"\""))+"]\n}");
+            File.WriteAllText(Path.Combine(output,"smoke-report.json"),"{\n  \"version\": \"0.13.0\",\n  \"checks\": ["+string.Join(",",checks.Select(c=>"\""+c+"\""))+"]\n}");
             Application.Quit(checks.Any(c=>c.EndsWith(":FAIL"))?1:0);
         }
 

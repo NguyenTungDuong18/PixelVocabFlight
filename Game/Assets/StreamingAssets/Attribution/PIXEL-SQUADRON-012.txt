@@ -1,0 +1,15 @@
+﻿WORDWING 0.12 — PIXEL SQUADRON (2026-11-04)
+
+Active aircraft, bomber, carrier, rocket and hangar: original fictional
+1940s-inspired pixel artwork generated using the built-in image_gen tool.
+Runtime: Assets/_Project/Art/Resources/War.
+Original generated PNGs and exact prompts: SourceAssets/PixelArt/War1944.
+
+Active jungle, desert, winter and sea terrain: project-native pixel maps
+created by Scripts/Art/PixelTerrain.cs; no external map imagery.
+UI bevels, rivets, propeller animation: Scripts/Art/WarVisuals.cs.
+Crates, sparks, rocket exhaust and wake animation: game code.
+Aircraft and carrier artwork from earlier releases are no longer the
+active models. Historical attribution files describe prior releases.
+This is a fictional arcade setting inspired by 1940s aviation.
+Vocabulary and speech attribution remains in the existing files.

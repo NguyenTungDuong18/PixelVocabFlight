@@ -8,7 +8,7 @@ namespace PixelVocabFlight
     public enum SupplyKind { Fuel, Metal, Roll }
     public enum KillSource { PlayerShot, MissileBlast }
     public enum CarrierPhase { Entering, Deploying, Turning, Advancing, Exiting }
-    public enum FlightEventKind { Spawn, Hit, Kill, Wrong, Retarget, Pickup, MissileBlast, MissileFailure, AircraftImpact, MissileImpact, Evaded, MissileWrong }
+    public enum FlightEventKind { Spawn, Hit, Kill, Wrong, Retarget, Pickup, MissileBlast, MissileFailure, AircraftImpact, MissileImpact, Evaded, MissileWrong, MissileSolved }
 
     public sealed class EnemyState
     {
@@ -70,6 +70,9 @@ namespace PixelVocabFlight
         public const float AircraftSpawnSeconds = 12;
         public const float AircraftAttackAge = 18;
         public const float PlayerHitRadius = .035f;
+        public const float PlayerSpeed = .85f;
+        public const float ImpactGraceSeconds = .65f;
+        public const float CarrierLaunchOffsetY = 88f / 548f;
         public const float MissileSpeedFactor = .8f;
         // Map percentages are measured upwards from the player's end of the field.
         public const float CarrierDeploymentY = .2f;
@@ -89,7 +92,8 @@ namespace PixelVocabFlight
         private readonly List<MissileState> missiles = new List<MissileState>();
         private readonly List<SupplyState> supplies = new List<SupplyState>();
         private readonly Queue<FlightEvent> events = new Queue<FlightEvent>();
-        private float spawnTimer, rollTimer, targetAge;
+        private float spawnTimer, rollTimer, targetAge, desiredPlayerX = .5f, previousPlayerX;
+        public float ImpactGraceRemaining { get; private set; }
         private int serial;
         public FlightProgress Progress { get; } = new FlightProgress();
         public IReadOnlyList<EnemyState> Enemies => enemies;
@@ -116,10 +120,10 @@ namespace PixelVocabFlight
             SpawnAircraft(.5f, 0);
         }
 
-        public void SetDriving(bool driving) { Driving = driving; }
+        public void SetDriving(bool driving) { Driving = driving; desiredPlayerX = PlayerX; }
         public void MovePlayer(float x)
         {
-            if (Driving && !Progress.IsOver) PlayerX = Math.Max(.045f, Math.Min(.955f, x));
+            if (Driving && !Progress.IsOver && !float.IsNaN(x) && !float.IsInfinity(x)) desiredPlayerX = Math.Max(.045f, Math.Min(.955f, x));
         }
 
         public FlightEvent PopEvent() => events.Count == 0 ? null : events.Dequeue();
@@ -128,7 +132,7 @@ namespace PixelVocabFlight
 
         public void Tick(float delta)
         {
-            if (Progress.IsOver || delta <= 0) return;
+            if (Progress.IsOver || delta <= 0 || float.IsNaN(delta) || float.IsInfinity(delta)) return;
             // Small simulation steps preserve event order and pickup catches during low frame rates.
             while (delta > 0 && !Progress.IsOver)
             {
@@ -142,6 +146,9 @@ namespace PixelVocabFlight
         {
             Progress.Tick(delta);
             if (Progress.IsOver) return;
+            previousPlayerX = PlayerX;
+            if (Driving) PlayerX += Math.Max(-PlayerSpeed * delta, Math.Min(PlayerSpeed * delta, desiredPlayerX - PlayerX));
+            ImpactGraceRemaining = Math.Max(0, ImpactGraceRemaining - delta);
             targetAge += delta;
             spawnTimer += delta / SpawnInterval;
             if (spawnTimer >= 1)
@@ -187,8 +194,8 @@ namespace PixelVocabFlight
                 {
                     bool wasTarget = enemy == Target;
                     enemies.RemoveAt(i);
-                    int lost = Progress.Damage(1);
-                    Emit(FlightEventKind.AircraftImpact, enemy.Entry, PlayerX, PlayerY, lost);
+                    int lost = ImpactDamage(1);
+                    if (lost > 0) Emit(FlightEventKind.AircraftImpact, enemy.Entry, PlayerX, PlayerY, lost);
                     if (wasTarget) Retarget(null);
                 }
                 else if (OutsideField(enemy.X, enemy.Y))
@@ -219,8 +226,8 @@ namespace PixelVocabFlight
                 if (HitsPlayer(oldX, oldY, missile.X, missile.Y))
                 {
                     missiles.RemoveAt(i);
-                    int lost = Progress.Damage(2);
-                    Emit(FlightEventKind.MissileImpact, missile.Answer, PlayerX, PlayerY, lost);
+                    int lost = ImpactDamage(2);
+                    if (lost > 0) Emit(FlightEventKind.MissileImpact, missile.Answer, PlayerX, PlayerY, lost);
                 }
                 else if (OutsideField(missile.X, missile.Y)) { missiles.RemoveAt(i); Emit(FlightEventKind.Evaded); }
             }
@@ -265,7 +272,7 @@ namespace PixelVocabFlight
                     carrier.Y = CarrierDeploymentY;
                     carrier.Phase = CarrierPhase.Deploying;
                     carrier.DeploymentSeconds = carrier.FireTimer = carrier.LaunchTimer = 0;
-                    if (SpawnAircraft(carrier.X, carrier.Y) != null) carrier.AircraftLaunched++;
+                    if (SpawnAircraft(carrier.X, carrier.Y + CarrierLaunchOffsetY) != null) carrier.AircraftLaunched++;
                 }
                 else if (carrier.Phase == CarrierPhase.Deploying)
                 {
@@ -275,7 +282,7 @@ namespace PixelVocabFlight
                     while (carrier.LaunchTimer >= AircraftSpawnSeconds - .000001)
                     {
                         carrier.LaunchTimer = Math.Max(0, carrier.LaunchTimer - AircraftSpawnSeconds);
-                        if (SpawnAircraft(carrier.X, carrier.Y) != null) carrier.AircraftLaunched++;
+                        if (SpawnAircraft(carrier.X, carrier.Y + CarrierLaunchOffsetY) != null) carrier.AircraftLaunched++;
                     }
                     while (carrier.FireTimer >= 5 - .000001)
                     {
@@ -331,11 +338,19 @@ namespace PixelVocabFlight
 
         private static bool OutsideField(float x, float y) => y > 1.12f || x < -.12f || x > 1.12f;
 
+        private int ImpactDamage(int amount)
+        {
+            if (ImpactGraceRemaining > 0) return 0;
+            int lost = Progress.Damage(amount);
+            if (lost > 0) ImpactGraceRemaining = ImpactGraceSeconds;
+            return lost;
+        }
+
         private bool HitsPlayer(float fromX, float fromY, float toX, float toY)
         {
             // Swept circle test prevents fast rockets tunnelling through the player.
-            float dx = toX - fromX, dy = (toY - fromY) * FieldAspect;
-            float px = PlayerX - fromX, py = (PlayerY - fromY) * FieldAspect;
+            float dx = toX - fromX - (PlayerX - previousPlayerX), dy = (toY - fromY) * FieldAspect;
+            float px = previousPlayerX - fromX, py = (PlayerY - fromY) * FieldAspect;
             float lengthSquared = dx * dx + dy * dy;
             float t = lengthSquared < .0000001f ? 0 : Math.Max(0, Math.Min(1, (px * dx + py * dy) / lengthSquared));
             float closestX = px - t * dx, closestY = py - t * dy;
@@ -415,7 +430,8 @@ namespace PixelVocabFlight
         private void Kill(EnemyState enemy, KillSource source)
         {
             enemies.Remove(enemy);
-            int earned = Progress.ResolveCorrect(enemy.Entry.word, targetAge, 20);
+            int earned = source == KillSource.PlayerShot
+                ? Progress.ResolveCorrect(enemy.Entry.word, targetAge, 20) : Progress.ResolveBlastKill();
             Emit(FlightEventKind.Kill, enemy.Entry, enemy.X, enemy.Y, earned, killSource: source);
             if (random.NextDouble() < .1) AddSupply(random.Next(2) == 0 ? SupplyKind.Fuel : SupplyKind.Metal, enemy.X, enemy.Y);
         }
@@ -431,7 +447,7 @@ namespace PixelVocabFlight
                 if (choices.Count == 4) break;
             }
             if (choices.Count != 4) return false;
-            var missile = new MissileState { Id = ++serial, X = carrier.X, Y = Math.Max(.18f, carrier.Y), Choices = choices.ToArray(), CorrectIndex = random.Next(4) };
+            var missile = new MissileState { Id = ++serial, X = carrier.X, Y = carrier.Y + CarrierLaunchOffsetY, Choices = choices.ToArray(), CorrectIndex = random.Next(4) };
             Aim(missile.X, missile.Y, .035f * MissileSpeedFactor, out missile.VelocityX, out missile.VelocityY);
             missiles.Add(missile);
             return true;
@@ -452,6 +468,8 @@ namespace PixelVocabFlight
                 return false;
             }
             missiles.Remove(missile);
+            int earned = Progress.ResolveCorrect(missile.Answer.word, 20, 20);
+            Emit(FlightEventKind.MissileSolved, missile.Answer, missile.X, missile.Y, earned, entityId: missile.Id);
             Emit(FlightEventKind.MissileBlast, missile.Answer, missile.X, missile.Y);
             bool removedTarget = false;
             foreach (var enemy in enemies.ToArray())

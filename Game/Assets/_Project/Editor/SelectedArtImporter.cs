@@ -3,18 +3,25 @@ using UnityEngine;
 
 namespace PixelVocabFlight.Editor
 {
+    // Every PixelForge frame must stay a crisp, uncompressed pixel grid.
     public sealed class SelectedArtImporter : AssetPostprocessor
     {
+        public const string PixelFolder = "Assets/_Project/Art/Resources/Pixel/";
+
         private void OnPreprocessTexture()
         {
-            if (!assetPath.StartsWith("Assets/_Project/Art/Resources/Ocean/") && assetPath != "Assets/_Project/Art/Resources/Art/UserEnemy.png" && assetPath != "Assets/_Project/Art/Resources/Art/UserMissile.png" &&
-                assetPath != "Assets/_Project/Art/Resources/Art/UserPlayer.png" && assetPath != "Assets/_Project/Art/Resources/Art/UserCarrier.png") return;
-            var importer = (TextureImporter)assetImporter;
+            if (!assetPath.StartsWith(PixelFolder)) return;
+            Configure((TextureImporter)assetImporter, assetPath);
+        }
+
+        public static void Configure(TextureImporter importer, string path)
+        {
             importer.textureType = TextureImporterType.Default;
             importer.npotScale = TextureImporterNPOTScale.None;
             importer.filterMode = FilterMode.Point;
-            importer.wrapMode = assetPath.EndsWith("OceanWide.png")?TextureWrapMode.Repeat:TextureWrapMode.Clamp;
+            importer.wrapMode = path.Contains("title_clouds") ? TextureWrapMode.Repeat : TextureWrapMode.Clamp;
             importer.mipmapEnabled = false;
+            importer.alphaIsTransparency = true;
             importer.textureCompression = TextureImporterCompression.Uncompressed;
             importer.maxTextureSize = 2048;
         }

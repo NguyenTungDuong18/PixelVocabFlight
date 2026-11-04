@@ -67,6 +67,11 @@ namespace PixelVocabFlight
             if (word == null) { word = new WordRecord { id = entry.id }; Profile.words.Add(word); }
             if (correct) { word.correct++; if (firstTry) word.firstTry++; }
             else word.missed++;
+            RecordBest(key, score);
+        }
+
+        public void RecordBest(string key, int score)
+        {
             var best = Profile.bests.Find(r => r.key == key);
             if (best == null) { best = new BestRecord { key = key }; Profile.bests.Add(best); }
             best.score = Math.Max(best.score, score);

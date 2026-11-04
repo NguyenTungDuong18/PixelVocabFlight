@@ -110,6 +110,7 @@ var stopwatch=System.Diagnostics.Stopwatch.StartNew();
 Check(QuestionDeck.ValidatePool(oxford.entries)==null,"full catalog can form valid questions");
 Console.WriteLine("Full-catalog preflight: "+stopwatch.ElapsedMilliseconds+" ms.");
 checks += CombatChecks.Run(oxford.entries, data.entries);
+checks += InteractionChecks.Run(oxford.entries);
 Console.WriteLine("Food B1 entries: "+foodB1.Length+".");
 string sourceRoot=Path.GetFullPath(Path.Combine(Path.GetDirectoryName(oxfordPath),"../../../../../../SourceAssets/Vocabulary/Oxford"));
 using(var audit=JsonDocument.Parse(File.ReadAllText(Path.Combine(sourceRoot,"pdf-reconciliation.json"))))

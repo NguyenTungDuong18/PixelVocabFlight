@@ -11,6 +11,7 @@ namespace PixelVocabFlight
         public int Health => Metal;
         public int Score { get; private set; }
         public int Correct { get; private set; }
+        public int BlastKills { get; private set; }
         public int WrongAttempts { get; private set; }
         public int Missed { get; private set; }
         public int Streak { get; private set; }
@@ -22,7 +23,7 @@ namespace PixelVocabFlight
 
         public void Tick(float delta)
         {
-            if (IsOver || delta <= 0) return;
+            if (IsOver || delta <= 0 || float.IsNaN(delta) || float.IsInfinity(delta)) return;
             ActiveSeconds += delta;
             float boostedPart = Math.Min(delta, PowerSeconds);
             Fuel = Math.Max(0, Fuel - (delta - boostedPart * 0.5f) * 0.12f);
@@ -44,6 +45,14 @@ namespace PixelVocabFlight
             Correct++;
             Streak++;
             return earned;
+        }
+
+        public int ResolveBlastKill()
+        {
+            if (IsOver) return 0;
+            BlastKills++;
+            Score += 25;
+            return 25;
         }
 
         public void CollectMetal()

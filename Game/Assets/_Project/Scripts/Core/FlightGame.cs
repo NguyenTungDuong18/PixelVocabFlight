@@ -70,7 +70,11 @@ namespace PixelVocabFlight
             if (view == null) return;
             if (keyboard != null && keyboard.escapeKey.wasPressedThisFrame) TogglePause();
             if (mode == Mode.Menu || mode == Mode.Results)
-            { view.Board.Animate(Time.unscaledDeltaTime, null, StartingEnvironment); view.AnimateHangar(Time.unscaledDeltaTime, StartingEnvironment); return; }
+            {
+                view.Board.Animate(Time.unscaledDeltaTime, null, StartingEnvironment); view.AnimateHangar(Time.unscaledDeltaTime, StartingEnvironment);
+                HandleMenuKeys();
+                return;
+            }
             if (mode == Mode.Dying)
             {
                 view.Board.Animate(Time.deltaTime, flight, StartingEnvironment); endingTimer -= Time.deltaTime;
@@ -99,6 +103,21 @@ namespace PixelVocabFlight
             if (voiceRemaining <= 0 && speech.Count > 0) voiceRemaining = audioPlayer.Say(speech.Dequeue()) + .15f;
             view.SetInput(typed, !flight.Driving && flight.Target != null);
             view.Refresh(flight);
+        }
+
+        // Title screen shortcuts: 1-4 battlefield, Enter take off, V vocabulary. Results: Enter flies again.
+        // Only active on the hangar/results screens so typing in the vocabulary search field is unaffected.
+        private void HandleMenuKeys()
+        {
+            if (keyboard == null || Time.unscaledTime < nextSubmit) return;
+            bool enter = keyboard.enterKey.wasPressedThisFrame || keyboard.numpadEnterKey.wasPressedThisFrame;
+            if (mode == Mode.Results) { if (enter) StartFlight(); return; }
+            if (!view.HangarVisible) return;
+            var digits = new[] { keyboard.digit1Key, keyboard.digit2Key, keyboard.digit3Key, keyboard.digit4Key };
+            var numpad = new[] { keyboard.numpad1Key, keyboard.numpad2Key, keyboard.numpad3Key, keyboard.numpad4Key };
+            for (int i = 0; i < 4; i++) if (digits[i].wasPressedThisFrame || numpad[i].wasPressedThisFrame) { ChooseStartingEnvironment(i); return; }
+            if (keyboard.vKey.wasPressedThisFrame) OpenVocabulary();
+            else if (enter) StartFlight();
         }
 
         private void HandleEditing()
@@ -166,7 +185,7 @@ namespace PixelVocabFlight
             if (poolError != null) { ShowMenu(poolError); return; }
             audioPlayer.Stop(); speech.Clear(); voiceRemaining = 0; Time.timeScale = 1;
             // New rules have a separate leaderboard from the old three-aircraft waves.
-            bestKey = "collision-v2:" + StartingEnvironment + ":" + VocabularyQuery.SelectionKey(pool);
+            bestKey = "interaction-v3:" + StartingEnvironment + ":" + VocabularyQuery.SelectionKey(pool);
             flightPool = pool; SaveSelection();
             flight = new ContinuousFlight(pool, System.Environment.TickCount, StartingEnvironment);
             progress = flight.Progress; firstTry = 0; mistakes.Clear(); reviewWords.Clear(); typed = "";
@@ -236,21 +255,29 @@ namespace PixelVocabFlight
                         if (ev.Value > 0) { audioPlayer.Success(); view.Feedback("Đã phá khiên băng. Nghĩa chuyển sang một máy bay khác."); }
                         break;
                     case FlightEventKind.Kill:
+                        if (ev.Source == KillSource.MissileBlast)
+                        {
+                            view.Board.Burst(ev.X, ev.Y, UiKit.Orange);
+                            view.Feedback("Nổ dây chuyền +" + ev.Value + " điểm");
+                            break;
+                        }
+                        goto case FlightEventKind.MissileSolved;
+                    case FlightEventKind.MissileSolved:
                         bool first = !mistakes.Contains(ev.Entry.id); if (first) firstTry++;
                         view.Log(ev.Entry, true); audioPlayer.Success();
                         if (ev.ShouldPronounce) speech.Enqueue(ev.Entry);
                         profile.Record(ev.Entry, true, first, bestKey, progress.Score);
                         view.Feedback(ev.Entry.word + "  +" + ev.Value + " điểm"); break;
                     case FlightEventKind.Pickup:
-                        audioPlayer.Pickup(); view.Feedback(ev.Supply == SupplyKind.Roll ? "Đón R+ thành công: +1 lượt đổi nghĩa." : ev.Supply == SupplyKind.Fuel ? "+50 xăng" : "+1 kim loại / hồi 1 máu (tối đa 5)"); break;
+                        audioPlayer.Pickup(); view.Feedback(ev.Supply == SupplyKind.Roll ? "Đón R+ thành công: +1 lượt đổi nghĩa." : ev.Supply == SupplyKind.Fuel ? "+50 xăng" : "+1 kim loại: sửa 1 giáp (tối đa 5)"); break;
                     case FlightEventKind.MissileBlast:
                         view.Board.Blast(ev.X, ev.Y); audioPlayer.Success(); view.Feedback("Tên lửa nổ! Máy bay trong vòng nổ bị hạ, kể cả còn khiên."); break;
                     case FlightEventKind.MissileFailure:
-                        view.Feedback("Sai 3 lần: tên lửa tăng tốc! Sang LÁI để né; trúng mất 2 kim loại.", true); break;
+                        view.Feedback("Sai 3 lần: tên lửa tăng tốc! Sang LÁI để né; trúng mất 2 giáp.", true); break;
                     case FlightEventKind.AircraftImpact:
                     case FlightEventKind.MissileImpact:
-                        view.Board.Burst(ev.X, ev.Y, UiKit.Coral, 20); audioPlayer.Wrong();
-                        view.Feedback((ev.Kind == FlightEventKind.MissileImpact ? "Tên lửa trúng!" : "Máy bay địch đâm trúng!") + " −" + ev.Value + " kim loại / còn " + progress.Metal + "/5 máu.", true);
+                        view.Board.Impact(ev.X, ev.Y); audioPlayer.Wrong();
+                        view.Feedback((ev.Kind == FlightEventKind.MissileImpact ? "Tên lửa trúng!" : "Máy bay địch đâm trúng!") + " -" + ev.Value + " giáp / còn " + progress.Metal + "/5.", true);
                         if (ev.Entry != null && !reviewWords.Any(e => e.id == ev.Entry.id)) reviewWords.Add(ev.Entry);
                         break;
                 }
@@ -263,7 +290,7 @@ namespace PixelVocabFlight
             else if (mode == Mode.Paused) { mode = Mode.Flying; Time.timeScale = 1; audioPlayer.Pause(false); view.HideOverlay(); nextSubmit = Time.unscaledTime + .25f; }
         }
         public void ToggleMute() { if (!audioPlayer) return; audioPlayer.ToggleMute(); view.SetMuted(audioPlayer.Muted); EventSystem.current?.SetSelectedGameObject(null); }
-        private void EndFlight() { mode = Mode.Results; Cursor.visible = true; view.ShowResults(progress, firstTry, profile.Best(bestKey), reviewWords); }
+        private void EndFlight() { profile.RecordBest(bestKey, progress.Score); audioPlayer.Stop(); speech.Clear(); mode = Mode.Results; Cursor.visible = true; view.ShowResults(progress, firstTry, profile.Best(bestKey), reviewWords); }
 
         private IEnumerator SmokeType(string value)
         {
