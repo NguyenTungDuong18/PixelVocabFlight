@@ -8,17 +8,34 @@ namespace PixelVocabFlight
     public enum SupplyKind { Fuel, Metal, Roll }
     public enum KillSource { PlayerShot, MissileBlast }
     public enum CarrierPhase { Entering, Deploying, Turning, Advancing, Exiting }
-    public enum FlightEventKind { Spawn, Hit, Kill, Wrong, Retarget, Pickup, MissileBlast, MissileFailure, AircraftImpact, MissileImpact, Evaded, MissileWrong, MissileSolved }
+    public enum EnemyPhase { Patrol, Locking, Departing }
+    public enum MissilePhase { Cruise, Locking, Boost }
+    public enum FlightEventKind { Spawn, Hit, Kill, Wrong, Retarget, Pickup, MissileBlast, MissileFailure, AircraftImpact, MissileImpact, Evaded, MissileWrong, MissileSolved, AircraftLock, AircraftFire, MissileLock, MissileBoost }
 
     public sealed class EnemyState
     {
         public int Id, FormationSlot;
         public VocabularyEntry Entry;
-        public float X, Y, Age, VelocityX, VelocityY, ChargeDelay;
-        public bool Charging;
+        public float X, Y, Age, VelocityX, VelocityY;
+        // Attack: Patrol -> Locking (guns out, sight on the player) -> homing burst -> Departing (banks off the map).
+        public EnemyPhase Phase;
+        public float LockRemaining, DepartSeconds, FireY, DepartStartSpeed;
+        public int DepartDirection;
         public int Health;
         public FlightEnvironment Environment;
         public bool RequiresPartOfSpeech => Environment == FlightEnvironment.Desert;
+        public bool Attacking => Phase != EnemyPhase.Patrol;
+        public bool Departing => Phase == EnemyPhase.Departing;
+        public float LockProgress => Phase == EnemyPhase.Locking ? 1 - LockRemaining / ContinuousFlight.AircraftLockSeconds : Phase == EnemyPhase.Departing ? 1 : 0;
+    }
+
+    // One machine-gun round. It interpolates towards the player's current position, so it cannot be dodged.
+    public sealed class ShotState
+    {
+        public int Id, SourceId;
+        public VocabularyEntry Entry;
+        public float StartX, StartY, X, Y, Age, VelocityX, VelocityY;
+        public bool InFlight => Age >= 0;
     }
 
     public sealed class CarrierState
@@ -35,8 +52,11 @@ namespace PixelVocabFlight
     public sealed class MissileState
     {
         public int Id, CorrectIndex, WrongAttempts;
-        public float X, Y, VelocityX, VelocityY;
+        public float X, Y, VelocityX, VelocityY, PhaseSeconds;
+        // Cruise (slow seeker, answerable) -> Locking (sight on the player, still answerable) -> Boost (unstoppable).
+        public MissilePhase Phase;
         public bool Failed => WrongAttempts >= 3;
+        public bool Answerable => !Failed && Phase != MissilePhase.Boost;
         public VocabularyEntry[] Choices;
         public VocabularyEntry Answer => Choices[CorrectIndex];
     }
@@ -69,11 +89,21 @@ namespace PixelVocabFlight
         public const float PlayerY = .92f;
         public const float AircraftSpawnSeconds = 12;
         public const float AircraftAttackAge = 18;
-        public const float PlayerHitRadius = .035f;
+        // Locking gives the player time to shoot the attacker down; once it fires the burst always connects.
+        public const float AircraftLockSeconds = 4.5f;
+        public const int ShotBurst = 3;
+        public const float ShotSpacing = .09f, ShotTravelSeconds = .42f;
+        public const float DepartTurnSeconds = 1.1f;
+        // Patrol descent (field heights/s at x1 speed) and the range of rows where the burst is fired.
+        public const float PatrolSpeed = .022f, FireRowMin = .62f, FireRowMax = .7f;
         public const float PlayerSpeed = .85f;
         public const float ImpactGraceSeconds = .65f;
         public const float CarrierLaunchOffsetY = 88f / 548f;
         public const float MissileSpeedFactor = .8f;
+        public const float MissileTerminalY = PlayerY - .2f;
+        public const float MissileLockSeconds = 1.2f, MissileFailedLockSeconds = .6f;
+        // Field widths per second; faster than PlayerSpeed, so a boosting rocket always catches the aircraft.
+        public const float MissileBoostSpeed = 1.6f;
         // Map percentages are measured upwards from the player's end of the field.
         public const float CarrierDeploymentY = .2f;
         public const float CarrierExitY = .5f;
@@ -91,8 +121,9 @@ namespace PixelVocabFlight
         private readonly List<CarrierState> carriers = new List<CarrierState>();
         private readonly List<MissileState> missiles = new List<MissileState>();
         private readonly List<SupplyState> supplies = new List<SupplyState>();
+        private readonly List<ShotState> shots = new List<ShotState>();
         private readonly Queue<FlightEvent> events = new Queue<FlightEvent>();
-        private float spawnTimer, rollTimer, targetAge, desiredPlayerX = .5f, previousPlayerX;
+        private float spawnTimer, rollTimer, targetAge, desiredPlayerX = .5f;
         public float ImpactGraceRemaining { get; private set; }
         private int serial;
         public FlightProgress Progress { get; } = new FlightProgress();
@@ -100,11 +131,13 @@ namespace PixelVocabFlight
         public IReadOnlyList<CarrierState> Carriers => carriers;
         public IReadOnlyList<MissileState> Missiles => missiles;
         public IReadOnlyList<SupplyState> Supplies => supplies;
+        public IReadOnlyList<ShotState> Shots => shots;
+        public bool PlayerLockedOn => enemies.Any(e => e.Phase == EnemyPhase.Locking) || missiles.Any(m => m.Phase != MissilePhase.Cruise) || shots.Count > 0;
         public EnemyState Target { get; private set; }
         public bool Driving { get; private set; } = true;
         public float PlayerX { get; private set; } = .5f;
         public int Rolls { get; private set; } = 3;
-        public bool CanRoll => Rolls > 0 && Target != null && enemies.Any(e => e.Entry.id != Target.Entry.id);
+        public bool CanRoll => Rolls > 0 && Target != null && enemies.Any(e => !e.Departing && e.Entry.id != Target.Entry.id);
         public int TargetChanges { get; private set; }
         public FlightEnvironment Environment => (FlightEnvironment)(((int)initialEnvironment + (int)(Progress.ActiveSeconds / EnvironmentDuration)) % 4);
         public float SpawnInterval => Environment == FlightEnvironment.Jungle ? AircraftSpawnSeconds / 1.3f : AircraftSpawnSeconds;
@@ -146,7 +179,6 @@ namespace PixelVocabFlight
         {
             Progress.Tick(delta);
             if (Progress.IsOver) return;
-            previousPlayerX = PlayerX;
             if (Driving) PlayerX += Math.Max(-PlayerSpeed * delta, Math.Min(PlayerSpeed * delta, desiredPlayerX - PlayerX));
             ImpactGraceRemaining = Math.Max(0, ImpactGraceRemaining - delta);
             targetAge += delta;
@@ -171,39 +203,57 @@ namespace PixelVocabFlight
             {
                 var enemy = enemies[i];
                 enemy.Age += delta;
-                float oldX = enemy.X, oldY = enemy.Y;
-                if (!enemy.Charging)
+                if (enemy.Phase == EnemyPhase.Patrol)
                 {
                     float homeX = .07f + enemy.FormationSlot % 8 * .122f;
-                    enemy.X += (homeX - enemy.X) * Math.Min(1, delta * .8f);
-                    enemy.Y = Math.Min(.58f, enemy.Y + delta * .028f * GameRules.SpeedMultiplier(Progress.ActiveSeconds));
+                    float x = enemy.X + (homeX - enemy.X) * Math.Min(1, delta * .8f);
+                    float y = Math.Min(.56f, enemy.Y + delta * PatrolSpeed * GameRules.SpeedMultiplier(Progress.ActiveSeconds));
+                    enemy.VelocityX = (x - enemy.X) / delta; enemy.VelocityY = (y - enemy.Y) / delta; enemy.X = x; enemy.Y = y;
                     if (enemy.Age >= AircraftAttackAge)
                     {
-                        enemy.Charging = true; enemy.ChargeDelay = 1.2f;
-                        Aim(enemy.X, enemy.Y, .11f, out enemy.VelocityX, out enemy.VelocityY);
+                        // Lock-on is a slow, steady run in: it reaches its firing row exactly as the guns are fully out.
+                        enemy.Phase = EnemyPhase.Locking; enemy.LockRemaining = AircraftLockSeconds;
+                        enemy.FireY = Math.Min(FireRowMax, Math.Max(FireRowMin, enemy.Y + .1f));
+                        Emit(FlightEventKind.AircraftLock, enemy.Entry, enemy.X, enemy.Y, entityId: enemy.Id);
+                        Prioritize(enemy);
                     }
                 }
-                else if (enemy.ChargeDelay > 0) enemy.ChargeDelay = Math.Max(0, enemy.ChargeDelay - delta);
+                else if (enemy.Phase == EnemyPhase.Locking)
+                {
+                    float remaining = Math.Max(delta, enemy.LockRemaining);
+                    float aimX = Math.Max(.08f, Math.Min(.92f, PlayerX));
+                    float x = enemy.X + (aimX - enemy.X) * Math.Min(1, delta * .3f);
+                    float y = enemy.Y + Math.Max(0, enemy.FireY - enemy.Y) * Math.Min(1, delta / remaining);
+                    enemy.VelocityX = (x - enemy.X) / delta; enemy.VelocityY = (y - enemy.Y) / delta; enemy.X = x; enemy.Y = y;
+                    enemy.LockRemaining -= delta;
+                    if (enemy.LockRemaining <= 0) Fire(enemy);
+                }
                 else
                 {
-                    float speed = GameRules.SpeedMultiplier(Progress.ActiveSeconds);
-                    enemy.X += enemy.VelocityX * delta * speed;
-                    enemy.Y += enemy.VelocityY * delta * speed;
+                    // Break away: the bomber turns from the player towards the nearer edge and accelerates off the map.
+                    enemy.DepartSeconds += delta;
+                    float turn = Math.Min(1, enemy.DepartSeconds / DepartTurnSeconds), angle = turn * turn * (3 - 2 * turn) * 1.75f;
+                    // Starts at the run-in speed, so firing and breaking away are one continuous motion.
+                    float boost = Math.Min(1, enemy.DepartSeconds / 1.2f);
+                    float speed = enemy.DepartStartSpeed + (.7f - enemy.DepartStartSpeed) * boost * boost * (3 - 2 * boost);
+                    enemy.VelocityX = enemy.DepartDirection * (float)Math.Sin(angle) * speed;
+                    enemy.VelocityY = (float)Math.Cos(angle) * speed / FieldAspect;
+                    enemy.X += enemy.VelocityX * delta; enemy.Y += enemy.VelocityY * delta;
+                    if (OutsideField(enemy.X, enemy.Y) || enemy.Y < -.2f) { enemies.RemoveAt(i); Emit(FlightEventKind.Evaded, enemy.Entry, entityId: enemy.Id); }
                 }
-                if (HitsPlayer(oldX, oldY, enemy.X, enemy.Y))
-                {
-                    bool wasTarget = enemy == Target;
-                    enemies.RemoveAt(i);
-                    int lost = ImpactDamage(1);
-                    if (lost > 0) Emit(FlightEventKind.AircraftImpact, enemy.Entry, PlayerX, PlayerY, lost);
-                    if (wasTarget) Retarget(null);
-                }
-                else if (OutsideField(enemy.X, enemy.Y))
-                {
-                    bool wasTarget = enemy == Target;
-                    enemies.RemoveAt(i); Emit(FlightEventKind.Evaded, enemy.Entry);
-                    if (wasTarget) Retarget(null);
-                }
+            }
+            for (int i = shots.Count - 1; i >= 0 && !Progress.IsOver; i--)
+            {
+                var shot = shots[i];
+                shot.Age += delta;
+                if (shot.Age < 0) continue;
+                float t = Math.Min(1, shot.Age / ShotTravelSeconds);
+                float x = shot.StartX + (PlayerX - shot.StartX) * t, y = shot.StartY + (PlayerY - shot.StartY) * t;
+                shot.VelocityX = (x - shot.X) / delta; shot.VelocityY = (y - shot.Y) / delta; shot.X = x; shot.Y = y;
+                if (t < 1) continue;
+                shots.RemoveAt(i);
+                int lost = ImpactDamage(1);
+                if (lost > 0) Emit(FlightEventKind.AircraftImpact, shot.Entry, PlayerX, PlayerY, lost, entityId: shot.SourceId);
             }
             if (Progress.IsOver) return;
             for (int i = carriers.Count - 1; i >= 0; i--)
@@ -219,17 +269,46 @@ namespace PixelVocabFlight
             for (int i = missiles.Count - 1; i >= 0 && !Progress.IsOver; i--)
             {
                 var missile = missiles[i];
-                float oldX = missile.X, oldY = missile.Y;
-                float speed = GameRules.SpeedMultiplier(Progress.ActiveSeconds) * (missile.Failed ? 4 : 1);
-                missile.X += missile.VelocityX * delta * speed;
-                missile.Y += missile.VelocityY * delta * speed;
-                if (HitsPlayer(oldX, oldY, missile.X, missile.Y))
+                float speed = GameRules.SpeedMultiplier(Progress.ActiveSeconds);
+                missile.PhaseSeconds += delta;
+                if (missile.Phase == MissilePhase.Cruise)
                 {
+                    // Slow seeker: re-aims every step, so the rocket follows the player instead of flying a fixed line.
+                    Aim(missile.X, missile.Y, .035f * MissileSpeedFactor, out missile.VelocityX, out missile.VelocityY);
+                    missile.X += missile.VelocityX * delta * speed;
+                    missile.Y += missile.VelocityY * delta * speed;
+                    if (missile.Y >= MissileTerminalY || missile.Failed)
+                    {
+                        missile.Phase = MissilePhase.Locking; missile.PhaseSeconds = 0;
+                        Emit(FlightEventKind.MissileLock, missile.Answer, missile.X, missile.Y, entityId: missile.Id);
+                    }
+                }
+                else if (missile.Phase == MissilePhase.Locking)
+                {
+                    Aim(missile.X, missile.Y, .035f * MissileSpeedFactor, out missile.VelocityX, out missile.VelocityY);
+                    missile.X += missile.VelocityX * delta * .25f; missile.Y += missile.VelocityY * delta * .25f;
+                    if (missile.PhaseSeconds >= (missile.Failed ? MissileFailedLockSeconds : MissileLockSeconds))
+                    {
+                        missile.Phase = MissilePhase.Boost; missile.PhaseSeconds = 0;
+                        Emit(FlightEventKind.MissileBoost, missile.Answer, missile.X, missile.Y, entityId: missile.Id);
+                    }
+                }
+                else
+                {
+                    // Boost: faster than the player can move and steering straight at the aircraft.
+                    float boost = MissileBoostSpeed * Math.Min(1, .35f + missile.PhaseSeconds * 3);
+                    float dx = PlayerX - missile.X, dy = (PlayerY - missile.Y) * FieldAspect;
+                    float distance = (float)Math.Sqrt(dx * dx + dy * dy), step = boost * delta;
+                    if (step < distance)
+                    {
+                        missile.VelocityX = dx / distance * boost; missile.VelocityY = dy / distance * boost / FieldAspect;
+                        missile.X += missile.VelocityX * delta; missile.Y += missile.VelocityY * delta;
+                        continue;
+                    }
                     missiles.RemoveAt(i);
                     int lost = ImpactDamage(2);
-                    if (lost > 0) Emit(FlightEventKind.MissileImpact, missile.Answer, PlayerX, PlayerY, lost);
+                    if (lost > 0) Emit(FlightEventKind.MissileImpact, missile.Answer, PlayerX, PlayerY, lost, entityId: missile.Id);
                 }
-                else if (OutsideField(missile.X, missile.Y)) { missiles.RemoveAt(i); Emit(FlightEventKind.Evaded); }
             }
             if (Progress.IsOver) return;
             for (int i = supplies.Count - 1; i >= 0; i--)
@@ -346,15 +425,22 @@ namespace PixelVocabFlight
             return lost;
         }
 
-        private bool HitsPlayer(float fromX, float fromY, float toX, float toY)
+        private void Fire(EnemyState enemy)
         {
-            // Swept circle test prevents fast rockets tunnelling through the player.
-            float dx = toX - fromX - (PlayerX - previousPlayerX), dy = (toY - fromY) * FieldAspect;
-            float px = previousPlayerX - fromX, py = (PlayerY - fromY) * FieldAspect;
-            float lengthSquared = dx * dx + dy * dy;
-            float t = lengthSquared < .0000001f ? 0 : Math.Max(0, Math.Min(1, (px * dx + py * dy) / lengthSquared));
-            float closestX = px - t * dx, closestY = py - t * dy;
-            return closestX * closestX + closestY * closestY <= PlayerHitRadius * PlayerHitRadius;
+            for (int k = 0; k < ShotBurst; k++)
+                shots.Add(new ShotState { Id = ++serial, SourceId = enemy.Id, Entry = enemy.Entry, StartX = enemy.X, StartY = enemy.Y + .06f, X = enemy.X, Y = enemy.Y + .06f, Age = -k * ShotSpacing });
+            Emit(FlightEventKind.AircraftFire, enemy.Entry, enemy.X, enemy.Y, entityId: enemy.Id);
+            enemy.Phase = EnemyPhase.Departing; enemy.DepartSeconds = 0; enemy.DepartDirection = enemy.X <= .5f ? -1 : 1;
+            enemy.DepartStartSpeed = Math.Max(.04f, (float)Math.Sqrt(enemy.VelocityX * enemy.VelocityX + Math.Pow(enemy.VelocityY * FieldAspect, 2)));
+            if (enemy == Target) Retarget(enemy);
+        }
+
+        // An aircraft that starts locking on becomes the radio target, so every attack can be stopped by answering in time.
+        private void Prioritize(EnemyState enemy)
+        {
+            if (Target == enemy || (Target != null && Target.Phase == EnemyPhase.Locking)) return;
+            Target = enemy; targetAge = 0; TargetChanges++;
+            Emit(FlightEventKind.Retarget, enemy.Entry);
         }
 
         private void RefillBag()
@@ -398,9 +484,12 @@ namespace PixelVocabFlight
 
         private void Retarget(EnemyState previous)
         {
-            var candidates = enemies.Where(e => e != previous && (previous == null || e.Entry.id != previous.Entry.id)).ToArray();
-            if (candidates.Length == 0) candidates = enemies.Where(e => e != previous).ToArray();
-            Target = candidates.Length > 0 ? candidates[random.Next(candidates.Length)] : enemies.FirstOrDefault();
+            var active = enemies.Where(e => !e.Departing && e != previous).ToArray();
+            var candidates = active.Where(e => previous == null || e.Entry.id != previous.Entry.id).ToArray();
+            if (candidates.Length == 0) candidates = active;
+            // Aircraft that are already locking on outrank the rest: the closest to firing is asked first.
+            var urgent = candidates.Where(e => e.Phase == EnemyPhase.Locking).OrderBy(e => e.LockRemaining).FirstOrDefault();
+            Target = urgent ?? (candidates.Length > 0 ? candidates[random.Next(candidates.Length)] : enemies.FirstOrDefault(e => !e.Departing));
             targetAge = 0;
             TargetChanges++;
             Emit(FlightEventKind.Retarget, Target?.Entry);
@@ -423,7 +512,9 @@ namespace PixelVocabFlight
             hit.Health--;
             Emit(FlightEventKind.Hit, hit.Entry, hit.X, hit.Y, hit.Health);
             if (hit.Health <= 0) Kill(hit, KillSource.PlayerShot);
-            Retarget(hit);
+            // A shielded aircraft that is locking on stays on the radio after its shield breaks.
+            if (hit.Health > 0 && hit.Phase == EnemyPhase.Locking) targetAge = 0;
+            else Retarget(hit);
             return true;
         }
 
@@ -432,7 +523,7 @@ namespace PixelVocabFlight
             enemies.Remove(enemy);
             int earned = source == KillSource.PlayerShot
                 ? Progress.ResolveCorrect(enemy.Entry.word, targetAge, 20) : Progress.ResolveBlastKill();
-            Emit(FlightEventKind.Kill, enemy.Entry, enemy.X, enemy.Y, earned, killSource: source);
+            Emit(FlightEventKind.Kill, enemy.Entry, enemy.X, enemy.Y, earned, killSource: source, entityId: enemy.Id);
             if (random.NextDouble() < .1) AddSupply(random.Next(2) == 0 ? SupplyKind.Fuel : SupplyKind.Metal, enemy.X, enemy.Y);
         }
 
@@ -457,14 +548,14 @@ namespace PixelVocabFlight
         {
             if (Driving || Progress.IsOver) return false;
             var missile = missiles.Find(m => m.Id == id);
-            if (missile == null || missile.Failed || choice < 0 || choice > 3) return false;
+            if (missile == null || !missile.Answerable || choice < 0 || choice > 3) return false;
             if (choice != missile.CorrectIndex)
             {
                 missile.WrongAttempts++;
                 Progress.Wrong();
                 Emit(FlightEventKind.MissileWrong, missile.Answer, missile.X, missile.Y, missile.WrongAttempts, entityId: missile.Id);
                 if (missile.WrongAttempts >= 3)
-                { Emit(FlightEventKind.MissileFailure, missile.Answer, missile.X, missile.Y); }
+                { Emit(FlightEventKind.MissileFailure, missile.Answer, missile.X, missile.Y, entityId: missile.Id); }
                 return false;
             }
             missiles.Remove(missile);

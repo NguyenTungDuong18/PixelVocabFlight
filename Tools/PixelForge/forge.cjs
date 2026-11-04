@@ -8,13 +8,15 @@ const fs = require('fs');
 const path = require('path');
 const { Canvas, PAL, hex } = require('./lib.cjs');
 const U = require('./units.cjs');
+const T = require('./terrain.cjs');
+const RW = require('./runway.cjs');
 let UI = null;
 try { UI = require('./ui.cjs'); } catch (e) { if (e.code !== 'MODULE_NOT_FOUND' || !String(e.message).includes('ui.cjs')) throw e; }
 
 const ROOT = path.resolve(__dirname, '../..');
 const OUT = path.join(ROOT, 'Game/Assets/_Project/Art/Resources/Pixel');
 const PREVIEW = path.join(ROOT, 'SourceAssets/PixelArt/Pixel1944');
-const VERSION = '0.13.0';
+const VERSION = '0.14.0';
 
 const manifest = [];
 const groups = new Map();
@@ -39,6 +41,14 @@ function buildUnits() {
     add('Aircraft', 'bomber_' + livery + '_damaged', U.bomberFrames(livery, true), { fps: 12 });
   }
   add('Aircraft', 'bomber_shadow', [U.bomberBody('jungle').silhouette([0, 0, 0, 95])], { fps: 1 });
+  for (const livery of ['jungle', 'desert', 'ice', 'ocean']) {
+    add('Aircraft', 'bomber_' + livery + '_bank_left', U.bomberBankFrames(livery, -1), { fps: 20 });
+    add('Aircraft', 'bomber_' + livery + '_bank_right', U.bomberBankFrames(livery, 1), { fps: 20 });
+  }
+  add('Aircraft', 'bomber_guns', U.bomberGunFrames(), { fps: 8, loop: false });
+  add('Weapons', 'enemy_tracer', U.enemyTracerFrames(), { fps: 1 });
+  add('Weapons', 'rocket_boost', U.rocketBoostFrames(), { fps: 20 });
+  add('Effects', 'fx_lock_reticle', U.lockReticleFrames(), { fps: 8 });
   add('Naval', 'carrier', U.carrierFrames(), { fps: 4 });
   add('Naval', 'carrier_bow_wave', U.bowWaveFrames(), { fps: 8 });
   add('Naval', 'carrier_stern_wake', U.sternWakeFrames(), { fps: 8 });
@@ -76,6 +86,8 @@ function contactSheet(items, scale) {
 async function main() {
   buildUnits();
   if (UI) UI.build(add);
+  T.build(add);
+  RW.build(add);
   // Replace PNGs but keep Unity .meta files of frames that still exist (stable GUIDs);
   // frames that are no longer generated lose both their PNG and their .meta.
   const expected = new Set();

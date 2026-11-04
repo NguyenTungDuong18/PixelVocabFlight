@@ -9,6 +9,14 @@ internal static class CombatChecks
         var pool = catalog.Where(e => e.pos == "noun").Take(120).ToArray();
         ContinuousFlight New(FlightEnvironment environment=FlightEnvironment.Desert, int seed=42) => new(pool,seed,environment);
         void Heal(ContinuousFlight game) { while(game.Progress.Metal<5&&!game.Progress.IsOver)game.Progress.CollectMetal(); }
+        // Parks other hazards and waits for bullets and invulnerability to clear, so a fixture measures one hazard only.
+        void Calm(ContinuousFlight game,MissileState keep)
+        {
+            foreach(var e in game.Enemies){e.Age=0;e.Phase=EnemyPhase.Patrol;e.Y=0;}
+            foreach(var m in game.Missiles.Where(m=>m!=keep)){m.Y=.02f;m.Phase=MissilePhase.Cruise;m.PhaseSeconds=0;}
+            for(int i=0;(game.Shots.Count>0||game.ImpactGraceRemaining>0)&&i<60;i++){Heal(game);game.Tick(.05f);}
+            Heal(game);
+        }
         void AdvanceSafely(ContinuousFlight game,float duration)
         {
             for(float elapsed=0;elapsed<duration;)
@@ -49,19 +57,34 @@ internal static class CombatChecks
         while(ice.Target!=original&&ice.Enemies.Count>1)ice.Submit(ice.Target.Entry.word,ice.Target.Entry.pos);
         Check(ice.Submit(original.Entry.word,original.Entry.pos)&&!ice.Enemies.Contains(original),"ice second hit kills");
 
-        var ram=New();original=ram.Target;
-        ram.Tick(17.9f);Check(!original.Charging&&ram.Progress.Metal==5,"approach gives time to answer before attack");
-        ram.Tick(.2f);Check(original.Charging&&original.ChargeDelay>0&&ram.Progress.Metal==5,"charge has visible warning before movement");
-        for(int i=0;i<150&&ram.Enemies.Contains(original);i++)ram.Tick(.05f);
-        Check(!ram.Enemies.Contains(original)&&ram.Progress.Metal==4,"real aircraft charge hits and is removed exactly once");
-        Check(ram.Target!=original&&ram.Target!=null,"collided target changes meaning immediately");
-        Check(ram.Progress.Correct==0&&ram.Progress.Score==0&&ram.Supplies.All(s=>s.Kind==SupplyKind.Roll),"collision awards no kill score or loot");
-        var dodge=New();original=dodge.Target;dodge.Tick(18.1f);dodge.MovePlayer(.955f);
-        for(int i=0;i<200&&dodge.Enemies.Contains(original);i++)dodge.Tick(.05f);
-        Check(!dodge.Enemies.Contains(original)&&dodge.Progress.Metal==5,"moving after aim lock dodges aircraft and it leaves the field");
-        var immune=New();immune.Tick(12.1f);var nonTarget=immune.Enemies.First(e=>e!=immune.Target);
-        nonTarget.X=immune.PlayerX;nonTarget.Y=ContinuousFlight.PlayerY-.12f;nonTarget.Charging=true;nonTarget.ChargeDelay=0;nonTarget.VelocityX=0;nonTarget.VelocityY=.4f;
-        immune.Tick(.3f);Check(immune.Progress.Metal==4&&!immune.Enemies.Contains(nonTarget),"invulnerable non-target aircraft still inflicts collision damage");
+        var attack=New();original=attack.Target;
+        attack.Tick(17.9f);Check(original.Phase==EnemyPhase.Patrol&&attack.Progress.Metal==5,"approach gives time to answer before attack");
+        attack.Tick(.2f);Check(original.Phase==EnemyPhase.Locking&&original.LockRemaining>0&&attack.Target==original&&attack.Progress.Metal==5,"aircraft locks on with a visible warning before firing");
+        attack.Tick(ContinuousFlight.AircraftLockSeconds-.4f);Check(original.Phase==EnemyPhase.Locking&&attack.Shots.Count==0,"lock lasts long enough to answer");
+        attack.MovePlayer(.955f);
+        for(int i=0;i<200&&attack.Enemies.Contains(original);i++)attack.Tick(.05f);
+        Check(attack.Progress.Metal==4,"homing burst cannot be dodged and costs exactly one metal");
+        Check(!attack.Enemies.Contains(original)&&attack.Shots.Count==0,"attacker banks away off the map after firing");
+        Check(attack.Target!=original&&attack.Target!=null,"departed attacker hands the radio to another aircraft");
+        Check(attack.Progress.Correct==0&&attack.Progress.Score==0&&attack.Supplies.All(s=>s.Kind==SupplyKind.Roll),"enemy attack awards no kill score or loot");
+        // The run-in never stops: during the whole lock the bomber keeps closing, reaches its firing row
+        // exactly when the guns are out, fires and breaks away at no less than its run-in speed.
+        var runIn=New();original=runIn.Target;runIn.Tick(18.05f);
+        bool moving=original.Phase==EnemyPhase.Locking;float lastY=original.Y,fireRow=original.FireY,runSpeed=0;
+        while(original.Phase==EnemyPhase.Locking){runIn.Tick(.25f);if(original.Phase==EnemyPhase.Locking){moving&=original.Y>lastY+.001f;lastY=original.Y;runSpeed=original.VelocityY;}}
+        Check(moving,"locking aircraft keeps flying towards the player instead of hovering");
+        Check(Math.Abs(original.Y-fireRow)<.02f&&fireRow>=ContinuousFlight.FireRowMin&&fireRow<=ContinuousFlight.FireRowMax&&runIn.Shots.Count>0,"guns are ready exactly at the firing row");
+        Check(original.Departing&&original.DepartStartSpeed>=.04f&&original.VelocityY>0,"fire and break-away follow without a pause");
+        runIn.Tick(.6f);Check(original.Y>fireRow&&Math.Abs(original.VelocityX)>.05f,"after the burst the bomber turns out of the frame");
+        var prevent=New();original=prevent.Target;prevent.Tick(18.1f);prevent.SetDriving(false);
+        Check(prevent.Submit(original.Entry.word,original.Entry.pos)&&!prevent.Enemies.Contains(original),"locking aircraft can be shot down");
+        prevent.Tick(6);Check(prevent.Progress.Metal==5&&prevent.Shots.Count==0,"destroyed attacker never fires");
+        var priority=New();priority.Tick(12.1f);var other=priority.Enemies.First(e=>e!=priority.Target);
+        foreach(var e in priority.Enemies)e.Age=0;other.Age=ContinuousFlight.AircraftAttackAge-.01f;priority.Tick(.05f);
+        Check(other.Phase==EnemyPhase.Locking&&priority.Target==other,"aircraft locking on becomes the radio target");
+        var iceLock=New(FlightEnvironment.Ice);original=iceLock.Target;iceLock.Tick(18.1f);iceLock.SetDriving(false);
+        Check(iceLock.Submit(original.Entry.word,original.Entry.pos)&&original.Health==1&&iceLock.Target==original,"shield break keeps a locking aircraft on the radio");
+        Check(iceLock.Submit(original.Entry.word,original.Entry.pos)&&!iceLock.Enemies.Contains(original),"second hit downs it before it fires");
 
         var cycling=New(FlightEnvironment.Jungle);AdvanceSafely(cycling,179.8f);
         Check(cycling.Environment==FlightEnvironment.Jungle,"environment lasts three minutes");
@@ -84,9 +107,8 @@ internal static class CombatChecks
         Check(rocket.Choices.Length==4&&rocket.Choices.All(pool.Contains),"all four missile choices stay inside selected vocabulary");
         Check(!sea.AnswerMissile(rocket.Id,rocket.CorrectIndex),"drive mode cannot answer missile");
         float startY=rocket.Y;sea.Tick(.1f);Check(rocket.Y>startY,"unanswered missile really approaches player");
-        sea.SetDriving(false);
-        // Controlled collision fixture uses the same swept physics as live gameplay.
-        foreach(var e in sea.Enemies){e.Age=0;e.Charging=false;e.Y=0;}
+        sea.SetDriving(false);Calm(sea,rocket);
+        Check(sea.AnswerMissile(rocket.Id,(rocket.CorrectIndex+1)%4)==false&&rocket.WrongAttempts==1,"wrong choice is counted on the missile");
         original=sea.Target;original.X=rocket.X;original.Y=rocket.Y;
         var splash=sea.Enemies.First(e=>e!=original);splash.X=rocket.X;splash.Y=rocket.Y;splash.Health=2;
         var safe=sea.Enemies.First(e=>e!=original&&e!=splash);safe.X=rocket.X<.5f?.95f:.05f;safe.Y=.68f;
@@ -97,31 +119,36 @@ internal static class CombatChecks
         while((blastEvent=sea.PopEvent())!=null)blastEvents.Add(blastEvent);
         Check(blastEvents.Count(e=>e.Kind==FlightEventKind.Kill)>=2&&blastEvents.Where(e=>e.Kind==FlightEventKind.Kill).All(e=>e.Source==KillSource.MissileBlast&&!e.ShouldPronounce),"blast multi-kills never request pronunciation");
 
-        var incoming=OceanWithMissile();rocket=incoming.Missiles[0];incoming.SetDriving(false);
-        foreach(var e in incoming.Enemies){e.Age=0;e.Charging=false;e.Y=0;}
-        rocket.X=incoming.PlayerX;rocket.Y=ContinuousFlight.PlayerY-.2f;rocket.VelocityX=0;rocket.VelocityY=.3f;
-        int before=incoming.Progress.Metal;incoming.Tick(.7f);
-        Check(incoming.Progress.Metal==before-2&&!incoming.Missiles.Contains(rocket),"missile physical impact costs exactly two metal and removes projectile");
+        var seeker=OceanWithMissile();rocket=seeker.Missiles[0];Calm(seeker,rocket);
+        float aimBefore=rocket.VelocityX;seeker.MovePlayer(rocket.X<.5f?.955f:.045f);for(int i=0;i<20;i++)seeker.Tick(.05f);
+        Check(rocket.Phase==MissilePhase.Cruise&&Math.Sign(rocket.VelocityX)==Math.Sign(seeker.PlayerX-rocket.X)&&Math.Abs(rocket.VelocityX-aimBefore)>.0001f,"cruising rocket re-aims at the moving player");
+        rocket.Y=ContinuousFlight.MissileTerminalY+.001f;seeker.Tick(.05f);
+        Check(rocket.Phase==MissilePhase.Locking&&seeker.PlayerLockedOn,"rocket locks on near the player");
+        seeker.SetDriving(false);int correctBefore=seeker.Progress.Correct;
+        var lockedRocket=rocket;Check(seeker.AnswerMissile(lockedRocket.Id,lockedRocket.CorrectIndex)&&seeker.Progress.Correct==correctBefore+1,"locking rocket can still be answered");
+
+        var incoming=OceanWithMissile();rocket=incoming.Missiles[0];incoming.SetDriving(false);Calm(incoming,rocket);
+        rocket.Y=ContinuousFlight.MissileTerminalY;incoming.Tick(.05f);
+        int before=incoming.Progress.Metal;incoming.Tick(ContinuousFlight.MissileLockSeconds-.2f);
+        Check(rocket.Phase==MissilePhase.Locking&&incoming.Progress.Metal==before,"lock-on warning comes before the boost");
+        incoming.Tick(.25f);Check(rocket.Phase==MissilePhase.Boost&&!rocket.Answerable,"rocket boosts after the lock and can no longer be answered");
+        Check(!incoming.AnswerMissile(rocket.Id,rocket.CorrectIndex),"boosting rocket ignores answers");
+        incoming.MovePlayer(incoming.PlayerX<.5f?.955f:.045f);incoming.SetDriving(true);incoming.MovePlayer(incoming.PlayerX<.5f?.955f:.045f);
+        incoming.Tick(1.5f);
+        Check(incoming.Progress.Metal==before-2&&!incoming.Missiles.Contains(rocket),"boosting rocket chases the player and costs exactly two metal");
         incoming.Tick(.1f);Check(incoming.Progress.Metal==before-2,"removed missile cannot damage twice");
-        var badAnswers=OceanWithMissile();rocket=badAnswers.Missiles[0];badAnswers.SetDriving(false);
+        var badAnswers=OceanWithMissile();rocket=badAnswers.Missiles[0];badAnswers.SetDriving(false);Calm(badAnswers,rocket);
         int bad=(rocket.CorrectIndex+1)%4;int beforeWrong=badAnswers.Progress.Metal;
         for(int i=0;i<3;i++)badAnswers.AnswerMissile(rocket.Id,bad);
         var wrongEvents=new List<FlightEvent>();FlightEvent wrongEvent;
         while((wrongEvent=badAnswers.PopEvent())!=null)wrongEvents.Add(wrongEvent);
         Check(wrongEvents.Count(e=>e.Kind==FlightEventKind.MissileWrong&&e.EntityId==rocket.Id)==3&&!wrongEvents.Any(e=>e.Kind==FlightEventKind.MissileBlast),"each missile mistake identifies projectile for shake and never emits explosion");
-        Check(rocket.Failed&&!badAnswers.Progress.IsOver&&badAnswers.Progress.Metal==beforeWrong,"three errors accelerate missile without instant health loss");
-        Check(!badAnswers.AnswerMissile(rocket.Id,rocket.CorrectIndex)&&badAnswers.Missiles.Contains(rocket),"failed quiz cannot defuse accelerated missile");
-        foreach(var e in badAnswers.Enemies){e.Age=0;e.Charging=false;e.Y=0;}
-        rocket.X=badAnswers.PlayerX;rocket.Y=ContinuousFlight.PlayerY-.2f;rocket.VelocityX=0;rocket.VelocityY=.3f;
-        badAnswers.Tick(.2f);Check(badAnswers.Progress.Metal==beforeWrong-2,"failed missile only hurts on physical impact");
-        var evadeRocket=OceanWithMissile();rocket=evadeRocket.Missiles[0];
-        foreach(var e in evadeRocket.Enemies){e.Age=0;e.Charging=false;e.Y=0;}
-        rocket.X=.5f;rocket.Y=.65f;rocket.VelocityX=0;rocket.VelocityY=.3f;
-        evadeRocket.MovePlayer(.955f);int dodgeHealth=evadeRocket.Progress.Metal;evadeRocket.Tick(2);
-        Check(evadeRocket.Progress.Metal==dodgeHealth&&!evadeRocket.Missiles.Contains(rocket),"missile can be dodged with no metal loss");
-        var fatal=OceanWithMissile();rocket=fatal.Missiles[0];fatal.SetDriving(false);fatal.Progress.Damage(4);
-        foreach(var e in fatal.Enemies){e.Age=0;e.Charging=false;e.Y=0;}
-        rocket.X=fatal.PlayerX;rocket.Y=ContinuousFlight.PlayerY-.2f;rocket.VelocityX=0;rocket.VelocityY=.3f;fatal.Tick(.7f);
+        Check(rocket.Failed&&!badAnswers.Progress.IsOver&&badAnswers.Progress.Metal==beforeWrong,"three errors trigger the lock without instant health loss");
+        Check(!badAnswers.AnswerMissile(rocket.Id,rocket.CorrectIndex)&&badAnswers.Missiles.Contains(rocket),"failed quiz cannot defuse the rocket");
+        badAnswers.Tick(.3f);Check(rocket.Phase==MissilePhase.Locking&&badAnswers.Progress.Metal==beforeWrong,"failed rocket locks on briefly first");
+        badAnswers.Tick(3);Check(badAnswers.Progress.Metal==beforeWrong-2&&!badAnswers.Missiles.Contains(rocket),"failed rocket boosts and always hits");
+        var fatal=OceanWithMissile();rocket=fatal.Missiles[0];fatal.SetDriving(false);Calm(fatal,rocket);fatal.Progress.Damage(4);
+        rocket.Phase=MissilePhase.Boost;rocket.PhaseSeconds=0;fatal.Tick(1.5f);
         Check(fatal.Progress.IsOver&&fatal.Progress.Metal==0,"missile clamps one remaining metal to zero and loses");
 
         int loot=0,fuel=0,metal=0;

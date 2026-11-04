@@ -12,7 +12,10 @@ namespace PixelVocabFlight
 {
     public sealed partial class FlightGame : MonoBehaviour
     {
-        private enum Mode { Menu, Flying, Paused, Dying, Results, Error }
+        private enum Mode { Menu, Launching, Intro, Flying, Paused, Dying, Results, Error }
+        public const float IntroSeconds = 1.4f;
+        private float introTime;
+        private VocabularyEntry[] launchPool;
         private Mode mode;
         private VocabularyCatalog catalog;
         private ProfileStore profile;
@@ -75,6 +78,23 @@ namespace PixelVocabFlight
                 HandleMenuKeys();
                 return;
             }
+            if (mode == Mode.Launching)
+            {
+                view.Board.Animate(Time.unscaledDeltaTime, null, StartingEnvironment); view.AnimateHangar(Time.unscaledDeltaTime, StartingEnvironment);
+                if (view.AnimateTakeOff(Time.unscaledDeltaTime)) BeginFlight(launchPool);
+                return;
+            }
+            if (mode == Mode.Intro)
+            {
+                // The sortie clock does not run while the fighter climbs into position.
+                // Capped step: the hitch right after loading the sortie must not skip the climb-in.
+                introTime += Mathf.Min(Time.deltaTime, 1 / 30f);
+                view.AnimateIntro(introTime / IntroSeconds);
+                view.Board.Animate(Time.deltaTime, flight, StartingEnvironment);
+                view.SetInput(typed, !flight.Driving); view.Refresh(flight);
+                if (introTime >= IntroSeconds) { view.FinishIntro(); mode = Mode.Flying; nextSubmit = Time.unscaledTime + .1f; }
+                return;
+            }
             if (mode == Mode.Dying)
             {
                 view.Board.Animate(Time.deltaTime, flight, StartingEnvironment); endingTimer -= Time.deltaTime;
@@ -101,7 +121,7 @@ namespace PixelVocabFlight
             }
             voiceRemaining -= Time.deltaTime;
             if (voiceRemaining <= 0 && speech.Count > 0) voiceRemaining = audioPlayer.Say(speech.Dequeue()) + .15f;
-            view.SetInput(typed, !flight.Driving && flight.Target != null);
+            view.SetInput(typed, !flight.Driving);
             view.Refresh(flight);
         }
 
@@ -117,7 +137,7 @@ namespace PixelVocabFlight
             var numpad = new[] { keyboard.numpad1Key, keyboard.numpad2Key, keyboard.numpad3Key, keyboard.numpad4Key };
             for (int i = 0; i < 4; i++) if (digits[i].wasPressedThisFrame || numpad[i].wasPressedThisFrame) { ChooseStartingEnvironment(i); return; }
             if (keyboard.vKey.wasPressedThisFrame) OpenVocabulary();
-            else if (enter) StartFlight();
+            else if (enter) TakeOff();
         }
 
         private void HandleEditing()
@@ -130,8 +150,11 @@ namespace PixelVocabFlight
         private void Backspace() { if (typed.Length > 0) typed = typed.Substring(0, typed.Length - 1); }
         private void ReceiveCharacter(char value)
         {
-            if (mode != Mode.Flying || flight == null || flight.Driving || flight.Target == null || view.PartOfSpeechOpen || typed.Length >= 40) return;
+            if (mode != Mode.Flying || flight == null || view.PartOfSpeechOpen) return;
             if (keyboard != null && (keyboard.ctrlKey.isPressed || keyboard.leftMetaKey.isPressed || keyboard.rightMetaKey.isPressed)) return;
+            // Digits never occur in Oxford headwords, so 1-4 always pick a choice on the open rocket.
+            if (value >= '1' && value <= '4' && view.Board.OpenMissileId != 0) { ChooseMissileAnswer(view.Board.OpenMissileId, value - '1'); return; }
+            if (flight.Driving || flight.Target == null || typed.Length >= 40) return;
             if (char.IsLetterOrDigit(value) || value == ' ' || value == '-' || value == '\'' || value == '.') typed += value;
         }
 
@@ -172,25 +195,51 @@ namespace PixelVocabFlight
         public void ReturnToMenu()
         {
             mode = Mode.Menu; Time.timeScale = 1; Cursor.visible = true; typed = "";
-            audioPlayer?.Stop(); speech.Clear(); view.Board.Clear(); flight = null; ShowHangar();
+            audioPlayer?.Stop(); speech.Clear(); view.Board.Clear(); flight = null; view.FinishIntro(); ShowHangar();
         }
 
-        public void StartFlight()
+        // Validates the selection; on failure the vocabulary screen explains why and null is returned.
+        private VocabularyEntry[] PrepareFlightPool()
         {
-            if (catalog == null || mode == Mode.Error) return;
-            if (view.Setup != null && view.Setup.Search.text.Trim() != (selection.search ?? "")) { ApplyMenuSearch(); return; }
-            if (!ReadRange(out var error)) { ShowMenu(error); return; }
+            if (catalog == null || mode == Mode.Error) return null;
+            if (view.Setup != null && view.Setup.Search.text.Trim() != (selection.search ?? "")) { ApplyMenuSearch(); return null; }
+            if (!ReadRange(out var error)) { ShowMenu(error); return null; }
             var pool = VocabularyQuery.Range(catalog.Filter(selection), selection.from, selection.to);
             string poolError = ValidateFlightPool(pool);
-            if (poolError != null) { ShowMenu(poolError); return; }
+            if (poolError != null) { ShowMenu(poolError); return null; }
+            return pool;
+        }
+
+        // CẤT CÁNH from the hangar: panels slide away and the fighter takes off before the sortie.
+        public void TakeOff()
+        {
+            if (mode != Mode.Menu || !view.HangarVisible) { StartFlight(); return; }
+            var pool = PrepareFlightPool();
+            if (pool == null) return;
+            launchPool = pool; mode = Mode.Launching; Cursor.visible = true;
+            view.BeginTakeOff(); audioPlayer.Engine();
+            EventSystem.current?.SetSelectedGameObject(null);
+        }
+
+        // Straight into the battle intro (BAY LẠI on the results screen, or from the vocabulary screen).
+        public void StartFlight()
+        {
+            if (mode == Mode.Launching || mode == Mode.Intro) return;
+            var pool = PrepareFlightPool();
+            if (pool != null) BeginFlight(pool);
+        }
+
+        private void BeginFlight(VocabularyEntry[] pool)
+        {
             audioPlayer.Stop(); speech.Clear(); voiceRemaining = 0; Time.timeScale = 1;
             // New rules have a separate leaderboard from the old three-aircraft waves.
             bestKey = "interaction-v3:" + StartingEnvironment + ":" + VocabularyQuery.SelectionKey(pool);
             flightPool = pool; SaveSelection();
             flight = new ContinuousFlight(pool, System.Environment.TickCount, StartingEnvironment);
             progress = flight.Progress; firstTry = 0; mistakes.Clear(); reviewWords.Clear(); typed = "";
-            mode = Mode.Flying; view.Board.Clear(); view.Board.SetEnvironment(StartingEnvironment);
+            mode = Mode.Intro; introTime = 0; view.Board.Clear(); view.Board.SetEnvironment(StartingEnvironment);
             view.NewFlight((selection.collection == "oxford3000" ? "OXFORD 3000" : "OXFORD 5000") + " / " + pool.Length + " MỤC");
+            view.BeginIntro();
             DrainEvents(); view.Refresh(flight); nextSubmit = Time.unscaledTime + .2f;
             EventSystem.current?.SetSelectedGameObject(null);
         }
@@ -204,12 +253,32 @@ namespace PixelVocabFlight
             return "Cần ít nhất 4 từ phân biệt để tạo bốn lựa chọn tên lửa. Hãy mở rộng khoảng từ.";
         }
 
+        // Tab / lever: switching to BẮN puts the keyboard straight into the typing slot (no click needed).
         public void ToggleControlMode()
         {
             if (mode != Mode.Flying) return;
-            flight.SetDriving(!flight.Driving); typed = "";
-            view.Feedback(flight.Driving ? "LÁI: rê chuột trái/phải để đón R+. Tab để chuyển sang bắn." : "BẮN: máy bay đứng yên. Gõ từ + Enter; chọn từ loại nếu là máy bay sa mạc.");
-            EventSystem.current?.SetSelectedGameObject(null); view.Refresh(flight);
+            SetDriving(!flight.Driving);
+        }
+
+        public void FocusTyping() { if (mode == Mode.Flying && flight.Driving) SetDriving(false); else EventSystem.current?.SetSelectedGameObject(null); }
+
+        private void SetDriving(bool driving)
+        {
+            flight.SetDriving(driving); typed = "";
+            view.Feedback(driving ? "LÁI: rê chuột trái/phải để đón R+. TAB để chuyển sang bắn." : "BẮN: gõ ngay từ tiếng Anh + ENTER · phím 1–4 chọn đáp án tên lửa.");
+            EventSystem.current?.SetSelectedGameObject(null); view.SetInput(typed, !driving); view.Refresh(flight);
+        }
+
+        // Missile tags (click or keys 1-4). Answering needs the guns, so it switches to BẮN first.
+        public void ChooseMissileAnswer(int id, int choice)
+        {
+            if (mode != Mode.Flying) return;
+            if (flight.Driving) SetDriving(false);
+            var missile = flight.Missiles.FirstOrDefault(m => m.Id == id);
+            if (missile == null || !missile.Answerable) return;
+            if (!flight.AnswerMissile(id, choice)) view.Board.MarkWrongChoice(id, choice);
+            DrainEvents(); view.Refresh(flight);
+            EventSystem.current?.SetSelectedGameObject(null);
         }
 
         public void RollMeaning()
@@ -229,12 +298,6 @@ namespace PixelVocabFlight
             DrainEvents(); view.Refresh(flight);
         }
 
-        public void AnswerMissile(int id, int choice)
-        {
-            if (mode != Mode.Flying) return;
-            flight.AnswerMissile(id, choice); DrainEvents(); view.Refresh(flight);
-            EventSystem.current?.SetSelectedGameObject(null);
-        }
 
         private void DrainEvents()
         {
@@ -273,11 +336,21 @@ namespace PixelVocabFlight
                     case FlightEventKind.MissileBlast:
                         view.Board.Blast(ev.X, ev.Y); audioPlayer.Success(); view.Feedback("Tên lửa nổ! Máy bay trong vòng nổ bị hạ, kể cả còn khiên."); break;
                     case FlightEventKind.MissileFailure:
-                        view.Feedback("Sai 3 lần: tên lửa tăng tốc! Sang LÁI để né; trúng mất 2 giáp.", true); break;
+                        view.Feedback("Sai 3 lần: tên lửa khóa mục tiêu và sắp tăng tốc! Trúng mất 2 giáp.", true); break;
+                    case FlightEventKind.AircraftLock:
+                        audioPlayer.LockWarning();
+                        view.Feedback("CẢNH BÁO: " + ev.Entry.word.ToUpperInvariant() + " đang khóa mục tiêu! Gõ đúng để hạ trước khi nó bắn.", true); break;
+                    case FlightEventKind.AircraftFire:
+                        view.Board.EnemyFire(ev.EntityId); audioPlayer.Gunfire(); break;
+                    case FlightEventKind.MissileLock:
+                        audioPlayer.LockWarning();
+                        view.Feedback("Tên lửa đã khóa mục tiêu! Chọn đáp án ngay (phím 1–4).", true); break;
+                    case FlightEventKind.MissileBoost:
+                        audioPlayer.Boost(); view.Feedback("Tên lửa tăng tốc lao tới — không thể né!", true); break;
                     case FlightEventKind.AircraftImpact:
                     case FlightEventKind.MissileImpact:
                         view.Board.Impact(ev.X, ev.Y); audioPlayer.Wrong();
-                        view.Feedback((ev.Kind == FlightEventKind.MissileImpact ? "Tên lửa trúng!" : "Máy bay địch đâm trúng!") + " -" + ev.Value + " giáp / còn " + progress.Metal + "/5.", true);
+                        view.Feedback((ev.Kind == FlightEventKind.MissileImpact ? "Tên lửa trúng!" : "Trúng loạt đạn đuổi!") + " -" + ev.Value + " giáp / còn " + progress.Metal + "/5.", true);
                         if (ev.Entry != null && !reviewWords.Any(e => e.id == ev.Entry.id)) reviewWords.Add(ev.Entry);
                         break;
                 }

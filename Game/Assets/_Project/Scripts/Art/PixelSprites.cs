@@ -51,7 +51,8 @@ namespace PixelVocabFlight
             {
                 var texture = Resources.Load<Texture2D>("Pixel/" + e.path + "_" + i);
                 if (!texture) throw new InvalidOperationException("Thiếu khung hình: Pixel/" + e.path + "_" + i);
-                texture.filterMode = FilterMode.Point;
+                // Pre-blurred "_blur" twins are soft by design; bilinear keeps them smooth when scaled 2x.
+                texture.filterMode = e.name.EndsWith("_blur", StringComparison.Ordinal) ? FilterMode.Bilinear : FilterMode.Point;
                 texture.wrapMode = TextureWrapMode.Clamp;
                 frames[i] = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(.5f, .5f), 100, 0, SpriteMeshType.FullRect, border);
                 frames[i].name = e.name + "_" + i;

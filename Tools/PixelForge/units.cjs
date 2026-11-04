@@ -400,7 +400,108 @@ function splashFrames() {
   });
 }
 
+// ---------------- Attack frames ----------------
+// Banking bomber: the wings foreshorten around the fuselage and one wing catches the light.
+function bomberBankFrames(livery, side) {
+  const span = .8, src = bomberBody(livery), base = new Canvas(48, 40);
+  for (let y = 0; y < 40; y++) for (let x = 0; x < 48; x++) {
+    const dx = x + .5 - 24;
+    let col;
+    if (Math.abs(dx) < 4.5) col = src.get(x, y);
+    else { const sx = Math.round(24 + Math.sign(dx) * (4.5 + (Math.abs(dx) - 4.5) / span) - .5); col = src.get(sx, y); }
+    if (col && col !== K && Math.abs(dx) >= 4.5) col = shift(col, (dx < 0) === (side < 0) ? -1 : 1);
+    base.put(x, y, col);
+  }
+  return [0, 1, 2, 3].map(f => {
+    const c = base.clone();
+    propeller(c, 24 - 9.5 * span, 8, 4, f); propeller(c, 24 + 9.5 * span, 8, 4, f + 1);
+    return c;
+  });
+}
+// Gun overlay (same 48x40 frame as the bomber). Frames 0-8: the gun-bay hatches open and the
+// barrels slide out one pixel at a time over the whole lock-on; frames 9-10: muzzle flashes.
+const GUN_DEPLOY_FRAMES = 9;
+function bomberGunFrames() {
+  const ext = [0, 1, 2, 3, 4, 5, 6, 7, 8, 8, 8];
+  return ext.map((e, f) => {
+    const c = new Canvas(48, 40);
+    for (const gx of [17, 30]) {
+      // Hatch: a dark slot that widens before the barrel appears.
+      const open = Math.min(2, f + 1);
+      for (let y = 14 - open; y < 15; y++) { c.put(gx - 1, y, K); c.put(gx + 1, y, K); c.put(gx, y, K); }
+      for (let y = 14 - e; y < 14; y++) { c.put(gx, y, y === 14 - e ? ST[4] : y % 3 === 0 ? ST[3] : ST[2]); c.put(gx - 1, y, K); c.put(gx + 1, y, K); }
+      if (e > 0) c.put(gx, 13 - e, K);
+      // Cooling jacket appears once the barrel is half out.
+      if (e >= 4) for (let y = 14 - Math.min(e, 6); y < 13; y += 2) { c.put(gx - 1, y, ST[1]); c.put(gx + 1, y, ST[1]); }
+      if (f >= GUN_DEPLOY_FRAMES) {
+        const tip = 13 - e;
+        c.put(gx, tip, FI[4]); c.put(gx, tip - 1, FI[3]); c.put(gx - 1, tip - 1, FI[2]); c.put(gx + 1, tip - 1, FI[2]);
+        if (f === GUN_DEPLOY_FRAMES) { c.put(gx, tip - 2, FI[3]); c.put(gx - 2, tip - 2, FI[2]); c.put(gx + 2, tip - 2, FI[2]); c.put(gx, tip - 3, FI[2]); }
+      }
+    }
+    // Chin cannon under the glazed nose.
+    const n = Math.min(3, Math.floor(e / 3));
+    for (let y = 2 - n; y < 2; y++) { c.put(23, y, ST[3]); c.put(24, y, ST[2]); }
+    return c;
+  });
+}
+function enemyTracerFrames() {
+  const c = new Canvas(4, 12);
+  for (let y = 0; y < 12; y++) {
+    const col = y < 3 ? FI[4] : y < 7 ? RD[4] : withAlpha(RD[3], 210 - (y - 7) * 40);
+    c.put(1, y, col); c.put(2, y, col);
+    if (y > 1 && y < 7) { c.put(0, y, withAlpha(RD[3], 120)); c.put(3, y, withAlpha(RD[3], 120)); }
+  }
+  return [c];
+}
+// Lock-on sight drawn over the player: brackets close in, then turn red and blink.
+function lockReticleFrames() {
+  const frames = [];
+  for (let f = 0; f < 8; f++) {
+    const c = new Canvas(40, 40), locked = f >= 6, d = locked ? 11 : Math.round(18 - f * 1.4);
+    const col = locked ? (f === 6 ? RD[4] : FI[3]) : f % 2 ? GD[3] : GD[2], arm = locked ? 6 : 5;
+    for (const [sx, sy] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) {
+      const cx = 20 + sx * d - (sx > 0 ? 1 : 0), cy = 20 + sy * d - (sy > 0 ? 1 : 0);
+      for (let s = 0; s < arm; s++) {
+        c.put(cx - sx * s, cy, col); c.put(cx, cy - sy * s, col);
+        if (locked) { c.put(cx - sx * s, cy - sy, col); c.put(cx - sx, cy - sy * s, col); }
+      }
+    }
+    for (const [dx, dy] of [[0, -1], [1, 0], [0, 1], [-1, 0]]) for (let s = 0; s < 3; s++) {
+      const r = d + 3 + s;
+      c.put(20 + dx * r - (dx > 0 ? 1 : 0), 20 + dy * r - (dy > 0 ? 1 : 0), col);
+    }
+    if (locked) {
+      for (const [dx, dy] of [[0, -4], [4, 0], [0, 4], [-4, 0]]) c.line(20 + dx, 20 + dy, 20 + dy, 20 - dx, col);
+      c.put(19, 19, PAL.WHITE); c.put(20, 20, PAL.WHITE); c.put(19, 20, col); c.put(20, 19, col);
+    }
+    frames.push(c.outline(withAlpha(K, 170)));
+  }
+  return frames;
+}
+// Boosting rocket: same airframe, flame doubled in length and width.
+function rocketBoostFrames() {
+  const body = rocketFrames(true)[0];
+  return [20, 26, 23, 28].map((len, f) => {
+    const c = new Canvas(16, 56);
+    for (let y = 0; y < 26; y++) for (let x = 0; x < 12; x++) { const p = body.get(x, y); if (p) c.put(x + 2, y, p); }
+    for (let y = 26; y < 26 + len && y < 56; y++) {
+      const t = (y - 26) / len;
+      for (let x = 0; x < 16; x++) {
+        const d = Math.abs(x + .5 - 8), w = 3.6 * (1 - t * .7) + (f % 2) * .4;
+        let col = null;
+        if (d <= w * .35 && t < .45) col = PAL.WHITE; else if (d <= w * .6 && t < .7) col = FI[4]; else if (d <= w * .85) col = FI[3]; else if (d <= w) col = FI[2];
+        if (col && t > .55 && !dither(x, y + f, 1.35 - t)) col = t < .8 ? FI[1] : null;
+        if (col) c.put(x, y, col);
+      }
+    }
+    for (let k = 0; k < 4; k++) c.put(Math.floor(2 + hash(k, f, 41) * 12), Math.floor(30 + hash(k, f, 42) * 24), FI[3]);
+    return c;
+  });
+}
+
 module.exports = {
   fighterFrames, fighterBody, bomberFrames, bomberBody, carrierFrames, bowWaveFrames, sternWakeFrames, rocketFrames,
-  supplyFrames, explosionFrames, sparkFrames, smokeFrames, shockwaveFrames, iceShieldFrames, tracerFrames, muzzleFrames, splashFrames
+  supplyFrames, explosionFrames, sparkFrames, smokeFrames, shockwaveFrames, iceShieldFrames, tracerFrames, muzzleFrames, splashFrames,
+  bomberBankFrames, bomberGunFrames, enemyTracerFrames, lockReticleFrames, rocketBoostFrames, propeller
 };

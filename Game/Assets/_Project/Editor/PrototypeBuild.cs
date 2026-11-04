@@ -55,7 +55,7 @@ namespace PixelVocabFlight.Editor
         {
             if (!File.Exists(ScenePath)) CreateScene();
             ConfigurePixelArt();
-            PlayerSettings.bundleVersion = "0.13.0";
+            PlayerSettings.bundleVersion = "0.14.0";
             AssetDatabase.SaveAssets();
             string projectRoot = Path.GetFullPath(Path.Combine(Application.dataPath, "../.."));
             string output = Path.Combine(projectRoot, "Builds", "Windows", "Wordwing.exe");
@@ -89,7 +89,7 @@ namespace PixelVocabFlight.Editor
                 importer.SaveAndReimport();
                 count++;
             }
-            if (count < 150) throw new InvalidOperationException("Expected at least 150 pixel frames, found " + count);
+            if (count < 300) throw new InvalidOperationException("Expected at least 300 pixel frames, found " + count);
             Debug.Log("WORDWING: configured " + count + " pixel frames.");
         }
     }

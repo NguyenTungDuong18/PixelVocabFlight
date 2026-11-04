@@ -1,5 +1,5 @@
 {
-  "version": "0.13.0",
+  "version": "0.14.0",
   "sprites": [
     {
       "name": "fighter_level",
@@ -128,6 +128,126 @@
       "width": 48,
       "height": 40,
       "fps": 1,
+      "loop": true,
+      "border": 0
+    },
+    {
+      "name": "bomber_jungle_bank_left",
+      "path": "Aircraft/bomber_jungle_bank_left",
+      "frames": 4,
+      "width": 48,
+      "height": 40,
+      "fps": 20,
+      "loop": true,
+      "border": 0
+    },
+    {
+      "name": "bomber_jungle_bank_right",
+      "path": "Aircraft/bomber_jungle_bank_right",
+      "frames": 4,
+      "width": 48,
+      "height": 40,
+      "fps": 20,
+      "loop": true,
+      "border": 0
+    },
+    {
+      "name": "bomber_desert_bank_left",
+      "path": "Aircraft/bomber_desert_bank_left",
+      "frames": 4,
+      "width": 48,
+      "height": 40,
+      "fps": 20,
+      "loop": true,
+      "border": 0
+    },
+    {
+      "name": "bomber_desert_bank_right",
+      "path": "Aircraft/bomber_desert_bank_right",
+      "frames": 4,
+      "width": 48,
+      "height": 40,
+      "fps": 20,
+      "loop": true,
+      "border": 0
+    },
+    {
+      "name": "bomber_ice_bank_left",
+      "path": "Aircraft/bomber_ice_bank_left",
+      "frames": 4,
+      "width": 48,
+      "height": 40,
+      "fps": 20,
+      "loop": true,
+      "border": 0
+    },
+    {
+      "name": "bomber_ice_bank_right",
+      "path": "Aircraft/bomber_ice_bank_right",
+      "frames": 4,
+      "width": 48,
+      "height": 40,
+      "fps": 20,
+      "loop": true,
+      "border": 0
+    },
+    {
+      "name": "bomber_ocean_bank_left",
+      "path": "Aircraft/bomber_ocean_bank_left",
+      "frames": 4,
+      "width": 48,
+      "height": 40,
+      "fps": 20,
+      "loop": true,
+      "border": 0
+    },
+    {
+      "name": "bomber_ocean_bank_right",
+      "path": "Aircraft/bomber_ocean_bank_right",
+      "frames": 4,
+      "width": 48,
+      "height": 40,
+      "fps": 20,
+      "loop": true,
+      "border": 0
+    },
+    {
+      "name": "bomber_guns",
+      "path": "Aircraft/bomber_guns",
+      "frames": 11,
+      "width": 48,
+      "height": 40,
+      "fps": 8,
+      "loop": false,
+      "border": 0
+    },
+    {
+      "name": "enemy_tracer",
+      "path": "Weapons/enemy_tracer",
+      "frames": 1,
+      "width": 4,
+      "height": 12,
+      "fps": 1,
+      "loop": true,
+      "border": 0
+    },
+    {
+      "name": "rocket_boost",
+      "path": "Weapons/rocket_boost",
+      "frames": 4,
+      "width": 16,
+      "height": 56,
+      "fps": 20,
+      "loop": true,
+      "border": 0
+    },
+    {
+      "name": "fx_lock_reticle",
+      "path": "Effects/fx_lock_reticle",
+      "frames": 8,
+      "width": 40,
+      "height": 40,
+      "fps": 8,
       "loop": true,
       "border": 0
     },
@@ -289,6 +409,106 @@
       "height": 10,
       "fps": 8,
       "loop": false,
+      "border": 0
+    },
+    {
+      "name": "cockpit_panel",
+      "path": "UI/cockpit_panel",
+      "frames": 1,
+      "width": 720,
+      "height": 124,
+      "fps": 1,
+      "loop": true,
+      "border": 0
+    },
+    {
+      "name": "gauge_needle",
+      "path": "UI/gauge_needle",
+      "frames": 48,
+      "width": 56,
+      "height": 56,
+      "fps": 1,
+      "loop": true,
+      "border": 0
+    },
+    {
+      "name": "ui_lamp_green",
+      "path": "UI/ui_lamp_green",
+      "frames": 1,
+      "width": 14,
+      "height": 14,
+      "fps": 1,
+      "loop": true,
+      "border": 0
+    },
+    {
+      "name": "ui_lamp_amber",
+      "path": "UI/ui_lamp_amber",
+      "frames": 1,
+      "width": 14,
+      "height": 14,
+      "fps": 1,
+      "loop": true,
+      "border": 0
+    },
+    {
+      "name": "ui_lamp_red",
+      "path": "UI/ui_lamp_red",
+      "frames": 1,
+      "width": 14,
+      "height": 14,
+      "fps": 1,
+      "loop": true,
+      "border": 0
+    },
+    {
+      "name": "ui_lamp_off",
+      "path": "UI/ui_lamp_off",
+      "frames": 1,
+      "width": 14,
+      "height": 14,
+      "fps": 1,
+      "loop": true,
+      "border": 0
+    },
+    {
+      "name": "ui_lever",
+      "path": "UI/ui_lever",
+      "frames": 3,
+      "width": 32,
+      "height": 58,
+      "fps": 12,
+      "loop": false,
+      "border": 0
+    },
+    {
+      "name": "ui_input",
+      "path": "UI/ui_input",
+      "frames": 1,
+      "width": 16,
+      "height": 16,
+      "fps": 1,
+      "loop": true,
+      "border": 5
+    },
+    {
+      "name": "ui_input_focus",
+      "path": "UI/ui_input_focus",
+      "frames": 1,
+      "width": 16,
+      "height": 16,
+      "fps": 1,
+      "loop": true,
+      "border": 5
+    },
+    {
+      "name": "ui_scanline",
+      "path": "UI/ui_scanline",
+      "frames": 1,
+      "width": 2,
+      "height": 2,
+      "fps": 1,
+      "loop": true,
       "border": 0
     },
     {
@@ -627,6 +847,386 @@
       "frames": 1,
       "width": 360,
       "height": 225,
+      "fps": 1,
+      "loop": true,
+      "border": 0
+    },
+    {
+      "name": "terrain_jungle",
+      "path": "Terrain/terrain_jungle",
+      "frames": 1,
+      "width": 680,
+      "height": 560,
+      "fps": 1,
+      "loop": true,
+      "border": 0
+    },
+    {
+      "name": "terrain_jungle_blur",
+      "path": "Terrain/terrain_jungle_blur",
+      "frames": 1,
+      "width": 680,
+      "height": 560,
+      "fps": 1,
+      "loop": true,
+      "border": 0
+    },
+    {
+      "name": "terrain_desert",
+      "path": "Terrain/terrain_desert",
+      "frames": 1,
+      "width": 680,
+      "height": 560,
+      "fps": 1,
+      "loop": true,
+      "border": 0
+    },
+    {
+      "name": "terrain_desert_blur",
+      "path": "Terrain/terrain_desert_blur",
+      "frames": 1,
+      "width": 680,
+      "height": 560,
+      "fps": 1,
+      "loop": true,
+      "border": 0
+    },
+    {
+      "name": "terrain_ice",
+      "path": "Terrain/terrain_ice",
+      "frames": 1,
+      "width": 680,
+      "height": 560,
+      "fps": 1,
+      "loop": true,
+      "border": 0
+    },
+    {
+      "name": "terrain_ice_blur",
+      "path": "Terrain/terrain_ice_blur",
+      "frames": 1,
+      "width": 680,
+      "height": 560,
+      "fps": 1,
+      "loop": true,
+      "border": 0
+    },
+    {
+      "name": "actor_elephant",
+      "path": "Wildlife/actor_elephant",
+      "frames": 4,
+      "width": 30,
+      "height": 38,
+      "fps": 6,
+      "loop": true,
+      "border": 0
+    },
+    {
+      "name": "actor_elephant_blur",
+      "path": "Wildlife/actor_elephant_blur",
+      "frames": 4,
+      "width": 30,
+      "height": 38,
+      "fps": 6,
+      "loop": true,
+      "border": 0
+    },
+    {
+      "name": "actor_buffalo",
+      "path": "Wildlife/actor_buffalo",
+      "frames": 2,
+      "width": 24,
+      "height": 30,
+      "fps": 2,
+      "loop": true,
+      "border": 0
+    },
+    {
+      "name": "actor_buffalo_blur",
+      "path": "Wildlife/actor_buffalo_blur",
+      "frames": 2,
+      "width": 24,
+      "height": 30,
+      "fps": 2,
+      "loop": true,
+      "border": 0
+    },
+    {
+      "name": "actor_egret",
+      "path": "Wildlife/actor_egret",
+      "frames": 4,
+      "width": 25,
+      "height": 21,
+      "fps": 10,
+      "loop": true,
+      "border": 0
+    },
+    {
+      "name": "actor_egret_blur",
+      "path": "Wildlife/actor_egret_blur",
+      "frames": 4,
+      "width": 25,
+      "height": 21,
+      "fps": 10,
+      "loop": true,
+      "border": 0
+    },
+    {
+      "name": "actor_sampan",
+      "path": "Wildlife/actor_sampan",
+      "frames": 2,
+      "width": 19,
+      "height": 32,
+      "fps": 3,
+      "loop": true,
+      "border": 0
+    },
+    {
+      "name": "actor_sampan_blur",
+      "path": "Wildlife/actor_sampan_blur",
+      "frames": 2,
+      "width": 19,
+      "height": 32,
+      "fps": 3,
+      "loop": true,
+      "border": 0
+    },
+    {
+      "name": "actor_truck_jungle",
+      "path": "Wildlife/actor_truck_jungle",
+      "frames": 2,
+      "width": 22,
+      "height": 32,
+      "fps": 8,
+      "loop": true,
+      "border": 0
+    },
+    {
+      "name": "actor_truck_jungle_blur",
+      "path": "Wildlife/actor_truck_jungle_blur",
+      "frames": 2,
+      "width": 22,
+      "height": 32,
+      "fps": 8,
+      "loop": true,
+      "border": 0
+    },
+    {
+      "name": "actor_tank_desert",
+      "path": "Wildlife/actor_tank_desert",
+      "frames": 2,
+      "width": 26,
+      "height": 36,
+      "fps": 8,
+      "loop": true,
+      "border": 0
+    },
+    {
+      "name": "actor_tank_desert_blur",
+      "path": "Wildlife/actor_tank_desert_blur",
+      "frames": 2,
+      "width": 26,
+      "height": 36,
+      "fps": 8,
+      "loop": true,
+      "border": 0
+    },
+    {
+      "name": "actor_truck_desert",
+      "path": "Wildlife/actor_truck_desert",
+      "frames": 2,
+      "width": 22,
+      "height": 32,
+      "fps": 8,
+      "loop": true,
+      "border": 0
+    },
+    {
+      "name": "actor_truck_desert_blur",
+      "path": "Wildlife/actor_truck_desert_blur",
+      "frames": 2,
+      "width": 22,
+      "height": 32,
+      "fps": 8,
+      "loop": true,
+      "border": 0
+    },
+    {
+      "name": "actor_camel",
+      "path": "Wildlife/actor_camel",
+      "frames": 4,
+      "width": 22,
+      "height": 34,
+      "fps": 5,
+      "loop": true,
+      "border": 0
+    },
+    {
+      "name": "actor_camel_blur",
+      "path": "Wildlife/actor_camel_blur",
+      "frames": 4,
+      "width": 22,
+      "height": 34,
+      "fps": 5,
+      "loop": true,
+      "border": 0
+    },
+    {
+      "name": "actor_vulture",
+      "path": "Wildlife/actor_vulture",
+      "frames": 2,
+      "width": 34,
+      "height": 22,
+      "fps": 3,
+      "loop": true,
+      "border": 0
+    },
+    {
+      "name": "actor_vulture_blur",
+      "path": "Wildlife/actor_vulture_blur",
+      "frames": 2,
+      "width": 34,
+      "height": 22,
+      "fps": 3,
+      "loop": true,
+      "border": 0
+    },
+    {
+      "name": "actor_reindeer",
+      "path": "Wildlife/actor_reindeer",
+      "frames": 4,
+      "width": 22,
+      "height": 30,
+      "fps": 10,
+      "loop": true,
+      "border": 0
+    },
+    {
+      "name": "actor_reindeer_blur",
+      "path": "Wildlife/actor_reindeer_blur",
+      "frames": 4,
+      "width": 22,
+      "height": 30,
+      "fps": 10,
+      "loop": true,
+      "border": 0
+    },
+    {
+      "name": "actor_wolf",
+      "path": "Wildlife/actor_wolf",
+      "frames": 4,
+      "width": 18,
+      "height": 27,
+      "fps": 10,
+      "loop": true,
+      "border": 0
+    },
+    {
+      "name": "actor_wolf_blur",
+      "path": "Wildlife/actor_wolf_blur",
+      "frames": 4,
+      "width": 18,
+      "height": 27,
+      "fps": 10,
+      "loop": true,
+      "border": 0
+    },
+    {
+      "name": "actor_crow",
+      "path": "Wildlife/actor_crow",
+      "frames": 4,
+      "width": 22,
+      "height": 18,
+      "fps": 12,
+      "loop": true,
+      "border": 0
+    },
+    {
+      "name": "actor_crow_blur",
+      "path": "Wildlife/actor_crow_blur",
+      "frames": 4,
+      "width": 22,
+      "height": 18,
+      "fps": 12,
+      "loop": true,
+      "border": 0
+    },
+    {
+      "name": "actor_locomotive",
+      "path": "Wildlife/actor_locomotive",
+      "frames": 1,
+      "width": 24,
+      "height": 48,
+      "fps": 1,
+      "loop": true,
+      "border": 0
+    },
+    {
+      "name": "actor_locomotive_blur",
+      "path": "Wildlife/actor_locomotive_blur",
+      "frames": 1,
+      "width": 24,
+      "height": 48,
+      "fps": 1,
+      "loop": true,
+      "border": 0
+    },
+    {
+      "name": "actor_wagon",
+      "path": "Wildlife/actor_wagon",
+      "frames": 1,
+      "width": 24,
+      "height": 38,
+      "fps": 1,
+      "loop": true,
+      "border": 0
+    },
+    {
+      "name": "actor_wagon_blur",
+      "path": "Wildlife/actor_wagon_blur",
+      "frames": 1,
+      "width": 24,
+      "height": 38,
+      "fps": 1,
+      "loop": true,
+      "border": 0
+    },
+    {
+      "name": "actor_steam",
+      "path": "Wildlife/actor_steam",
+      "frames": 5,
+      "width": 28,
+      "height": 28,
+      "fps": 6,
+      "loop": false,
+      "border": 0
+    },
+    {
+      "name": "actor_steam_blur",
+      "path": "Wildlife/actor_steam_blur",
+      "frames": 5,
+      "width": 28,
+      "height": 28,
+      "fps": 6,
+      "loop": false,
+      "border": 0
+    },
+    {
+      "name": "title_runway_jungle",
+      "path": "Title/title_runway_jungle",
+      "frames": 1,
+      "width": 360,
+      "height": 240,
+      "fps": 1,
+      "loop": true,
+      "border": 0
+    },
+    {
+      "name": "title_runway_edge",
+      "path": "Title/title_runway_edge",
+      "frames": 1,
+      "width": 360,
+      "height": 240,
       "fps": 1,
       "loop": true,
       "border": 0

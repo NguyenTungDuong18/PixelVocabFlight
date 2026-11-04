@@ -18,7 +18,7 @@ namespace PixelVocabFlight.Editor
         {
             importer.textureType = TextureImporterType.Default;
             importer.npotScale = TextureImporterNPOTScale.None;
-            importer.filterMode = FilterMode.Point;
+            importer.filterMode = path.Contains("_blur_") ? FilterMode.Bilinear : FilterMode.Point;
             importer.wrapMode = path.Contains("title_clouds") ? TextureWrapMode.Repeat : TextureWrapMode.Clamp;
             importer.mipmapEnabled = false;
             importer.alphaIsTransparency = true;

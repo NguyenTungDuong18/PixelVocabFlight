@@ -25,18 +25,15 @@ internal static class InteractionChecks
         for (int i=0;i<50;i++) fine.Tick(.01f);
         Check(Math.Abs(coarse.PlayerX-fine.PlayerX)<.00001 && coarse.Progress.Health==fine.Progress.Health, "movement agrees across frame rates");
 
-        void Hazard(EnemyState enemy, float x)
-        {
-            enemy.X=x; enemy.Y=ContinuousFlight.PlayerY; enemy.Charging=true;
-            enemy.ChargeDelay=0; enemy.VelocityX=enemy.VelocityY=0;
-        }
-        var cross = New(); Hazard(cross.Target,.54f); cross.MovePlayer(.95f); cross.Tick(.1f);
-        Check(cross.Progress.Health==4 && cross.ImpactGraceRemaining>0, "moving player collides along travel path");
+        // Puts an aircraft at the end of its lock so it fires on the next step.
+        void Hazard(EnemyState enemy) { enemy.Phase=EnemyPhase.Locking; enemy.LockRemaining=.001f; }
+        var chase = New(); Hazard(chase.Target); chase.Tick(.05f); chase.MovePlayer(.95f); chase.Tick(1);
+        Check(chase.Progress.Health==4 && chase.PlayerX>.9f && chase.Shots.Count==0, "homing burst follows a moving player");
         var grace = New(); grace.Tick(12.1f);
-        foreach(var e in grace.Enemies) Hazard(e,grace.PlayerX);
-        grace.Tick(.01f);
-        Check(grace.Progress.Health==4 && grace.Enemies.Count==0, "overlapping hazards cause one damage during grace");
-        grace.Tick(12.1f); Hazard(grace.Target,grace.PlayerX); grace.Tick(.01f);
+        foreach(var e in grace.Enemies) Hazard(e);
+        grace.Tick(1f);
+        Check(grace.Progress.Health==4 && grace.Shots.Count==0, "simultaneous bursts cause one damage during grace");
+        grace.Tick(12.1f); Hazard(grace.Enemies.First(e=>!e.Departing)); grace.Tick(1f);
         Check(grace.Progress.Health==3, "damage resumes after grace expires");
         var score = new FlightProgress();
         score.ResolveCorrect("apple",1,20);
