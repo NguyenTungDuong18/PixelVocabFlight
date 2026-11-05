@@ -10,7 +10,7 @@ namespace PixelVocabFlight
     public static class PixelSprites
     {
 #pragma warning disable 0649 // Assigned by JsonUtility.
-        [Serializable] private sealed class Entry { public string name, path; public int frames, width, height, border; public float fps; public bool loop = true; }
+        [Serializable] private sealed class Entry { public string name, path; public int frames, width, height, border, anchorX, anchorY, footW, footH; public float fps; public bool loop = true; }
         [Serializable] private sealed class Manifest { public string version; public Entry[] sprites; }
 #pragma warning restore 0649
 
@@ -40,6 +40,10 @@ namespace PixelVocabFlight
         public static int FrameCount(string name) => Find(name).frames;
         public static float Duration(string name) { var e = Find(name); return e.frames / Mathf.Max(.01f, e.fps); }
         public static Vector2 Size(string name, float scale) { var e = Find(name); return new Vector2(e.width * scale, e.height * scale); }
+
+        // World models and characters (0.15): anchor in image px from the top-left; footprint in tiles for this facing. 0 when absent.
+        public static Vector2Int Anchor(string name) { var e = Find(name); return new Vector2Int(e.anchorX, e.anchorY); }
+        public static Vector2Int Foot(string name) { var e = Find(name); return new Vector2Int(e.footW, e.footH); }
 
         public static Sprite[] Frames(string name)
         {

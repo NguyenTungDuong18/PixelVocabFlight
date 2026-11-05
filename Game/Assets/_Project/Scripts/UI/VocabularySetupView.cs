@@ -11,6 +11,7 @@ namespace PixelVocabFlight
         public InputField To { get; }
         public InputField Search { get; }
         public Dropdown MinimumLevel { get; }
+        public Button Done { get; }
 
         public VocabularySetupView(FlightGame game,RectTransform panel,VocabularyCatalog catalog,VocabularyFilter filter,VocabularyEntry[] filtered,int page,string error)
         {
@@ -51,7 +52,7 @@ namespace PixelVocabFlight
 
             Search=UiKit.Input(filter.search,"Tìm từ tiếng Anh hoặc nghĩa Việt…",panel,497,119,654,42);
             UiKit.Button("TÌM",panel,1167,119,164,42,UiKit.Line,UiKit.Cream,game.ApplyMenuSearch).GetComponentInChildren<Text>().fontSize=UiKit.Px(15);
-            UiKit.Label(filtered.Length.ToString("N0")+" MỤC KHỚP BỘ LỌC",panel,497,178,520,29,16,UiKit.Mint,true);
+            UiKit.Label(UiKit.Number(filtered.Length)+" MỤC KHỚP BỘ LỌC",panel,497,178,520,29,16,UiKit.Mint,true);
             UiKit.Button("TOÀN BỘ OXFORD 5000",panel,1055,178,276,29,UiKit.Mint,UiKit.Ink,game.SelectFullOxford).GetComponentInChildren<Text>().fontSize=UiKit.Px(12);
             UiKit.Label("#",panel,503,220,48,23,12,UiKit.Muted,true);
             UiKit.Label("TỪ / TỪ LOẠI",panel,559,220,240,23,12,UiKit.Muted,true);
@@ -84,8 +85,9 @@ namespace PixelVocabFlight
             string status=string.IsNullOrEmpty(error) ? "Đã chọn "+selectedAmount+" mục  ·  thứ tự "+filter.from+"–"+filter.to : error;
             var statusText=UiKit.Label(status,panel,497,695,570,41,15,string.IsNullOrEmpty(error)?UiKit.Mint:UiKit.Coral);
             UiKit.Fit(statusText,11,15);
-            var launch=UiKit.Button("CẤT CÁNH  >>",panel,1092,687,239,49,UiKit.Mint,UiKit.Ink,game.StartFlight);
-            launch.interactable=selectedAmount>=4;
+            // 0.15: the selection is only prepared here; the sortie starts from SKYLARK on the base.
+            Done=UiKit.Button("XONG",panel,1092,687,239,49,UiKit.Mint,UiKit.Ink,game.FinishVocabulary);
+            Done.interactable=selectedAmount>=4;
         }
     }
 }

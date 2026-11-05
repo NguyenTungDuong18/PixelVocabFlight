@@ -29,6 +29,9 @@ namespace PixelVocabFlight
         public int fullLibraryVersion;
         public int startingEnvironment;
         public VocabularyFilter selectionBeforeFullLibrary;
+        // 0.15 base missions: finished training sorties and the score of the last one (MissionLog).
+        public int missionsCompleted;
+        public int lastScore;
         public List<BestRecord> bests = new List<BestRecord>();
         public List<WordRecord> words = new List<WordRecord>();
     }
@@ -41,7 +44,9 @@ namespace PixelVocabFlight
         public ProfileStore(bool isolated = false)
         {
             path = Path.Combine(Application.persistentDataPath, isolated ? "qa-profile.json" : "pilot-profile.json");
-            Profile = Read(path) ?? Read(path + ".bak") ?? new PilotProfile();
+            // The smoke test always starts from a fresh QA profile so every run is deterministic
+            // (e.g. the professor greets a first-time pilot); the real pilot profile is never touched.
+            Profile = isolated ? new PilotProfile() : Read(path) ?? Read(path + ".bak") ?? new PilotProfile();
         }
 
         private static PilotProfile Read(string file)

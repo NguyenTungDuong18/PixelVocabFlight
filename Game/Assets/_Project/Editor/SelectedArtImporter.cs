@@ -8,6 +8,9 @@ namespace PixelVocabFlight.Editor
     {
         public const string PixelFolder = "Assets/_Project/Art/Resources/Pixel/";
 
+        // Bumped when Configure changes so Unity reimports already imported frames (0.15: readable Ground tiles).
+        public override uint GetVersion() => 2;
+
         private void OnPreprocessTexture()
         {
             if (!assetPath.StartsWith(PixelFolder)) return;
@@ -24,6 +27,8 @@ namespace PixelVocabFlight.Editor
             importer.alphaIsTransparency = true;
             importer.textureCompression = TextureImporterCompression.Uncompressed;
             importer.maxTextureSize = 2048;
+            // BaseView composes the walkable base ground from these 16x16 tiles on the CPU (GetPixels32).
+            importer.isReadable = path.Contains("/Ground/");
         }
     }
 }

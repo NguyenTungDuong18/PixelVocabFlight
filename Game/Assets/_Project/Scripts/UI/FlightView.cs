@@ -37,21 +37,23 @@ namespace PixelVocabFlight
         private float fuelAngle = 135, speedAngle = -135, leverPosition, caretTimer;
         private string lastInput = "";
         private bool lastFocused;
-        // Title screen (hangar) animation state.
-        private Image hangarScene, hangarHero, hangarHeroShadow, hangarPointer;
-        private RawImage hangarClouds;
-        private RectTransform hangarBrand, hangarBoard, hangarHelp, hangarTag, hangarWorld;
+        // Take-off cutscene (airfield strip + runway) state.
+        private Image airfieldScene, takeOffHero, takeOffHeroShadow;
+        private RawImage airfieldClouds;
+        private RectTransform takeOffTag, airfieldWorld;
         private float launchScroll;
-        private readonly List<Image> squadron = new List<Image>();
         private readonly List<(Image image, float age, Vector2 velocity)> puffs = new List<(Image, float, Vector2)>();
-        private float hangarTime, propellerTime, launchTime = -1, puffTimer;
-        private int hangarSelected;
+        private float airfieldTime, propellerTime, launchTime = -1, puffTimer;
         private readonly List<string> history = new List<string>();
         private readonly string[] posValues = { "", "noun", "verb", "adjective", "adverb", "pronoun", "preposition", "conjunction", "determiner", "number", "exclamation", "auxiliary verb", "modal verb", "linking verb", "definite article", "indefinite article", "ordinal number", "infinitive marker" };
         private readonly string[] posLabels = { "TỪ LOẠI…", "Danh từ", "Động từ", "Tính từ", "Trạng từ", "Đại từ", "Giới từ", "Liên từ", "Từ hạn định", "Số từ", "Thán từ", "Trợ động từ", "Động từ khuyết thiếu", "Động từ nối", "Mạo từ xác định", "Mạo từ bất định", "Số thứ tự", "Dấu nguyên mẫu (to)" };
         public FlightBoardView Board { get; }
         public VocabularySetupView Setup { get; private set; }
-        public bool HangarVisible { get; private set; }
+        // 0.15: the walkable airbase (main screen) and its dialogue box.
+        public BaseView Base { get; }
+        public DialogueView Dialogue { get; }
+        public bool TakeOffVisible => airfieldWorld;
+        public bool OverlayVisible => overlay.gameObject.activeSelf;
         public bool PartOfSpeechOpen => pos.transform.Find("Dropdown List") != null;
         public string SelectedPartOfSpeech => posValues[pos.value];
         // Test hooks for the cockpit and the take-off sequence.
@@ -63,21 +65,12 @@ namespace PixelVocabFlight
         public string InputText => inputText.text;
         public float CaretGap => caret.rectTransform.anchoredPosition.x - (inputText.rectTransform.anchoredPosition.x + MeasureWidth(inputText, inputText.text));
         public bool Launching => launchTime >= 0;
-        public float HangarBoardX => hangarBoard ? hangarBoard.anchoredPosition.x : 0;
-        public float HangarBrandX => hangarBrand ? hangarBrand.anchoredPosition.x : 0;
-        public Vector2 HangarHeroPosition => hangarHero ? hangarHero.rectTransform.anchoredPosition : Vector2.zero;
-        public Vector2 HangarHeroSize => hangarHero ? hangarHero.rectTransform.sizeDelta : Vector2.zero;
-        public int HangarSmokePuffs => puffs.Count;
-        public float HangarScroll => launchScroll;
+        public float TakeOffElapsed => Mathf.Max(0, launchTime);
+        public Vector2 TakeOffHeroPosition => takeOffHero ? takeOffHero.rectTransform.anchoredPosition : Vector2.zero;
+        public Vector2 TakeOffHeroSize => takeOffHero ? takeOffHero.rectTransform.sizeDelta : Vector2.zero;
+        public int TakeOffSmokePuffs => puffs.Count;
+        public float TakeOffScroll => launchScroll;
         public static readonly string[] EnvironmentNames = { "RỪNG RẬM", "SA MẠC", "BĂNG GIÁ", "BIỂN" };
-        private static readonly string[] EnvironmentKeys = { "jungle", "desert", "ice", "ocean" };
-        private static readonly string[] EnvironmentRules =
-        {
-            "Rừng nhiệt đới · máy bay địch xuất hiện dày hơn 30%.",
-            "Bắc Phi · gõ đúng từ VÀ chọn đúng từ loại.",
-            "Mặt trận mùa đông · địch có khiên băng, cần trúng 2 lần.",
-            "Thái Bình Dương · tàu sân bay phóng rocket 4 lựa chọn."
-        };
 
         public FlightView(FlightGame game)
         {
@@ -162,6 +155,10 @@ namespace PixelVocabFlight
             leverButton.transition = Selectable.Transition.None; leverButton.navigation = new Navigation { mode = Navigation.Mode.None };
             leverButton.onClick.AddListener(game.ToggleControlMode);
 
+            // Walkable base above the flight layers; menus, results and the take-off use the overlay on top of it.
+            Base = new BaseView(root, (RectTransform)canvas.transform);
+            Dialogue = new DialogueView(Base.Root, game);
+
             overlay = UiKit.Box("Overlay", root, 0, 0, 1440, 900, new Color(.07f, .085f, .065f, 1f)).rectTransform;
             overlay.GetComponent<Image>().raycastTarget = true;
             curtain = UiKit.Box("Curtain", root, -1000, -1000, 3440, 2900, new Color(0, 0, 0, 0));
@@ -199,9 +196,9 @@ namespace PixelVocabFlight
 
         private void ClearOverlay()
         {
-            Setup = null; HangarVisible = false; hangarScene = hangarHero = hangarHeroShadow = hangarPointer = null; hangarClouds = null;
-            hangarBrand = hangarBoard = hangarHelp = hangarTag = hangarWorld = null; launchScroll = 0; squadron.Clear(); puffs.Clear(); launchTime = -1; pos.Hide();
-            // Cockpit controls stay inert behind menus so Enter can never open or press them there; Refresh re-enables them in flight.
+            Setup = null; airfieldScene = takeOffHero = takeOffHeroShadow = null; airfieldClouds = null;
+            takeOffTag = airfieldWorld = null; launchScroll = 0; puffs.Clear(); launchTime = -1; pos.Hide();
+            // Cockpit controls stay inert behind menus and the base so Enter can never open or press them there; Refresh re-enables them in flight.
             pos.interactable = fireButton.interactable = rollButton.interactable = false;
             EventSystem.current?.SetSelectedGameObject(null);
             for (int i = overlay.childCount - 1; i >= 0; i--) { var child = overlay.GetChild(i).gameObject; child.SetActive(false); UnityEngine.Object.Destroy(child); }
@@ -214,123 +211,82 @@ namespace PixelVocabFlight
             return UiKit.Box("Dialog", overlay, x, y, width, height, UiKit.Panel).rectTransform;
         }
 
-        // ---------------- Title screen: top-down airbase, battlefield cards, take-off ----------------
-        public void ShowHangar(VocabularyFilter filter, int available, FlightEnvironment environment)
+        // ---------------- Take-off cutscene: airfield strip, long roll down the jungle runway ----------------
+        // Boarding SKYLARK on the base cuts to this scene: the screen opens from black on the parked fighter,
+        // the engine coughs to life ("tu tu"), the fighter makes a long take-off roll with the camera following
+        // it out of the airbase onto the jungle runway, lifts off (grows, shadow drops away) and fades to black.
+        public void BeginTakeOff()
         {
             ClearOverlay();
-            SetCurtain(0); SetHudAlpha(1);
-            HangarVisible = true; hangarSelected = (int)environment;
+            SetCurtain(1); SetHudAlpha(1);
             // The airfield is a tall strip the camera can follow: airbase, then the base edge with its
             // perimeter fence, then runway cut through the jungle (PixelForge runway.cjs, 4x scale).
-            hangarWorld = UiKit.Rect("Airfield", overlay, 0, 0, 1440, 900);
-            hangarScene = UiKit.Sprite("Airbase", hangarWorld, 0, 0, 1440, 900, "title_airbase");
-            hangarScene.preserveAspect = false;
-            UiKit.Sprite("Base edge", hangarWorld, 0, -TileHeight, 1440, TileHeight, "title_runway_edge").preserveAspect = false;
-            for (int k = 0; k < 3; k++) UiKit.Sprite("Jungle runway", hangarWorld, 0, -TileHeight * (k + 2), 1440, TileHeight, "title_runway_jungle").preserveAspect = false;
+            airfieldWorld = UiKit.Rect("Airfield", overlay, 0, 0, 1440, 900);
+            airfieldScene = UiKit.Sprite("Airbase", airfieldWorld, 0, 0, 1440, 900, "title_airbase");
+            airfieldScene.preserveAspect = false;
+            UiKit.Sprite("Base edge", airfieldWorld, 0, -TileHeight, 1440, TileHeight, "title_runway_edge").preserveAspect = false;
+            for (int k = 0; k < 3; k++) UiKit.Sprite("Jungle runway", airfieldWorld, 0, -TileHeight * (k + 2), 1440, TileHeight, "title_runway_jungle").preserveAspect = false;
             // Parked hero fighter on the runway, scene scale 4x (same sprite as in flight).
-            hangarHeroShadow = UiKit.Sprite("Hero shadow", overlay, 588 + 6, 500 + 8, 128, 128, "fighter_shadow");
-            hangarHero = UiKit.Sprite("Hero fighter", overlay, 588, 500, 128, 128, "fighter_level");
-            for (int i = 0; i < 3; i++)
-            {
-                squadron.Add(UiKit.Sprite("Squadron shadow", overlay, 0, 0, 96, 96, "fighter_shadow"));
-                squadron.Add(UiKit.Sprite("Squadron fighter", overlay, 0, 0, 96, 96, "fighter_level"));
-            }
+            takeOffHeroShadow = UiKit.Sprite("Hero shadow", overlay, 588 + 6, 500 + 8, 128, 128, "fighter_shadow");
+            takeOffHero = UiKit.Sprite("Hero fighter", overlay, 588, 500, 128, 128, "fighter_level");
             var clouds = new GameObject("Clouds", typeof(RectTransform), typeof(RawImage));
             var cloudRect = clouds.GetComponent<RectTransform>(); cloudRect.SetParent(overlay, false);
             cloudRect.anchorMin = cloudRect.anchorMax = cloudRect.pivot = new Vector2(0, 1); cloudRect.anchoredPosition = Vector2.zero; cloudRect.sizeDelta = new Vector2(1440, 900);
-            hangarClouds = clouds.GetComponent<RawImage>(); hangarClouds.raycastTarget = false;
-            var cloudTexture = PixelSprites.Texture("title_clouds"); cloudTexture.wrapMode = TextureWrapMode.Repeat; hangarClouds.texture = cloudTexture;
+            airfieldClouds = clouds.GetComponent<RawImage>(); airfieldClouds.raycastTarget = false;
+            var cloudTexture = PixelSprites.Texture("title_clouds"); cloudTexture.wrapMode = TextureWrapMode.Repeat; airfieldClouds.texture = cloudTexture;
             var tag = UiKit.Framed("Hero tag", overlay, 500, 640, 304, 34, "ui_plate", 2);
-            hangarTag = tag.rectTransform; tag.gameObject.AddComponent<CanvasGroup>();
-            UiKit.Label("SKYLARK MK.I  ·  PHI CÔNG 01", tag.transform, 0, 0, 304, 34, 14, UiKit.Mint, true, TextAnchor.MiddleCenter);
-
-            // Brand block.
-            var brand = UiKit.Framed("Brand", overlay, 28, 24, 400, 214, "ui_panel");
-            hangarBrand = brand.rectTransform;
-            UiKit.Sprite("Logo", brand.transform, 32, 18, 336, 136, "logo");
-            UiKit.Label("PHI ĐỘI TỪ VỰNG  ·  1944", brand.transform, 0, 154, 400, 26, 16, UiKit.Mint, true, TextAnchor.MiddleCenter);
-            UiKit.Label("Bắn hạ máy bay địch bằng từ vựng Oxford", brand.transform, 0, 180, 400, 22, 12, UiKit.Muted, false, TextAnchor.MiddleCenter);
-
-            // Mission board.
-            var boardImage = UiKit.Framed("Mission board", overlay, 900, 24, 512, 852, "ui_panel");
-            hangarBoard = boardImage.rectTransform; var board = boardImage.transform;
-            UiKit.Icon("icon_radio", board, 26, 24, 30);
-            UiKit.Label("LỆNH XUẤT KÍCH", board, 66, 18, 420, 40, 26, UiKit.Cream, true);
-            UiKit.Label("CHỌN CHIẾN TRƯỜNG  ·  PHÍM 1 – 4", board, 28, 60, 460, 24, 12, UiKit.Mint, true);
-            for (int i = 0; i < 4; i++)
-            {
-                int index = i; bool selected = i == hangarSelected; float y = 94 + i * 124;
-                var cardImage = UiKit.Framed("Battlefield " + EnvironmentNames[i], board, 24, y, 464, 112, selected ? "ui_card_selected" : "ui_card");
-                cardImage.raycastTarget = true;
-                var card = cardImage.gameObject.AddComponent<Button>();
-                card.targetGraphic = cardImage; card.navigation = new Navigation { mode = Navigation.Mode.None };
-                var colors = card.colors; colors.highlightedColor = new Color(1, .95f, .8f); colors.pressedColor = new Color(.8f, .8f, .75f); colors.selectedColor = Color.white; card.colors = colors;
-                card.onClick.AddListener(() => game.ChooseStartingEnvironment(index));
-                UiKit.Sprite("Thumbnail", cardImage.transform, 14, 20, 128, 72, "card_" + EnvironmentKeys[i]);
-                var key = UiKit.Framed("Hotkey", cardImage.transform, 8, 12, 30, 30, "ui_keycap", 2);
-                UiKit.Label((i + 1).ToString(), key.transform, 0, -2, 30, 28, 15, UiKit.Ink, true, TextAnchor.MiddleCenter);
-                UiKit.Label(EnvironmentNames[i], cardImage.transform, 158, 12, 290, 34, 22, selected ? UiKit.Mint : UiKit.Cream, true);
-                UiKit.Label(EnvironmentRules[i], cardImage.transform, 158, 46, 290, 40, 13, selected ? UiKit.Cream : UiKit.Muted);
-                if (selected)
-                {
-                    UiKit.Label("ĐÃ CHỌN", cardImage.transform, 158, 84, 200, 20, 11, UiKit.Mint, true);
-                    hangarPointer = UiKit.Sprite("Selected pointer", board, 4, y + 42, 16, 20, "ui_pointer");
-                }
-            }
-            int count = filter.from >= 1 && filter.to <= available && filter.to >= filter.from ? filter.to - filter.from + 1 : 0;
-            string[] facts = { count.ToString("N0") + " TỪ", "5 GIÁP", "3 ĐỔI", "3:00/VÙNG" };
-            string[] factIcons = { "icon_target", "icon_armor", "icon_radio", "icon_clock" };
-            for (int i = 0; i < 4; i++)
-            {
-                UiKit.Icon(factIcons[i], board, 28 + i * 116, 600, 22);
-                UiKit.Label(facts[i], board, 54 + i * 116, 596, 88, 30, 12, UiKit.Mint, true);
-            }
-            UiKit.Box("Divider", board, 24, 638, 464, 2, UiKit.Line);
-            var vocabulary = UiKit.Button("CHUẨN BỊ BỘ TỪ   [V]", board, 24, 656, 464, 56, "olive", UiKit.Cream, game.OpenVocabulary);
-            UiKit.Size(vocabulary.GetComponentInChildren<Text>(), 18);
-            var launch = UiKit.Button("CẤT CÁNH   [ENTER]", board, 24, 726, 464, 78, "gold", UiKit.Ink, game.TakeOff);
-            UiKit.Size(launch.GetComponentInChildren<Text>(), 27);
-            launch.interactable = count >= 4;
-            UiKit.Label("PHIÊN BẢN 0.14  ·  PIXEL SQUADRON", board, 24, 814, 464, 22, 11, UiKit.Muted, true, TextAnchor.MiddleCenter);
-
-            // Controls strip.
-            var helpImage = UiKit.Framed("Controls", overlay, 28, 790, 852, 86, "ui_panel");
-            hangarHelp = helpImage.rectTransform; var help = helpImage.transform;
-            string[] keys = { "CHUỘT", "TAB", "ENTER", "1 – 4" };
-            string[] actions = { "lái trái / phải", "lái / bắn (tự vào ô gõ)", "bắn từ đã gõ", "chọn đáp án tên lửa" };
-            for (int i = 0; i < 4; i++)
-            {
-                float x = 22 + i * 206;
-                var cap = UiKit.Framed("Key " + keys[i], help, x, 22, 78, 40, "ui_keycap", 2);
-                UiKit.Label(keys[i], cap.transform, 0, -2, 78, 36, 13, UiKit.Ink, true, TextAnchor.MiddleCenter);
-                UiKit.Label(actions[i], help, x + 86, 18, 116, 48, 12, UiKit.Cream);
-            }
-            AnimateHangar(0, environment);
+            takeOffTag = tag.rectTransform; tag.gameObject.AddComponent<CanvasGroup>();
+            UiKit.Label("SKYLARK MK.I  ·  " + BaseContent.PlayerName.ToUpperInvariant(), tag.transform, 0, 0, 304, 34, 14, UiKit.Mint, true, TextAnchor.MiddleCenter);
+            launchTime = 0; puffTimer = 0; airfieldTime = 0;
+            AnimateTakeOff(0);
         }
 
-        public void AnimateHangar(float delta, FlightEnvironment environment)
+        private static float Smooth(float t) { t = Mathf.Clamp01(t); return t * t * (3 - 2 * t); }
+
+        // Returns true when the screen is fully dark and the sortie can begin.
+        public bool AnimateTakeOff(float delta)
         {
-            hangarTime += delta;
-            if (!hangarScene) return;
-            hangarScene.sprite = PixelSprites.At("title_airbase", hangarTime);
-            // Idle engines tick over slowly; during take-off the propeller spins up.
-            float rev = Launching ? Mathf.Lerp(.12f, 1.8f, Mathf.Clamp01(launchTime / EngineStartSeconds)) : .12f;
-            propellerTime += delta * rev;
-            hangarHero.sprite = PixelSprites.At("fighter_level", propellerTime);
-            if (hangarPointer) hangarPointer.sprite = PixelSprites.At("ui_pointer", hangarTime);
-            // Clouds drift slowly and, during the take-off roll, stream past a little faster than the ground.
-            hangarClouds.uvRect = new Rect(Mathf.Round(hangarTime * 4) / 360f, (Mathf.Round(launchScroll * 1.25f / 4) - Mathf.Round(hangarTime * 2.5f)) / 225f, 1, 1);
-            // A three-ship formation passes over the field every 14 seconds.
-            float cycle = hangarTime % 14, t = cycle / 5;
-            for (int i = 0; i < 3; i++)
+            if (!Launching || !takeOffHero) return true;
+            airfieldTime += delta;
+            launchTime += Mathf.Min(delta, .05f);
+            float t = launchTime;
+            airfieldScene.sprite = PixelSprites.At("title_airbase", airfieldTime);
+            // Idle engine ticks over slowly, then the propeller spins up.
+            propellerTime += delta * Mathf.Lerp(.12f, 1.8f, Mathf.Clamp01(t / EngineStartSeconds));
+            takeOffHero.sprite = PixelSprites.At("fighter_level", propellerTime);
+            takeOffTag.GetComponent<CanvasGroup>().alpha = 1 - Smooth((t - .9f) / .4f);
+            float roll = Mathf.Max(0, t - EngineStartSeconds), distance = RollAcceleration * roll * roll;
+            float followed = Mathf.Min(distance, RollAcceleration * FollowSeconds * FollowSeconds);
+            launchScroll = Mathf.Max(0, followed - FollowAfter);
+            airfieldWorld.anchoredPosition = new Vector2(0, -Mathf.Round(launchScroll / 4) * 4);
+            // Clouds drift slowly and, during the roll, stream past a little faster than the ground.
+            airfieldClouds.uvRect = new Rect(Mathf.Round(airfieldTime * 4) / 360f, (Mathf.Round(launchScroll * 1.25f / 4) - Mathf.Round(airfieldTime * 2.5f)) / 225f, 1, 1);
+            float lift = Smooth((t - 3.7f) / 1.3f);
+            float size = 128 * (1 + .6f * lift);
+            // On screen the fighter first moves up a little, then holds while the ground streams past,
+            // and after lift-off climbs away ahead of the camera.
+            float cy = 564 - (distance - launchScroll);
+            var jitter = t < EngineStartSeconds + .1f && Mathf.Repeat(t, .22f) < .07f ? new Vector2(UnityEngine.Random.Range(-2, 3), UnityEngine.Random.Range(-1, 2)) * 2 : Vector2.zero;
+            if (lift < 1) jitter += new Vector2(Mathf.Round(Mathf.Sin(t * 90) * (1 - lift)), 0);
+            takeOffHero.rectTransform.sizeDelta = new Vector2(size, size);
+            takeOffHero.rectTransform.anchoredPosition = new Vector2(Mathf.Round(652 - size / 2), -Mathf.Round(cy - size / 2)) + jitter;
+            var shadowOffset = Vector2.Lerp(new Vector2(6, -8), new Vector2(84, -120), lift);
+            takeOffHeroShadow.rectTransform.sizeDelta = new Vector2(128, 128) * (1 + .15f * lift);
+            takeOffHeroShadow.rectTransform.anchoredPosition = new Vector2(652 - 64, -(cy - 64)) + shadowOffset;
+            takeOffHeroShadow.color = new Color(1, 1, 1, 1 - .7f * lift);
+            puffTimer -= delta;
+            if (t > .12f && t < 4.2f && puffTimer <= 0)
             {
-                var shadow = squadron[i * 2]; var plane = squadron[i * 2 + 1];
-                bool visible = t < 1.2f && !Launching; shadow.enabled = plane.enabled = visible;
-                if (!visible) continue;
-                float x = 380 + (i == 0 ? 0 : i == 1 ? -104 : 104), y = 980 - t * 1250 + (i == 0 ? 0 : 84);
-                plane.rectTransform.anchoredPosition = new Vector2(Mathf.Round(x / 4) * 4, -Mathf.Round(y / 4) * 4);
-                shadow.rectTransform.anchoredPosition = plane.rectTransform.anchoredPosition + new Vector2(36, -60);
-                plane.sprite = PixelSprites.At("fighter_level", hangarTime + i * .1f);
+                bool starting = t < EngineStartSeconds;
+                puffTimer = starting ? (Mathf.Repeat(t, .22f) < .1f ? .04f : .16f) : .06f;
+                for (int side = -1; side <= 1; side += 2)
+                {
+                    // Exhaust puffs stay where they were blown out, so they trail behind the rolling fighter.
+                    float s = 22 + (starting ? 10 : 0);
+                    var puff = UiKit.Sprite("Exhaust", airfieldWorld, 652 + side * 22 * size / 128 - s / 2, cy - 18 * size / 128 - s / 2 - launchScroll, s, s, "fx_smoke");
+                    puff.preserveAspect = false;
+                    puffs.Add((puff, 0, new Vector2(side * UnityEngine.Random.Range(14, 40), starting ? -30 : 20)));
+                }
             }
             for (int i = puffs.Count - 1; i >= 0; i--)
             {
@@ -342,58 +298,8 @@ namespace PixelVocabFlight
                 image.rectTransform.sizeDelta += Vector2.one * 26 * delta;
                 puffs[i] = (image, age, velocity);
             }
-        }
-
-        public void BeginTakeOff() { if (HangarVisible) launchTime = 0; puffTimer = 0; }
-
-        private static float Smooth(float t) { t = Mathf.Clamp01(t); return t * t * (3 - 2 * t); }
-
-        // CẤT CÁNH: cards slide out to both sides, the engine coughs to life ("tu tu"), the fighter makes a long
-        // take-off roll with the camera following it out of the airbase onto the jungle runway, lifts off
-        // (grows, shadow drops away) and the screen fades to black.
-        // Returns true when the screen is fully dark and the sortie can begin.
-        public bool AnimateTakeOff(float delta)
-        {
-            if (!Launching || !hangarHero) return true;
-            launchTime += Mathf.Min(delta, .05f);
-            float t = launchTime;
-            float slide = Mathf.Clamp01(t / .55f); slide *= slide;
-            hangarBrand.anchoredPosition = new Vector2(Mathf.Round(28 - 470 * slide), -24);
-            hangarBoard.anchoredPosition = new Vector2(Mathf.Round(900 + 560 * slide), -24);
-            hangarHelp.anchoredPosition = new Vector2(Mathf.Round(28 - 900 * slide), -790);
-            hangarTag.GetComponent<CanvasGroup>().alpha = 1 - Mathf.Clamp01(t / .3f);
-            float roll = Mathf.Max(0, t - EngineStartSeconds), distance = RollAcceleration * roll * roll;
-            float followed = Mathf.Min(distance, RollAcceleration * FollowSeconds * FollowSeconds);
-            launchScroll = Mathf.Max(0, followed - FollowAfter);
-            hangarWorld.anchoredPosition = new Vector2(0, -Mathf.Round(launchScroll / 4) * 4);
-            float lift = Smooth((t - 3.7f) / 1.3f);
-            float size = 128 * (1 + .6f * lift);
-            // On screen the fighter first moves up a little, then holds while the ground streams past,
-            // and after lift-off climbs away ahead of the camera.
-            float cy = 564 - (distance - launchScroll);
-            var jitter = t < EngineStartSeconds + .1f && Mathf.Repeat(t, .22f) < .07f ? new Vector2(UnityEngine.Random.Range(-2, 3), UnityEngine.Random.Range(-1, 2)) * 2 : Vector2.zero;
-            if (lift < 1) jitter += new Vector2(Mathf.Round(Mathf.Sin(t * 90) * (1 - lift)), 0);
-            hangarHero.rectTransform.sizeDelta = new Vector2(size, size);
-            hangarHero.rectTransform.anchoredPosition = new Vector2(Mathf.Round(652 - size / 2), -Mathf.Round(cy - size / 2)) + jitter;
-            var shadowOffset = Vector2.Lerp(new Vector2(6, -8), new Vector2(84, -120), lift);
-            hangarHeroShadow.rectTransform.sizeDelta = new Vector2(128, 128) * (1 + .15f * lift);
-            hangarHeroShadow.rectTransform.anchoredPosition = new Vector2(652 - 64, -(cy - 64)) + shadowOffset;
-            hangarHeroShadow.color = new Color(1, 1, 1, 1 - .7f * lift);
-            puffTimer -= delta;
-            if (t > .12f && t < 4.2f && puffTimer <= 0)
-            {
-                bool starting = t < EngineStartSeconds;
-                puffTimer = starting ? (Mathf.Repeat(t, .22f) < .1f ? .04f : .16f) : .06f;
-                for (int side = -1; side <= 1; side += 2)
-                {
-                    // Exhaust puffs stay where they were blown out, so they trail behind the rolling fighter.
-                    float s = 22 + (starting ? 10 : 0);
-                    var puff = UiKit.Sprite("Exhaust", hangarWorld, 652 + side * 22 * size / 128 - s / 2, cy - 18 * size / 128 - s / 2 - launchScroll, s, s, "fx_smoke");
-                    puff.preserveAspect = false;
-                    puffs.Add((puff, 0, new Vector2(side * UnityEngine.Random.Range(14, 40), starting ? -30 : 20)));
-                }
-            }
-            SetCurtain(Smooth((t - 4.7f) / .95f));
+            // Opens from the black cut out of the base, darkens again after lift-off.
+            SetCurtain(Mathf.Max(1 - Smooth(t / .45f), Smooth((t - 4.7f) / .95f)));
             return t >= TakeOffSeconds;
         }
 
@@ -418,7 +324,7 @@ namespace PixelVocabFlight
             var panel = ClearOverlay(40, 70, 1360, 750);
             Setup = new VocabularySetupView(game, panel, catalog, filter, filtered, page, error);
             UiKit.Sprite("Logo", overlay, 40, 4, 148, 60, "logo");
-            UiKit.Size(UiKit.Button("<< HANGAR", overlay, 60, 836, 180, 46, "olive", UiKit.Cream, game.ReturnToMenu).GetComponentInChildren<Text>(), 15);
+            UiKit.Size(UiKit.Button("<< CĂN CỨ", overlay, 60, 836, 180, 46, "olive", UiKit.Cream, game.ReturnToBase).GetComponentInChildren<Text>(), 15);
             UiKit.Label("CEFR Oxford · Nghĩa Việt nhập tự động cần rà soát · Chủ đề do game phân loại.\nGiữ toàn bộ lựa chọn trong chuyến bay; tên lửa cũng dùng bộ từ đã chọn.", overlay, 270, 833, 1100, 53, 13, UiKit.Muted);
         }
 
@@ -429,7 +335,7 @@ namespace PixelVocabFlight
             string text = "Danh mục từ, từ loại và CEFR: Oxford Learner’s Dictionaries, Oxford 3000/5000.\nhttps://www.oxfordlearnersdictionaries.com/wordlists/oxford3000-5000\nĐây không phải sản phẩm Oxford chính thức; không sao chép định nghĩa hoặc audio Oxford.\n\n" +
                 "Dữ liệu từ điển: thichhoc.com (thichhoc-dict), giấy phép CC BY-SA 4.0.\nhttps://github.com/thichhoc-org/thichhoc-dict\nNguồn gốc: WordNet 3.1 (Princeton), CMUdict (CMU), Wiktionary.\nĐã chọn/lược nghĩa, ghép danh mục CEFR, thêm chủ đề và mục biên soạn.\n\n" +
                 "Phần nghĩa Việt phái sinh giữ CC BY-SA 4.0; ghi nguồn và giấy phép đầy đủ nằm trong Attribution đi kèm game. Nguồn beta chưa được duyệt toàn bộ.\n\n" +
-                "Phát âm: giọng máy Microsoft David en-US tạo cục bộ. Chủ đề do game phân loại.\nĐồ họa 0.14: máy bay, tàu, rocket, buồng lái, địa hình, động vật, hiệu ứng và sân bay là pixel art vẽ bằng mã (Tools/PixelForge), lưu từng khung hình. Bối cảnh hư cấu lấy cảm hứng Thế chiến II.\nPhông chữ VT323 (The VT323 Project Authors), giấy phép SIL Open Font License 1.1.";
+                "Phát âm: giọng máy Microsoft David en-US tạo cục bộ. Chủ đề do game phân loại.\nĐồ họa 0.15: máy bay, tàu, rocket, buồng lái, địa hình, động vật, hiệu ứng, căn cứ, công trình, khí tài và nhân vật là pixel art vẽ bằng mã (Tools/PixelForge), lưu từng khung hình. Bối cảnh hư cấu lấy cảm hứng Thế chiến II.\nPhông chữ VT323 (The VT323 Project Authors), giấy phép SIL Open Font License 1.1.";
             UiKit.Label(text, panel, 35, 96, 950, 500, 17, UiKit.Muted);
             UiKit.Button("QUAY LẠI CHỌN BỘ TỪ", panel, 35, 616, 950, 52, "gold", UiKit.Ink, game.OpenVocabulary);
         }
@@ -441,7 +347,7 @@ namespace PixelVocabFlight
             UiKit.Label("TẠM NGỪNG XUẤT KÍCH", panel, 90, 35, 520, 60, 30, UiKit.Cream, true);
             UiKit.Label("Máy bay, tàu, tên lửa, vật phẩm và thời gian đều dừng.\nNhấn ESC hoặc TIẾP TỤC khi sẵn sàng.", panel, 40, 116, 560, 70, 18, UiKit.Muted);
             UiKit.Button("TIẾP TỤC   [ESC]", panel, 40, 220, 560, 62, "gold", UiKit.Ink, game.TogglePause);
-            UiKit.Button("VỀ HANGAR", panel, 40, 300, 560, 50, "olive", UiKit.Cream, game.ReturnToMenu);
+            UiKit.Button("VỀ CĂN CỨ (GIỮ NHIỆM VỤ)", panel, 40, 300, 560, 50, "olive", UiKit.Cream, game.ReturnToBase);
         }
         public void ShowResults(FlightProgress progress, int firstTry, int best, List<VocabularyEntry> missed)
         {
@@ -450,17 +356,19 @@ namespace PixelVocabFlight
             UiKit.Icon("icon_medal", panel, 40, 30, 30);
             UiKit.Label("BÁO CÁO SAU NHIỆM VỤ", panel, 80, 29, 800, 34, 16, UiKit.Orange, true);
             UiKit.Label(progress.Health <= 0 ? "HẾT GIÁP. MÁY BAY BỊ BẮN HẠ." : "HẾT NHIÊN LIỆU. HẠ CÁNH KHẨN CẤP.", panel, 40, 76, 850, 67, 30, UiKit.Cream, true);
-            UiKit.Label(progress.Score.ToString("N0"), panel, 40, 156, 380, 90, 64, UiKit.Mint, true);
+            UiKit.Label(UiKit.Number(progress.Score), panel, 40, 156, 380, 90, 64, UiKit.Mint, true);
             UiKit.Label("ĐIỂM CHUYẾN BAY", panel, 43, 248, 350, 27, 13, UiKit.Muted, true);
-            UiKit.Label("TRẢ LỜI ĐÚNG: " + progress.Correct + "  (đúng ngay lần đầu: " + firstTry + ")\nHẠ BẰNG VỤ NỔ: " + progress.BlastKills + "\nKỶ LỤC BỘ NÀY: " + best.ToString("N0"), panel, 450, 160, 440, 100, 18, UiKit.Cream, true);
+            UiKit.Label("TRẢ LỜI ĐÚNG: " + progress.Correct + "  (đúng ngay lần đầu: " + firstTry + ")\nHẠ BẰNG VỤ NỔ: " + progress.BlastKills + "\nKỶ LỤC BỘ NÀY: " + UiKit.Number(best), panel, 450, 160, 440, 100, 18, UiKit.Cream, true);
             UiKit.Label("Sai " + progress.WrongAttempts + " lần · Đã học thêm sau mỗi lần thử.", panel, 40, 296, 850, 34, 16, UiKit.Muted);
             UiKit.Box("Divider", panel, 40, 345, 850, 2, UiKit.Line);
             UiKit.Label("TỪ CẦN XEM LẠI", panel, 40, 362, 850, 27, 13, UiKit.Orange, true);
             string review = missed.Count == 0 ? "Chưa có từ trả lời sai. Hãy tiếp tục ở chuyến bay sau." : string.Join("\n", missed.Take(4).Select(e => e.word + " — " + e.meaning));
             UiKit.Label(review, panel, 40, 396, 850, 140, 18, UiKit.Cream);
-            UiKit.Button("BAY LẠI   [ENTER]", panel, 40, 566, 410, 60, "gold", UiKit.Ink, game.StartFlight);
-            UiKit.Button("VỀ HANGAR", panel, 470, 566, 420, 60, "olive", UiKit.Cream, game.ReturnToMenu);
+            UiKit.Label("Kết quả sẽ được báo về Giáo sư Whitmore.", panel, 40, 572, 420, 48, 14, UiKit.Muted);
+            ResultsButton = UiKit.Button("VỀ CĂN CỨ   [ENTER]", panel, 470, 566, 420, 60, "gold", UiKit.Ink, game.CompleteSortie);
         }
+        // Test hook: the single results button (VỀ CĂN CỨ).
+        public Button ResultsButton { get; private set; }
         public void ShowError(string message)
         {
             var panel = ClearOverlay(330, 275, 780, 350);

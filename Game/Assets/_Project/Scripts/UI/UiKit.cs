@@ -39,6 +39,11 @@ namespace PixelVocabFlight
             }
         }
 
+        // Vietnamese digit grouping (5.981), the same as BaseContent.Variables in dialogue text.
+        private static readonly System.Globalization.NumberFormatInfo VietnameseNumbers =
+            new System.Globalization.NumberFormatInfo { NumberGroupSeparator = ".", NumberDecimalSeparator = "," };
+        public static string Number(int value) => value.ToString("N0", VietnameseNumbers);
+
         public static int Px(int designSize) => Mathf.RoundToInt(designSize * FontScale);
         public static void Size(Text text, int designSize) => text.fontSize = Px(designSize);
         public static Text Fit(Text text, int minimum, int maximum)

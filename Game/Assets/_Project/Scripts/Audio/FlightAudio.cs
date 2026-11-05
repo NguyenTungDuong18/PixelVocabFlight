@@ -9,12 +9,15 @@ namespace PixelVocabFlight
         private AudioSource effects;
         private readonly Dictionary<string, AudioClip> clips = new Dictionary<string, AudioClip>();
         private readonly Queue<string> recentClips = new Queue<string>();
+        private readonly Dictionary<int, AudioClip> blips = new Dictionary<int, AudioClip>();
         private AudioClip good;
         private AudioClip wrong;
         private AudioClip pickup;
         private AudioClip missileReject;
-        private AudioClip engine, lockWarning, gunfire, boost;
+        private AudioClip engine, lockWarning, gunfire, boost, blip, footstep;
         public int LockWarningCount { get; private set; }
+        public int BlipCount { get; private set; }
+        public int FootstepCount { get; private set; }
         public int EngineStarts { get; private set; }
         public int MissileRejectCount { get; private set; }
         public int PronunciationCount { get; private set; }
@@ -34,6 +37,8 @@ namespace PixelVocabFlight
             lockWarning = Beeps("Lock warning", 1320, 3, .07f, .05f);
             gunfire = Rattle("Enemy guns", 6, .045f);
             boost = Tone("Rocket boost", 220, 900, .45f);
+            blip = Tone("Dialogue blip", 880, 760, .035f);
+            footstep = Thud("Footstep", .06f);
         }
 
         public float Say(VocabularyEntry entry)
@@ -67,6 +72,15 @@ namespace PixelVocabFlight
         public void LockWarning() { LockWarningCount++; effects.PlayOneShot(lockWarning, .8f); }
         public void Gunfire() => effects.PlayOneShot(gunfire, .9f);
         public void Boost() => effects.PlayOneShot(boost, .8f);
+        // Base: a soft blip per few typed dialogue letters (pitch varies by speaker) and light footsteps.
+        public void Blip(float pitch = 1)
+        {
+            BlipCount++;
+            int key = Mathf.RoundToInt(Mathf.Clamp(pitch, .5f, 2) * 20);
+            if (!blips.TryGetValue(key, out var clip)) { clip = key == 20 ? blip : Tone("Dialogue blip " + key, 880 * key / 20f, 760 * key / 20f, .035f); blips[key] = clip; }
+            effects.PlayOneShot(clip, .35f);
+        }
+        public void Footstep(bool running) { FootstepCount++; effects.PlayOneShot(footstep, running ? .5f : .32f); }
         public void Pause(bool paused) { if (paused) { voice.Pause(); effects.Pause(); } else { voice.UnPause(); effects.UnPause(); } }
         public void Stop() { voice.Stop(); effects.Stop(); }
 
@@ -128,6 +142,24 @@ namespace PixelVocabFlight
                 float t = (float)i / rate, local = t % spacing;
                 float envelope = t < rounds * spacing ? Mathf.Exp(-local * 90) : 0;
                 samples[i] = ((float)random.NextDouble() * 2 - 1) * envelope * .3f;
+            }
+            var clip = AudioClip.Create(name, samples.Length, 1, rate, false);
+            clip.SetData(samples, 0);
+            return clip;
+        }
+
+        // Soft boot on packed earth: a short low-passed noise burst.
+        private static AudioClip Thud(string name, float duration)
+        {
+            const int rate = 22050;
+            var samples = new float[(int)(rate * duration)];
+            var random = new System.Random(19);
+            float low = 0;
+            for (int i = 0; i < samples.Length; i++)
+            {
+                float t = (float)i / samples.Length;
+                low += (((float)random.NextDouble() * 2 - 1) - low) * .18f;
+                samples[i] = low * Mathf.Exp(-t * 6) * .5f;
             }
             var clip = AudioClip.Create(name, samples.Length, 1, rate, false);
             clip.SetData(samples, 0);

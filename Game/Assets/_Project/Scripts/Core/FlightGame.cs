@@ -12,7 +12,8 @@ namespace PixelVocabFlight
 {
     public sealed partial class FlightGame : MonoBehaviour
     {
-        private enum Mode { Menu, Launching, Intro, Flying, Paused, Dying, Results, Error }
+        // Base = walkable airbase (main screen). Vocabulary = word-set screen opened from the professor.
+        private enum Mode { Base, Vocabulary, Launching, Intro, Flying, Paused, Dying, Results, Error }
         public const float IntroSeconds = 1.4f;
         private float introTime;
         private VocabularyEntry[] launchPool;
@@ -28,11 +29,16 @@ namespace PixelVocabFlight
         private VocabularyFilter selection = new VocabularyFilter();
         private int previewPage, firstTry;
         private VocabularyEntry[] flightPool;
-        private float nextSubmit, nextBackspace, voiceRemaining, endingTimer;
+        private float nextSubmit, nextBackspace, voiceRemaining, endingTimer, blipTimer;
+        private int seenSteps;
         private readonly Queue<VocabularyEntry> speech = new Queue<VocabularyEntry>();
         private readonly List<VocabularyEntry> reviewWords = new List<VocabularyEntry>();
         private readonly HashSet<string> mistakes = new HashSet<string>();
         private bool smokeMode;
+        // Base (0.15): missions, the walkable world and the dialogue walker. Rules live in Scripts/World.
+        private MissionLog missions;
+        private BaseWorld world;
+        private DialogueRunner dialogue;
         public FlightEnvironment StartingEnvironment { get; private set; } = FlightEnvironment.Jungle;
 
         private void Start()
@@ -56,31 +62,56 @@ namespace PixelVocabFlight
                     profile.Profile.selection = selection; profile.Profile.fullLibraryVersion = 1; profile.Save();
                 }
                 if (selection.to == int.MaxValue) selection.to = catalog.Filter(selection).Length;
+                missions = new MissionLog(BaseContent.Missions) { Completed = Math.Max(0, profile.Profile.missionsCompleted), LastScore = Math.Max(0, profile.Profile.lastScore) };
+                world = new BaseWorld(AirbaseMap.Create(), missions);
+                dialogue = new DialogueRunner(BaseContent.Dialogues);
+                view.Base.Build(world);
                 audioPlayer = gameObject.AddComponent<FlightAudio>(); audioPlayer.Initialize(catalog.Entries);
                 keyboard = smokeMode ? InputSystem.AddDevice<Keyboard>("Wordwing QA keyboard") : Keyboard.current;
                 if (keyboard != null) keyboard.onTextInput += ReceiveCharacter;
-                ReturnToMenu();
+                EnterBase(true, false);
                 if (smokeMode) StartCoroutine(SmokeTest());
             }
-            catch (Exception exception) { mode = Mode.Error; view.ShowError(exception.Message); Debug.LogException(exception); if (smokeMode) Application.Quit(1); }
+            catch (Exception exception) { SetMode(Mode.Error); view.ShowError(exception.Message); Debug.LogException(exception); if (smokeMode) Application.Quit(1); }
         }
 
         private void OnDestroy() { if (keyboard != null) keyboard.onTextInput -= ReceiveCharacter; Time.timeScale = 1; Cursor.visible = true; }
         private void OnApplicationFocus(bool focused) { if (!focused && mode == Mode.Flying && !smokeMode) TogglePause(); }
 
+        // The base is only drawn (and only takes input) in Mode.Base.
+        private void SetMode(Mode value) { mode = value; if (view != null) view.Base.Visible = value == Mode.Base; }
+
+        private bool Pressed(params Key[] keys)
+        {
+            if (keyboard == null) return false;
+            foreach (var key in keys) if (keyboard[key].wasPressedThisFrame) return true;
+            return false;
+        }
+
+        private bool Held(params Key[] keys)
+        {
+            if (keyboard == null) return false;
+            foreach (var key in keys) if (keyboard[key].isPressed) return true;
+            return false;
+        }
+
         private void Update()
         {
             if (view == null) return;
-            if (keyboard != null && keyboard.escapeKey.wasPressedThisFrame) TogglePause();
-            if (mode == Mode.Menu || mode == Mode.Results)
+            bool escape = keyboard != null && keyboard.escapeKey.wasPressedThisFrame;
+            if (mode == Mode.Base) { UpdateBase(escape); return; }
+            if (escape) TogglePause();
+            if (mode == Mode.Vocabulary || mode == Mode.Error) return;
+            if (mode == Mode.Results)
             {
-                view.Board.Animate(Time.unscaledDeltaTime, null, StartingEnvironment); view.AnimateHangar(Time.unscaledDeltaTime, StartingEnvironment);
-                HandleMenuKeys();
+                view.Board.Animate(Time.unscaledDeltaTime, null, StartingEnvironment);
+                // Results: Enter (or the button) reports back and returns to the base.
+                if (Time.unscaledTime >= nextSubmit && Pressed(Key.Enter, Key.NumpadEnter)) CompleteSortie();
                 return;
             }
             if (mode == Mode.Launching)
             {
-                view.Board.Animate(Time.unscaledDeltaTime, null, StartingEnvironment); view.AnimateHangar(Time.unscaledDeltaTime, StartingEnvironment);
+                view.Board.Animate(Time.unscaledDeltaTime, null, StartingEnvironment);
                 if (view.AnimateTakeOff(Time.unscaledDeltaTime)) BeginFlight(launchPool);
                 return;
             }
@@ -92,7 +123,7 @@ namespace PixelVocabFlight
                 view.AnimateIntro(introTime / IntroSeconds);
                 view.Board.Animate(Time.deltaTime, flight, StartingEnvironment);
                 view.SetInput(typed, !flight.Driving); view.Refresh(flight);
-                if (introTime >= IntroSeconds) { view.FinishIntro(); mode = Mode.Flying; nextSubmit = Time.unscaledTime + .1f; }
+                if (introTime >= IntroSeconds) { view.FinishIntro(); SetMode(Mode.Flying); nextSubmit = Time.unscaledTime + .1f; }
                 return;
             }
             if (mode == Mode.Dying)
@@ -110,7 +141,7 @@ namespace PixelVocabFlight
             if (progress.IsOver)
             {
                 view.Refresh(flight);
-                if (progress.Health <= 0) { mode = Mode.Dying; endingTimer = .7f; Cursor.visible = true; }
+                if (progress.Health <= 0) { SetMode(Mode.Dying); endingTimer = .7f; Cursor.visible = true; }
                 else EndFlight();
                 return;
             }
@@ -125,41 +156,158 @@ namespace PixelVocabFlight
             view.Refresh(flight);
         }
 
-        // Title screen shortcuts: 1-4 battlefield, Enter take off, V vocabulary. Results: Enter flies again.
-        // Only active on the hangar/results screens so typing in the vocabulary search field is unaffected.
-        private void HandleMenuKeys()
+        // ---------------- Base: walking, talking, boarding ----------------
+        // WASD / arrows walk, Shift runs, E / Space / Enter interact. In a dialogue: 1-9 pick, W/S + E/Enter/Space
+        // confirm (or show the whole line while it is still typing), Esc closes. Esc alone does nothing here.
+        private void UpdateBase(bool escape)
         {
-            if (keyboard == null || Time.unscaledTime < nextSubmit) return;
-            bool enter = keyboard.enterKey.wasPressedThisFrame || keyboard.numpadEnterKey.wasPressedThisFrame;
-            if (mode == Mode.Results) { if (enter) StartFlight(); return; }
-            if (!view.HangarVisible) return;
-            var digits = new[] { keyboard.digit1Key, keyboard.digit2Key, keyboard.digit3Key, keyboard.digit4Key };
-            var numpad = new[] { keyboard.numpad1Key, keyboard.numpad2Key, keyboard.numpad3Key, keyboard.numpad4Key };
-            for (int i = 0; i < 4; i++) if (digits[i].wasPressedThisFrame || numpad[i].wasPressedThisFrame) { ChooseStartingEnvironment(i); return; }
-            if (keyboard.vKey.wasPressedThisFrame) OpenVocabulary();
-            else if (enter) TakeOff();
+            float delta = Mathf.Min(Time.unscaledDeltaTime, .1f);
+            // Title card: any key or click fades it out; the pilot can already walk while it fades.
+            if (view.Base.TitleVisible && !view.Base.TitleDismissing)
+            {
+                bool click = Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame;
+                if ((keyboard != null && keyboard.anyKey.wasPressedThisFrame) || click) view.Base.DismissTitle();
+                world.Tick(delta, 0, 0, false);
+                view.Base.Animate(delta, world, false);
+                nextSubmit = Time.unscaledTime + .1f; // The dismissing key never interacts as well.
+                return;
+            }
+            if (dialogue.Open)
+            {
+                if (escape) CloseDialogue();
+                else HandleDialogueKeys();
+                world.Tick(delta, 0, 0, false);
+            }
+            else
+            {
+                float x = (Held(Key.D, Key.RightArrow) ? 1 : 0) - (Held(Key.A, Key.LeftArrow) ? 1 : 0);
+                float y = (Held(Key.S, Key.DownArrow) ? 1 : 0) - (Held(Key.W, Key.UpArrow) ? 1 : 0);
+                world.Tick(delta, x, y, Held(Key.LeftShift, Key.RightShift));
+                if (Time.unscaledTime >= nextSubmit && Pressed(Key.E, Key.Space, Key.Enter, Key.NumpadEnter)) world.Interact();
+            }
+            DrainWorldEvents();
+            if (mode != Mode.Base) return;
+            int letters = view.Dialogue.Animate(delta);
+            blipTimer -= delta;
+            if (letters > 0 && blipTimer <= 0) { audioPlayer.Blip(dialogue.Speaker == "professor" ? .8f : 1.1f); blipTimer = .07f; }
+            view.Base.Animate(delta, world, dialogue.Open);
+            // Footsteps follow the contact frames of the walk/run cycle: one thud per frame with new contacts.
+            if (view.Base.PlayerSteps != seenSteps)
+            {
+                if (view.Base.PlayerSteps > seenSteps && world.Moving) audioPlayer.Footstep(world.Running);
+                seenSteps = view.Base.PlayerSteps;
+            }
         }
 
-        private void HandleEditing()
+        private void DrainWorldEvents()
+        {
+            WorldEvent e;
+            while (mode == Mode.Base && (e = world.PopEvent()) != null)
+            {
+                switch (e.Kind)
+                {
+                    case WorldEventKind.DialogueOpened: OpenDialogue(e.Text); break;
+                    case WorldEventKind.BoardAircraft: BoardAircraft(); break;
+                    case WorldEventKind.Hint: view.Base.ShowHint(e.Text); audioPlayer.MissileReject(); break;
+                    case WorldEventKind.ZoneEntered: view.Base.ShowZone(e.Text); break;
+                }
+            }
+        }
+
+        private void HandleDialogueKeys()
         {
             if (keyboard == null) return;
-            if (keyboard.ctrlKey.isPressed && keyboard.aKey.wasPressedThisFrame) typed = "";
-            if (keyboard.backspaceKey.wasPressedThisFrame) { Backspace(); nextBackspace = Time.unscaledTime + .42f; }
-            else if (keyboard.backspaceKey.isPressed && Time.unscaledTime >= nextBackspace) { Backspace(); nextBackspace = Time.unscaledTime + .05f; }
-        }
-        private void Backspace() { if (typed.Length > 0) typed = typed.Substring(0, typed.Length - 1); }
-        private void ReceiveCharacter(char value)
-        {
-            if (mode != Mode.Flying || flight == null || view.PartOfSpeechOpen) return;
-            if (keyboard != null && (keyboard.ctrlKey.isPressed || keyboard.leftMetaKey.isPressed || keyboard.rightMetaKey.isPressed)) return;
-            // Digits never occur in Oxford headwords, so 1-4 always pick a choice on the open rocket.
-            if (value >= '1' && value <= '4' && view.Board.OpenMissileId != 0) { ChooseMissileAnswer(view.Board.OpenMissileId, value - '1'); return; }
-            if (flight.Driving || flight.Target == null || typed.Length >= 40) return;
-            if (char.IsLetterOrDigit(value) || value == ' ' || value == '-' || value == '\'' || value == '.') typed += value;
+            var digits = new[] { Key.Digit1, Key.Digit2, Key.Digit3, Key.Digit4, Key.Digit5, Key.Digit6, Key.Digit7, Key.Digit8, Key.Digit9 };
+            var numpad = new[] { Key.Numpad1, Key.Numpad2, Key.Numpad3, Key.Numpad4, Key.Numpad5, Key.Numpad6, Key.Numpad7, Key.Numpad8, Key.Numpad9 };
+            for (int i = 0; i < digits.Length; i++)
+                if (Pressed(digits[i], numpad[i])) { if (view.Dialogue.Typing) view.Dialogue.Reveal(); else ChooseDialogue(i); return; }
+            if (Pressed(Key.W, Key.UpArrow)) view.Dialogue.MoveSelection(-1);
+            if (Pressed(Key.S, Key.DownArrow)) view.Dialogue.MoveSelection(1);
+            if (Pressed(Key.E, Key.Space, Key.Enter, Key.NumpadEnter))
+            {
+                if (view.Dialogue.Typing) view.Dialogue.Reveal();
+                else ChooseDialogue(view.Dialogue.Selected);
+            }
         }
 
-        public void ChooseStartingEnvironment(int index) { StartingEnvironment = (FlightEnvironment)Mathf.Clamp(index, 0, 3); profile.Profile.startingEnvironment = (int)StartingEnvironment; profile.Save(); ShowHangar(); }
-        public void OpenVocabulary() => ShowMenu();
+        private void OpenDialogue(string graphId)
+        {
+            try { dialogue.Start(graphId, missions.Condition); }
+            catch (KeyNotFoundException exception) { Debug.LogWarning(exception.Message); world.EndDialogue(); return; }
+            if (!dialogue.Open) { world.EndDialogue(); return; }
+            ShowDialogueNode();
+        }
+
+        private void ShowDialogueNode()
+        {
+            string speaker = dialogue.Speaker;
+            string role = speaker != null && BaseContent.Roster.TryGetValue(speaker, out var npc) ? "  ·  " + npc.Role : "";
+            view.Dialogue.Show(BaseContent.SpeakerName(speaker) + role, BaseContent.SpeakerCharacter(speaker),
+                dialogue.Text(BaseContent.Variables(missions, SelectedWordCount())), dialogue.Choices);
+        }
+
+        private int SelectedWordCount()
+        {
+            int available = catalog.Filter(selection).Length;
+            return selection.from >= 1 && selection.to <= available && selection.to >= selection.from ? selection.to - selection.from + 1 : 0;
+        }
+
+        // Dialogue choice (button, digit or W/S + E). Mission actions apply before the next node is shown.
+        public void ChooseDialogue(int index)
+        {
+            if (mode != Mode.Base || !dialogue.Open || view.Dialogue.Typing) return;
+            if (index < 0 || index >= dialogue.Choices.Count) return;
+            string pending = null;
+            dialogue.Choose(index, action =>
+            {
+                if (missions.Apply(action)) MissionChanged(action);
+                else pending = action;
+            });
+            EventSystem.current?.SetSelectedGameObject(null);
+            if (dialogue.Open) ShowDialogueNode(); else CloseDialogue();
+            if (pending == DialogueActions.VocabOpen) OpenVocabulary();
+        }
+
+        private void MissionChanged(string action)
+        {
+            if (missions.Active != null && DialogueActions.TryParseAccept(action, out _, out _))
+            {
+                StartingEnvironment = (FlightEnvironment)Mathf.Clamp(missions.Environment, 0, 3);
+                profile.Profile.startingEnvironment = (int)StartingEnvironment; profile.Save();
+                audioPlayer.Pickup();
+            }
+        }
+
+        private void CloseDialogue()
+        {
+            if (dialogue.Open) dialogue.Close();
+            world.EndDialogue(); view.Dialogue.Hide();
+            EventSystem.current?.SetSelectedGameObject(null);
+        }
+
+        private void SaveMissions()
+        {
+            profile.Profile.missionsCompleted = missions.Completed; profile.Profile.lastScore = missions.LastScore; profile.Save();
+        }
+
+        // Back to the walkable base: from the vocabulary screen, the pause menu (mission kept) or after a sortie.
+        public void ReturnToBase() => EnterBase(false, false);
+
+        private void EnterBase(bool title, bool besideAircraft)
+        {
+            SetMode(Mode.Base); Time.timeScale = 1; Cursor.visible = true; typed = "";
+            if (audioPlayer) { audioPlayer.Pause(false); audioPlayer.Stop(); } speech.Clear(); view.Board.Clear(); flight = null; view.FinishIntro(); view.HideOverlay();
+            if (dialogue.Open) CloseDialogue(); else view.Dialogue.Hide();
+            if (besideAircraft) world.PlacePlayer(world.Map.AircraftReturnX, world.Map.AircraftReturnY, world.Map.AircraftReturnFacing);
+            while (world.PopEvent() != null) { }
+            if (title) view.Base.ShowTitle();
+            view.Base.SnapCamera(world);
+            nextSubmit = Time.unscaledTime + .2f;
+            EventSystem.current?.SetSelectedGameObject(null);
+        }
+
+        // ---------------- Vocabulary screen ----------------
+        public void OpenVocabulary() { if (mode != Mode.Base && mode != Mode.Vocabulary) return; if (dialogue.Open) CloseDialogue(); SetMode(Mode.Vocabulary); ShowMenu(); }
         public void ChooseCollection(string collection) { selection.collection = collection; ResetSelectionRange(); }
         public void SelectFullOxford() { selection = new VocabularyFilter { to = catalog.Entries.Length }; previewPage = 0; SaveSelection(); ShowMenu(); }
         public void ChooseLevel(bool minimum, int value)
@@ -188,45 +336,50 @@ namespace PixelVocabFlight
         }
         public void ApplyMenuRange() { if (!ReadRange(out var error)) { ShowMenu(error); return; } previewPage = (selection.from - 1) / 8; SaveSelection(); ShowMenu(); }
         public void ChangePreviewPage(int amount) { previewPage = Mathf.Clamp(previewPage + amount, 0, Math.Max(0, (catalog.Filter(selection).Length - 1) / 8)); ShowMenu(); }
-        public void ShowVocabularyCredits() => view.ShowCredits();
-        private void ShowMenu(string error = null) => view.ShowMenu(catalog, selection, catalog.Filter(selection), previewPage, error);
-        private void ShowHangar() => view.ShowHangar(selection, catalog.Filter(selection).Length, StartingEnvironment);
+        public void ShowVocabularyCredits() { if (mode == Mode.Vocabulary) view.ShowCredits(); }
+        // The word-set screen only exists in Mode.Vocabulary; selection changes elsewhere just save.
+        private void ShowMenu(string error = null) { if (mode == Mode.Vocabulary) view.ShowMenu(catalog, selection, catalog.Filter(selection), previewPage, error); }
 
-        public void ReturnToMenu()
+        // XONG on the word-set screen: keep a valid selection and walk back out onto the base.
+        public void FinishVocabulary()
         {
-            mode = Mode.Menu; Time.timeScale = 1; Cursor.visible = true; typed = "";
-            audioPlayer?.Stop(); speech.Clear(); view.Board.Clear(); flight = null; view.FinishIntro(); ShowHangar();
+            if (mode != Mode.Vocabulary) return;
+            var pool = PrepareFlightPool(out string error);
+            if (pool == null) { if (error != null) ShowMenu(error); return; }
+            SaveSelection(); ReturnToBase();
+            view.Base.ShowHint("Đã lưu bộ " + UiKit.Number(pool.Length) + " từ cho chuyến bay tới.");
         }
 
-        // Validates the selection; on failure the vocabulary screen explains why and null is returned.
-        private VocabularyEntry[] PrepareFlightPool()
+        // Validates the selection. Null + error when it is unusable; null without error when a pending
+        // search was applied first (the vocabulary screen already shows the new result).
+        private VocabularyEntry[] PrepareFlightPool(out string error)
         {
+            error = null;
             if (catalog == null || mode == Mode.Error) return null;
             if (view.Setup != null && view.Setup.Search.text.Trim() != (selection.search ?? "")) { ApplyMenuSearch(); return null; }
-            if (!ReadRange(out var error)) { ShowMenu(error); return null; }
+            if (!ReadRange(out error)) return null;
             var pool = VocabularyQuery.Range(catalog.Filter(selection), selection.from, selection.to);
-            string poolError = ValidateFlightPool(pool);
-            if (poolError != null) { ShowMenu(poolError); return null; }
-            return pool;
+            error = ValidateFlightPool(pool);
+            return error == null ? pool : null;
         }
 
-        // CẤT CÁNH from the hangar: panels slide away and the fighter takes off before the sortie.
-        public void TakeOff()
+        // ---------------- Sortie ----------------
+        // E at SKYLARK with an active mission: the take-off cutscene, then the battle intro.
+        private void BoardAircraft()
         {
-            if (mode != Mode.Menu || !view.HangarVisible) { StartFlight(); return; }
-            var pool = PrepareFlightPool();
-            if (pool == null) return;
-            launchPool = pool; mode = Mode.Launching; Cursor.visible = true;
+            if (mode != Mode.Base || missions.Active == null) return;
+            var pool = PrepareFlightPool(out string error);
+            if (pool == null)
+            {
+                SetMode(Mode.Vocabulary); ShowMenu(error ?? "Bộ từ chưa hợp lệ. Hãy chọn lại trước khi cất cánh.");
+                return;
+            }
+            if (dialogue.Open) CloseDialogue();
+            StartingEnvironment = (FlightEnvironment)Mathf.Clamp(missions.Environment, 0, 3);
+            profile.Profile.startingEnvironment = (int)StartingEnvironment; SaveMissions();
+            launchPool = pool; SetMode(Mode.Launching); Cursor.visible = true;
             view.BeginTakeOff(); audioPlayer.Engine();
             EventSystem.current?.SetSelectedGameObject(null);
-        }
-
-        // Straight into the battle intro (BAY LẠI on the results screen, or from the vocabulary screen).
-        public void StartFlight()
-        {
-            if (mode == Mode.Launching || mode == Mode.Intro) return;
-            var pool = PrepareFlightPool();
-            if (pool != null) BeginFlight(pool);
         }
 
         private void BeginFlight(VocabularyEntry[] pool)
@@ -237,11 +390,20 @@ namespace PixelVocabFlight
             flightPool = pool; SaveSelection();
             flight = new ContinuousFlight(pool, System.Environment.TickCount, StartingEnvironment);
             progress = flight.Progress; firstTry = 0; mistakes.Clear(); reviewWords.Clear(); typed = "";
-            mode = Mode.Intro; introTime = 0; view.Board.Clear(); view.Board.SetEnvironment(StartingEnvironment);
+            SetMode(Mode.Intro); introTime = 0; view.Board.Clear(); view.Board.SetEnvironment(StartingEnvironment);
             view.NewFlight((selection.collection == "oxford3000" ? "OXFORD 3000" : "OXFORD 5000") + " / " + pool.Length + " MỤC");
             view.BeginIntro();
             DrainEvents(); view.Refresh(flight); nextSubmit = Time.unscaledTime + .2f;
             EventSystem.current?.SetSelectedGameObject(null);
+        }
+
+        // VỀ CĂN CỨ on the results screen: the mission is reported (Completed + last score) and saved.
+        public void CompleteSortie()
+        {
+            if (mode != Mode.Results) return;
+            missions.Complete(progress.Score); SaveMissions();
+            EnterBase(false, true);
+            view.Base.ShowHint("Đã báo cáo " + UiKit.Number(progress.Score) + " điểm. Gặp Giáo sư Whitmore để nhận chuyến huấn luyện mới.");
         }
 
         public static string ValidateFlightPool(VocabularyEntry[] pool)
@@ -267,6 +429,24 @@ namespace PixelVocabFlight
             flight.SetDriving(driving); typed = "";
             view.Feedback(driving ? "LÁI: rê chuột trái/phải để đón R+. TAB để chuyển sang bắn." : "BẮN: gõ ngay từ tiếng Anh + ENTER · phím 1–4 chọn đáp án tên lửa.");
             EventSystem.current?.SetSelectedGameObject(null); view.SetInput(typed, !driving); view.Refresh(flight);
+        }
+
+        private void HandleEditing()
+        {
+            if (keyboard == null) return;
+            if (keyboard.ctrlKey.isPressed && keyboard.aKey.wasPressedThisFrame) typed = "";
+            if (keyboard.backspaceKey.wasPressedThisFrame) { Backspace(); nextBackspace = Time.unscaledTime + .42f; }
+            else if (keyboard.backspaceKey.isPressed && Time.unscaledTime >= nextBackspace) { Backspace(); nextBackspace = Time.unscaledTime + .05f; }
+        }
+        private void Backspace() { if (typed.Length > 0) typed = typed.Substring(0, typed.Length - 1); }
+        private void ReceiveCharacter(char value)
+        {
+            if (mode != Mode.Flying || flight == null || view.PartOfSpeechOpen) return;
+            if (keyboard != null && (keyboard.ctrlKey.isPressed || keyboard.leftMetaKey.isPressed || keyboard.rightMetaKey.isPressed)) return;
+            // Digits never occur in Oxford headwords, so 1-4 always pick a choice on the open rocket.
+            if (value >= '1' && value <= '4' && view.Board.OpenMissileId != 0) { ChooseMissileAnswer(view.Board.OpenMissileId, value - '1'); return; }
+            if (flight.Driving || flight.Target == null || typed.Length >= 40) return;
+            if (char.IsLetterOrDigit(value) || value == ' ' || value == '-' || value == '\'' || value == '.') typed += value;
         }
 
         // Missile tags (click or keys 1-4). Answering needs the guns, so it switches to BẮN first.
@@ -359,11 +539,16 @@ namespace PixelVocabFlight
 
         public void TogglePause()
         {
-            if (mode == Mode.Flying) { mode = Mode.Paused; Time.timeScale = 0; Cursor.visible = true; audioPlayer.Pause(true); view.ShowPause(); }
-            else if (mode == Mode.Paused) { mode = Mode.Flying; Time.timeScale = 1; audioPlayer.Pause(false); view.HideOverlay(); nextSubmit = Time.unscaledTime + .25f; }
+            if (mode == Mode.Flying) { SetMode(Mode.Paused); Time.timeScale = 0; Cursor.visible = true; audioPlayer.Pause(true); view.ShowPause(); }
+            else if (mode == Mode.Paused) { SetMode(Mode.Flying); Time.timeScale = 1; audioPlayer.Pause(false); view.HideOverlay(); nextSubmit = Time.unscaledTime + .25f; }
         }
         public void ToggleMute() { if (!audioPlayer) return; audioPlayer.ToggleMute(); view.SetMuted(audioPlayer.Muted); EventSystem.current?.SetSelectedGameObject(null); }
-        private void EndFlight() { profile.RecordBest(bestKey, progress.Score); audioPlayer.Stop(); speech.Clear(); mode = Mode.Results; Cursor.visible = true; view.ShowResults(progress, firstTry, profile.Best(bestKey), reviewWords); }
+        private void EndFlight()
+        {
+            profile.RecordBest(bestKey, progress.Score); audioPlayer.Stop(); speech.Clear(); SetMode(Mode.Results); Cursor.visible = true;
+            view.ShowResults(progress, firstTry, profile.Best(bestKey), reviewWords);
+            nextSubmit = Time.unscaledTime + .4f; // A late Enter from typing must not skip the report.
+        }
 
         private IEnumerator SmokeType(string value)
         {

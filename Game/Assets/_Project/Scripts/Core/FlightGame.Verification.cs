@@ -19,43 +19,162 @@ namespace PixelVocabFlight
             Directory.CreateDirectory(output); StartCoroutine(SmokeWatchdog(output));
             var checks = new List<string>();
             void Check(bool pass,string name) => checks.Add(name + (pass ? ":PASS" : ":FAIL"));
-            SelectFullOxford(); ReturnToMenu(); yield return new WaitForSecondsRealtime(.3f);
-            bool captured = view.Capture(Path.Combine(output,"01-hangar.png"));
+            SelectFullOxford(); yield return null; yield return null;
+            bool captured = true;
             int frameFiles=0;bool everySpriteLoads=true;
             foreach(var name in PixelSprites.Names){var frames=PixelSprites.Frames(name);frameFiles+=frames.Length;everySpriteLoads&=frames.All(f=>f&&f.texture.width>0);}
             Check(everySpriteLoads&&frameFiles>=300&&PixelSprites.FrameCount("fighter_level")==4&&PixelSprites.FrameCount("fx_explosion")==8&&PixelSprites.FrameCount("gauge_needle")==48&&PixelSprites.FrameCount("bomber_guns")==11,"pixel-frame-library-loads:"+frameFiles);
             Check(PixelSprites.Texture("terrain_jungle_blur").filterMode==FilterMode.Bilinear&&PixelSprites.Texture("terrain_jungle").filterMode==FilterMode.Point,"blurred-ground-uses-smooth-filtering");
             Check(UiKit.PixelFontLoaded,"pixel-font-vt323-loaded");
-            Check(view.HangarVisible,"title-screen-visible");
             string propellerBefore=view.Board.PlayerSpriteName;view.Board.Animate(.07f,null,StartingEnvironment);
             Check(propellerBefore!=view.Board.PlayerSpriteName,"propeller-frames-advance");
-            yield return SmokeKey(Key.Digit4);
-            Check(StartingEnvironment==FlightEnvironment.Ocean&&view.HangarVisible,"hangar-number-key-selects-battlefield");
-            captured &= view.Capture(Path.Combine(output,"01b-hangar-ocean-selected.png"));
-            yield return SmokeKey(Key.Digit1);
+
+            // ---- Base (0.15): the walkable airbase is the main screen ----
+            var map=world.Map;
+            Check(mode==Mode.Base&&view.Base.Visible&&view.Base.TitleVisible&&!view.TakeOffVisible&&!view.OverlayVisible,"base-is-main-screen-with-title-card");
+            Check(view.Base.GroundMode=="cpu","base-ground-composed-from-readable-tiles:"+view.Base.GroundMode);
+            Check(view.Base.MissingSprites==0&&view.Base.PlacementImages==map.Placements.Count&&view.Base.FenceImages>=200,"base-models-each-a-separate-sprite:"+view.Base.PlacementImages+"/"+map.Placements.Count+"/fence "+view.Base.FenceImages+"/missing "+view.Base.MissingSprites);
+            yield return new WaitForSecondsRealtime(.3f);
+            captured &= view.Capture(Path.Combine(output,"00a-base-title.png"));
+            yield return SmokeKey(Key.Space);
+            for(int i=0;i<120&&view.Base.TitleVisible;i++)yield return null;
+            Check(!view.Base.TitleVisible&&mode==Mode.Base&&!dialogue.Open,"any-key-dismisses-title-card");
+            Check(missions.Active==null&&view.Base.ObjectiveText==MissionLog.IdleObjective&&view.Base.QuestMarkerVisible,"idle-objective-and-quest-marker-over-professor");
+            captured &= view.Capture(Path.Combine(output,"00b-base-overview.png"));
+
+            // Hold D for half a second: the pilot walks east on the walk cycle and the camera follows.
+            world.PlacePlayer(map.SpawnX,map.SpawnY,Facing.N);yield return null;
+            float walkFrom=world.PlayerX,cameraFrom=view.Base.CameraPosition.x;int stepsBefore=audioPlayer.FootstepCount,contactsBefore=view.Base.PlayerSteps;
+            InputSystem.QueueStateEvent(keyboard,new KeyboardState(Key.D));
+            float heldFrom=Time.unscaledTime;
+            while(Time.unscaledTime-heldFrom<.5f)yield return null;
+            Check(world.PlayerX>walkFrom+1&&world.PlayerFacing==Facing.E&&view.Base.PlayerSpriteName.StartsWith("chr_pilot_walk_e"),"hold-d-walks-east-on-walk-frames:"+(world.PlayerX-walkFrom).ToString("0.00")+"/"+view.Base.PlayerSpriteName);
+            Check(view.Base.CameraPosition.x>cameraFrom&&Mathf.Abs(view.Base.CameraPosition.x%3)<.01f,"camera-follows-pilot-on-art-pixel-grid");
+            Check(audioPlayer.FootstepCount>stepsBefore,"footsteps-while-walking");
+            // Footsteps come from the walk cycle's contact frames (0 and frames/2), one thud per contact.
+            for(int i=0;i<60&&view.Base.PlayerSteps-contactsBefore<2;i++)yield return null;
+            int contactSteps=view.Base.PlayerSteps-contactsBefore,footSteps=audioPlayer.FootstepCount-stepsBefore;
+            Check(contactSteps>=2&&Mathf.Abs(contactSteps-footSteps)<=1,"footsteps-follow-contact-frames:"+contactSteps+"/"+footSteps);
+            captured &= view.Capture(Path.Combine(output,"00c-base-walk.png"));
+            InputSystem.QueueStateEvent(keyboard,new KeyboardState());yield return null;yield return null;
+            Check(!world.Moving&&view.Base.PlayerSpriteName.StartsWith("chr_pilot_idle_e"),"release-stops-on-idle-frames");
+            float runFrom=world.PlayerX;int dustBefore=view.Base.DustPuffs;
+            InputSystem.QueueStateEvent(keyboard,new KeyboardState(Key.A,Key.LeftShift));
+            heldFrom=Time.unscaledTime;
+            while(Time.unscaledTime-heldFrom<.4f)yield return null;
+            float runSpeed=(runFrom-world.PlayerX)/(Time.unscaledTime-heldFrom);
+            Check(world.Running&&world.PlayerFacing==Facing.W&&runSpeed>BaseWorld.WalkSpeed*1.2f,"shift-runs-faster:"+runSpeed.ToString("0.0"));
+            Check(world.Running&&view.Base.PlayerSpriteName.StartsWith("chr_pilot_run_"),"running-uses-run-frames:"+view.Base.PlayerSpriteName);
+            for(int i=0;i<60&&!(view.Base.DustPuffs>dustBefore&&view.Base.ActiveDust>0);i++)yield return null;
+            Check(view.Base.DustPuffs>dustBefore,"running-kicks-up-dust:"+(view.Base.DustPuffs-dustBefore));
+            captured &= view.Capture(Path.Combine(output,"00c2-base-run.png"));
+            InputSystem.QueueStateEvent(keyboard,new KeyboardState());yield return null;yield return null;
+
+            // Buildings are solid: walking north into the academy stops at its south wall.
+            var academy=map.Find("academy");var academyFoot=map.FootprintOf(academy);float wall=academyFoot.y+academyFoot.h;
+            world.PlacePlayer(academyFoot.x+1.5f,wall+1.2f,Facing.N);yield return null;
+            InputSystem.QueueStateEvent(keyboard,new KeyboardState(Key.W));
+            heldFrom=Time.unscaledTime;
+            while(Time.unscaledTime-heldFrom<.45f)yield return null;
+            InputSystem.QueueStateEvent(keyboard,new KeyboardState());yield return null;yield return null;
+            Check(world.PlayerY>=wall+BaseWorld.BodyHalfDepth-.02f&&world.PlayerY<wall+BaseWorld.BodyHalfDepth+.1f,"buildings-block-the-pilot:"+world.PlayerY.ToString("0.00"));
+            Check(view.Base.PlayerDrawIndex>view.Base.PlacementDrawIndex("academy"),"y-sort-pilot-in-front-of-building");
+            world.PlacePlayer(academyFoot.x+3.5f,academyFoot.y-.4f,Facing.N);yield return null;yield return null;
+            Check(view.Base.PlayerDrawIndex<view.Base.PlacementDrawIndex("academy"),"y-sort-pilot-behind-building");
+
+            // SKYLARK without orders: only a hint.
+            world.PlacePlayer(map.AircraftReturnX,map.AircraftReturnY,Facing.N);yield return null;yield return null;
+            Check(world.NearestKind==InteractKind.Aircraft&&view.Base.PromptLabel=="[E] SKYLARK MK.I","aircraft-prompt-without-orders");
+            yield return SmokeKey(Key.E);
+            Check(mode==Mode.Base&&view.Base.HintVisible&&view.Base.HintText==BaseContent.NoOrdersHint,"aircraft-without-orders-shows-hint");
+
+            // Professor Whitmore: prompt, E opens the dialogue, the line types out, E shows it all, Esc closes.
+            var professor=world.Npc("professor");
+            world.PlacePlayer(professor.X+.8f,professor.Y+1f,Facing.N);yield return null;yield return null;
+            Check(world.NearestKind==InteractKind.Npc&&world.NearestId=="professor"&&view.Base.PromptVisible&&view.Base.PromptLabel=="[E] Nói chuyện với Giáo sư Whitmore","professor-prompt-appears-nearby");
+            int blipsBefore=audioPlayer.BlipCount;
+            yield return SmokeKey(Key.E);
+            Check(dialogue.Open&&view.Dialogue.Open&&world.InDialogue&&professor.Talking&&view.Dialogue.SpeakerName.StartsWith("Giáo sư Whitmore"),"e-opens-professor-dialogue");
+            for(int i=0;i<60&&view.Dialogue.VisibleCharacters<8;i++)yield return null;
+            Check(view.Dialogue.Typing&&view.Dialogue.VisibleCharacters>0&&!view.Dialogue.ChoicesVisible&&audioPlayer.BlipCount>blipsBefore,"dialogue-line-types-out-with-blips");
+            Check(view.Dialogue.PortraitName.StartsWith("portrait_professor")&&view.Base.NpcSpriteName("professor").StartsWith("chr_professor_talk_s"),"professor-portrait-and-talking-gestures");
+            yield return SmokeKey(Key.E);
+            Check(!view.Dialogue.Typing&&view.Dialogue.ChoicesVisible&&view.Dialogue.ChoiceCount==4&&dialogue.Open,"e-shows-whole-line-then-numbered-choices");
+            Check(!view.Base.QuestMarkerVisible&&!view.Base.PromptVisible,"marker-and-prompt-hide-while-talking");
+            captured &= view.Capture(Path.Combine(output,"00d-professor-dialogue.png"));
+            yield return SmokeKey(Key.Escape);
+            Check(!dialogue.Open&&!view.Dialogue.Open&&!world.InDialogue&&!professor.Talking,"esc-closes-dialogue");
+            yield return SmokeKey(Key.Escape);
+            Check(mode==Mode.Base&&Time.timeScale==1&&!view.OverlayVisible,"esc-on-base-does-not-pause");
+
+            // "Chọn bộ từ vựng" (key 2) opens the word-set screen; XONG walks back out.
+            yield return SmokeKey(Key.E);yield return SmokeKey(Key.Enter);
+            string vocabularyChoice=view.Dialogue.ChoiceText(1);
+            yield return SmokeKey(Key.Digit2);
+            Check(vocabularyChoice=="Chọn bộ từ vựng"&&mode==Mode.Vocabulary&&view.Setup!=null&&!dialogue.Open&&!view.Base.Visible,"professor-opens-vocabulary-screen");
+            Check(view.Setup!=null&&view.Setup.Done.GetComponentInChildren<UnityEngine.UI.Text>().text=="XONG","vocabulary-button-reads-done");
             SelectFullOxford(); yield return null;
             Check(selection.to==catalog.Entries.Length,"full-oxford-library");
             captured &= view.Capture(Path.Combine(output,"02-vocabulary.png"));
             selection.minimumLevel=selection.maximumLevel=2;selection.topics=new[]{"food"};ResetSelectionRange();
             Check(catalog.Filter(selection).All(e=>e.cefr=="B1"&&e.topics.Contains("food")),"food-b1-filter");
+            SelectFullOxford(); yield return null;
+            FinishVocabulary(); yield return null;
+            Check(mode==Mode.Base&&view.Base.Visible&&!view.OverlayVisible&&view.Base.HintVisible,"done-returns-to-base");
+            yield return new WaitForSecondsRealtime(.3f); // Interaction is briefly locked after entering the base.
 
-            // ---- Take-off: panels slide away, engine starts, fighter rolls, lifts off, fade to the sortie ----
-            SelectFullOxford();StartingEnvironment=FlightEnvironment.Desert;ShowHangar();yield return null;
-            float heroStartY=view.HangarHeroPosition.y;int enginesBefore=audioPlayer.EngineStarts;
+            // Accept the training mission: mouse picks "Nhận nhiệm vụ", S + E picks Sa mạc, key 1 closes.
+            var mouse=InputSystem.AddDevice<Mouse>("Wordwing QA pointer");
+            InputSystem.QueueStateEvent(mouse,new MouseState{position=new Vector2(5,5)});
+            world.PlacePlayer(professor.X+.8f,professor.Y+1f,Facing.N);yield return null;yield return null;
+            yield return SmokeKey(Key.E);yield return SmokeKey(Key.Space);
+            Vector2 choicePoint=view.Dialogue.ChoiceScreenPoint(0);
+            InputSystem.QueueStateEvent(mouse,new MouseState{position=choicePoint});yield return null;yield return null;
+            InputSystem.QueueStateEvent(mouse,new MouseState{position=choicePoint}.WithButton(MouseButton.Left,true));yield return null;
+            InputSystem.QueueStateEvent(mouse,new MouseState{position=choicePoint});yield return null;
+            InputSystem.QueueStateEvent(mouse,new MouseState{position=new Vector2(5,5)});yield return null;yield return null;
+            Check(dialogue.Open&&dialogue.Current!=null&&dialogue.Current.Id=="pick_env","mouse-click-picks-dialogue-choice");
             yield return SmokeKey(Key.Enter);
-            Check(mode==Mode.Launching&&audioPlayer.EngineStarts==enginesBefore+1,"enter-starts-take-off-and-engine");
-            for(int i=0;i<400&&mode==Mode.Launching&&view.HangarBoardX<1455;i++)yield return null;
-            Check(view.HangarBoardX>=1455&&view.HangarBrandX<=-430,"take-off-cards-slide-to-both-sides");
+            Check(view.Dialogue.ChoicesVisible&&view.Dialogue.ChoiceCount==5&&view.Dialogue.ThumbnailCount==4&&!view.Dialogue.Line.Contains("{"),"battlefield-choices-show-cards");
+            yield return SmokeKey(Key.S);
+            Check(view.Dialogue.Selected==1,"s-moves-dialogue-selection");
+            captured &= view.Capture(Path.Combine(output,"00e-mission-battlefield.png"));
+            yield return SmokeKey(Key.E);
+            Check(missions.Active!=null&&missions.Environment==(int)FlightEnvironment.Desert&&StartingEnvironment==FlightEnvironment.Desert&&dialogue.Current!=null&&dialogue.Current.Id=="accepted","desert-mission-accepted");
+            yield return SmokeKey(Key.Space);yield return SmokeKey(Key.Digit1);
+            Check(!dialogue.Open&&!world.InDialogue&&!view.Dialogue.Open,"digit-key-ends-dialogue");
+            yield return null;
+            Check(view.Base.ObjectiveText==missions.Active.Objective&&!view.Base.QuestMarkerVisible,"objective-updates-and-marker-clears");
+
+            // Equipment and airfield views.
+            world.PlacePlayer(24f,37.5f,Facing.S);view.Base.ClearHint();yield return null;yield return null;
+            Check(view.Base.HasPlacement("tank")&&view.Base.HasPlacement("jeep")&&view.Base.HasPlacement("truck")&&view.Base.HasPlacement("artillery")&&view.Base.HasPlacement("motorcycle"),"motor-pool-vehicles-rendered");
+            captured &= view.Capture(Path.Combine(output,"00g-base-motorpool.png"));
+            world.PlacePlayer(50f,34.5f,Facing.E);view.Base.ClearHint();yield return null;yield return null; // West of the control tower, clear of its roof.
+            Check(view.Base.HasPlacement("control_tower")&&view.Base.HasPlacement(AirbaseMap.PlayerAircraftId)&&view.Base.HasPlacement("hangar_2")&&view.Base.HasPlacement("windsock"),"airfield-tower-and-aircraft-rendered");
+            captured &= view.Capture(Path.Combine(output,"00h-base-airfield.png"));
+
+            // ---- Board SKYLARK: take-off cutscene, then the sortie on the chosen battlefield ----
+            world.PlacePlayer(map.AircraftReturnX,map.AircraftReturnY,Facing.N);yield return null;yield return null;
+            Check(view.Base.PromptLabel=="[E] Lên máy bay SKYLARK MK.I","aircraft-prompt-with-orders");
+            view.Base.ClearHint();yield return null;
+            captured &= view.Capture(Path.Combine(output,"00f-board-aircraft.png"));
+            int enginesBefore=audioPlayer.EngineStarts;
+            yield return SmokeKey(Key.E);
+            Check(mode==Mode.Launching&&audioPlayer.EngineStarts==enginesBefore+1&&StartingEnvironment==FlightEnvironment.Desert&&!view.Base.Visible&&view.TakeOffVisible,"boarding-starts-take-off-cutscene");
+            float heroStartY=-500;
+            for(int i=0;i<400&&mode==Mode.Launching&&view.TakeOffElapsed<.6f;i++)yield return null;
+            Check(view.TakeOffElapsed>=.6f&&view.CurtainAlpha<.05f,"take-off-opens-from-black-on-the-airfield");
             captured &= view.Capture(Path.Combine(output,"01c-takeoff-engine-start.png"));
-            Check(view.HangarSmokePuffs>0,"engine-start-smoke-puffs");
-            for(int i=0;i<600&&mode==Mode.Launching&&view.HangarScroll<500;i++)yield return null;
-            Check(view.HangarScroll>=500&&view.HangarHeroPosition.y>heroStartY+100&&view.HangarHeroSize.x<130,"camera-follows-long-take-off-roll-out-of-the-base");
+            Check(view.TakeOffSmokePuffs>0,"engine-start-smoke-puffs");
+            for(int i=0;i<600&&mode==Mode.Launching&&view.TakeOffScroll<500;i++)yield return null;
+            Check(view.TakeOffScroll>=500&&view.TakeOffHeroPosition.y>heroStartY+100&&view.TakeOffHeroSize.x<130,"camera-follows-long-take-off-roll-out-of-the-base");
             captured &= view.Capture(Path.Combine(output,"01d-takeoff-roll-leaving-base.png"));
-            for(int i=0;i<600&&mode==Mode.Launching&&view.HangarScroll<2000;i++)yield return null;
-            Check(view.HangarScroll>=2000&&view.CurtainAlpha==0,"long-roll-continues-down-the-jungle-runway");
+            for(int i=0;i<600&&mode==Mode.Launching&&view.TakeOffScroll<2000;i++)yield return null;
+            Check(view.TakeOffScroll>=2000&&view.CurtainAlpha==0,"long-roll-continues-down-the-jungle-runway");
             captured &= view.Capture(Path.Combine(output,"01d2-takeoff-jungle-runway.png"));
-            for(int i=0;i<600&&mode==Mode.Launching&&!(view.HangarHeroSize.x>150&&view.CurtainAlpha>.1f);i++)yield return null;
-            Check(view.HangarHeroSize.x>150&&view.CurtainAlpha>.1f,"fighter-lifts-off-and-screen-darkens");
+            for(int i=0;i<600&&mode==Mode.Launching&&!(view.TakeOffHeroSize.x>150&&view.CurtainAlpha>.1f);i++)yield return null;
+            Check(view.TakeOffHeroSize.x>150&&view.CurtainAlpha>.1f,"fighter-lifts-off-and-screen-darkens");
             captured &= view.Capture(Path.Combine(output,"01e-liftoff.png"));
             for(int i=0;i<300&&mode==Mode.Launching;i++)yield return null;
             yield return null; // BeginFlight runs inside Update; the climb is first drawn on the next frame.
@@ -66,12 +185,12 @@ namespace PixelVocabFlight
             captured &= view.Capture(Path.Combine(output,"02a-intro-climb.png"));
             for(int i=0;i<300&&mode==Mode.Intro;i++)yield return null;
             Check(mode==Mode.Flying&&view.HudAlpha==1&&view.CurtainAlpha==0&&view.Board.PlayerAnchoredPosition.y>introStartY+150,"fighter-climbs-into-position-and-hud-visible");
+            Check(flight.Environment==FlightEnvironment.Desert,"sortie-uses-mission-battlefield");
             Check(view.Board.Focus==1&&view.Board.GroundSharpAlpha==0&&view.Board.GroundSpriteName.StartsWith("terrain_desert_blur"),"land-background-blurred-in-combat");
             Check(view.Board.Wildlife.Count>0&&view.Board.Wildlife.UsesBlurredFrames&&view.Board.Wildlife.SpriteNames.All(n=>n.Contains("_blur_")),"wildlife-on-ground-blurred:"+view.Board.Wildlife.Count);
 
             Check(progress.Metal==5&&progress.Health==5,"five-metal-health-at-start");
             Check(!view.CaretVisible&&view.PlaceholderVisible&&view.InputText=="","drive-mode-shows-only-placeholder");
-            var mouse=InputSystem.AddDevice<Mouse>("Wordwing QA pointer");
             InputSystem.QueueStateEvent(mouse,new MouseState{position=view.Board.ScreenPoint(.22f,.6f)});
             yield return null;yield return null;
             Check(flight.PlayerX > .22f && flight.PlayerX < .5f,"mouse-drive-has-travel-time");
@@ -254,14 +373,27 @@ namespace PixelVocabFlight
                 Check(!flight.Carriers.Contains(carrier)&&carrier.AircraftLaunched==launches&&carrier.MissileChecks==fireChecks,"carrier-leaves-with-no-launches-after-deployment");
             }
             else Check(false,"carrier-route-fixture");
+
+            // ---- Results: VỀ CĂN CỨ (Enter) reports the sortie to the mission log and returns to the base ----
+            SmokeFixture(FlightEnvironment.Desert);yield return null;
+            EndFlight();int finalScore=progress.Score,completedBefore=missions.Completed;bool activeBefore=missions.Active!=null;
+            yield return null;
+            Check(mode==Mode.Results&&view.ResultsButton!=null&&view.ResultsButton.GetComponentInChildren<UnityEngine.UI.Text>().text.StartsWith("VỀ CĂN CỨ"),"results-offer-return-to-base");
+            yield return new WaitForSecondsRealtime(.45f);
+            yield return SmokeKey(Key.Enter);
+            Check(activeBefore&&mode==Mode.Base&&missions.Completed==completedBefore+1&&missions.Active==null&&missions.LastScore==finalScore&&profile.Profile.missionsCompleted==missions.Completed&&profile.Profile.lastScore==finalScore,"results-enter-reports-mission-and-returns-to-base");
+            Check(Mathf.Abs(world.PlayerX-map.AircraftReturnX)<.01f&&Mathf.Abs(world.PlayerY-map.AircraftReturnY)<.01f&&view.Base.Visible&&!view.TakeOffVisible&&!view.OverlayVisible,"pilot-stands-beside-aircraft-after-sortie");
+            yield return null;
+            Check(view.Base.ObjectiveText==MissionLog.IdleObjective&&view.Base.QuestMarkerVisible,"objective-resets-for-next-sortie");
+            captured &= view.Capture(Path.Combine(output,"12-back-at-base.png"));
             Check(captured,"rendered-screenshots");
-            File.WriteAllText(Path.Combine(output,"smoke-report.json"),"{\n  \"version\": \"0.14.0\",\n  \"checks\": ["+string.Join(",",checks.Select(c=>"\""+c+"\""))+"]\n}");
+            File.WriteAllText(Path.Combine(output,"smoke-report.json"),"{\n  \"version\": \"0.15.0\",\n  \"checks\": ["+string.Join(",",checks.Select(c=>"\""+c+"\""))+"]\n}");
             Application.Quit(checks.Any(c=>c.EndsWith(":FAIL"))?1:0);
         }
 
         private void SmokeFixture(FlightEnvironment environment)
         {
-            flight=new ContinuousFlight(flightPool,42,environment);progress=flight.Progress;mode=Mode.Flying;view.FinishIntro();
+            flight=new ContinuousFlight(flightPool,42,environment);progress=flight.Progress;SetMode(Mode.Flying);view.FinishIntro();
             typed="";Time.timeScale=1;audioPlayer.Stop();speech.Clear();view.Board.Clear();view.Board.SetEnvironment(environment);
             bestKey="qa-collision-v2:"+environment;
             view.NewFlight("QA / OXFORD 5000 / "+flightPool.Length+" MỤC");DrainEvents();view.Refresh(flight);
@@ -278,8 +410,8 @@ namespace PixelVocabFlight
         }
         private IEnumerator SmokeWatchdog(string output)
         {
-            yield return new WaitForSecondsRealtime(75);
-            File.WriteAllText(Path.Combine(output,"watchdog-failure.txt"),"Runtime verification exceeded seventy-five seconds. See player log.");
+            yield return new WaitForSecondsRealtime(120);
+            File.WriteAllText(Path.Combine(output,"watchdog-failure.txt"),"Runtime verification exceeded 120 seconds. See player log.");
             Application.Quit(1);
         }
     }

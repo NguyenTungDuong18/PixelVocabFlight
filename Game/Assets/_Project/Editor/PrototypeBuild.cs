@@ -55,7 +55,7 @@ namespace PixelVocabFlight.Editor
         {
             if (!File.Exists(ScenePath)) CreateScene();
             ConfigurePixelArt();
-            PlayerSettings.bundleVersion = "0.14.0";
+            PlayerSettings.bundleVersion = "0.15.0";
             AssetDatabase.SaveAssets();
             string projectRoot = Path.GetFullPath(Path.Combine(Application.dataPath, "../.."));
             string output = Path.Combine(projectRoot, "Builds", "Windows", "Wordwing.exe");
