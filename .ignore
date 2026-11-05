@@ -1,0 +1,11 @@
+# Bỏ qua khi TÌM KIẾM (ripgrep: Claude Code Grep/Glob, VS Code search). Git vẫn theo dõi các file này.
+# Muốn tìm trong một file bị bỏ qua: truyền thẳng đường dẫn file đó (ripgrep luôn đọc file được chỉ định).
+*.meta
+*.wav
+*.ttf
+*.pdf
+Game/Assets/_Project/Art/Resources/Pixel/**/*.png
+Game/Assets/_Project/Data/Vocabulary/Resources/oxford-vocabulary.json
+SourceAssets/Vocabulary/Oxford/*.json
+SourceAssets/Vocabulary/Oxford/*.html
+package-lock.json

@@ -1,7 +1,7 @@
 'use strict';
 // PixelForge — regenerates every WORDWING 1944 sprite, frame by frame.
 // Usage (from the project root):  node Tools/PixelForge/forge.cjs
-// Output: Game/Assets/_Project/Art/Resources/Pixel/<Group>/<name>_<frame>.png
+// Output: Game/Assets/_Project/Art/Resources/Pixel/<Group>[/<Sub>...]/<name>_<frame>.png (see folderFor)
 //         Game/Assets/_Project/Art/Resources/Pixel/pixel-manifest.json
 //         SourceAssets/PixelArt/Pixel1944/preview-<group>.png (4x contact sheets)
 const fs = require('fs');
@@ -28,6 +28,24 @@ const manifest = [];
 const groups = new Map();
 const models = []; // sprites with a footprint (world models), previewed on their own sheets
 
+// Output sub-folder, picked from the sprite name so a new sprite lands in the right place by naming alone:
+// world models -> World/<Buildings|Props|Vehicles|Aircraft>/<model id>/, characters -> Characters/<who>/,
+// wildlife -> Wildlife/<animal>/, flight aircraft -> Aircraft/<Fighter|Bomber>/, UI -> UI/<Cockpit|Icons|Widgets>/.
+// The loader never cares: the manifest stores each sprite's full path.
+const MODEL_CATEGORY = { bld: 'Buildings', prop: 'Props', veh: 'Vehicles', air: 'Aircraft' };
+function folderFor(group, name, isModel) {
+  if (isModel) {
+    const id = name.replace(/_[senw]$/, ''), category = MODEL_CATEGORY[id.split('_')[0]];
+    if (!category) throw new Error('World model ' + name + ' needs a prefix: ' + Object.keys(MODEL_CATEGORY).join('_, ') + '_');
+    return `World/${category}/${id}`;
+  }
+  if (group === 'Characters') { const who = /^chr_([a-z]+)_/.exec(name); return 'Characters/' + (who ? who[1] : 'Shared'); }
+  if (group === 'Wildlife') return 'Wildlife/' + name.replace(/^actor_/, '').replace(/_blur$/, '');
+  if (group === 'Aircraft') return 'Aircraft/' + (name.startsWith('fighter') ? 'Fighter' : 'Bomber');
+  if (group === 'UI') return 'UI/' + (name.startsWith('icon_') ? 'Icons' : /^(cockpit|gauge|ui_lamp|ui_lever)/.test(name) ? 'Cockpit' : 'Widgets');
+  return group;
+}
+
 // anchor: [ax, ay] px from the sprite's top-left; foot: [fw, fh] tiles in the sprite's own facing.
 // Both are written for every entry (0 when absent) so Unity's JsonUtility can read them.
 function add(group, name, frames, { fps = 8, loop = true, border = 0, anchor = null, foot = null } = {}) {
@@ -38,9 +56,10 @@ function add(group, name, frames, { fps = 8, loop = true, border = 0, anchor = n
   const [anchorX, anchorY] = anchor ? anchor.map(Math.round) : [0, 0];
   const [footW, footH] = foot ? foot.map(Math.round) : [0, 0];
   if (foot && (anchorX < 0 || anchorY < 0 || anchorX + footW * 16 > w || anchorY >= h || anchorY - footH * 16 < 0)) throw new Error('Footprint outside sprite in ' + name);
-  manifest.push({ name, path: group + '/' + name, frames: frames.length, width: w, height: h, fps, loop, border, anchorX, anchorY, footW, footH });
+  const folder = folderFor(group, name, !!foot);
+  manifest.push({ name, path: folder + '/' + name, frames: frames.length, width: w, height: h, fps, loop, border, anchorX, anchorY, footW, footH });
   if (!groups.has(group)) groups.set(group, []);
-  groups.get(group).push({ name, frames, model: !!foot });
+  groups.get(group).push({ name, frames, model: !!foot, folder });
   if (foot) models.push({ name, frames, anchor: [anchorX, anchorY], foot: [footW, footH] });
 }
 
@@ -124,13 +143,21 @@ function worldSheet(rows, scale) {
   return sheet;
 }
 
+// One sheet per world module (preview-world-<module>.png) so each stays small enough to review.
 async function writeWorldPreviews() {
-  const byId = new Map();
-  for (const m of models) { const id = m.name.replace(/_[senw]$/, ''); if (!byId.has(id)) byId.set(id, []); byId.get(id).push(m); }
-  const sheets = { buildings: ['bld_', 2], props: ['prop_', 3], vehicles: ['veh_', 3], aircraft: ['air_', 3] };
-  for (const [file, [prefix, scale]] of Object.entries(sheets)) {
-    const rows = [...byId].filter(([id]) => id.startsWith(prefix)).map(([, r]) => r);
-    if (rows.length) await worldSheet(rows, scale).png(path.join(PREVIEW, `preview-world-${file}.png`));
+  const moduleOf = new Map(W.MODELS.map(s => [s.id, s.module || 'misc']));
+  const byModule = new Map();
+  for (const m of models) {
+    const id = m.name.replace(/_[senw]$/, ''), mod = moduleOf.get(id) || 'misc';
+    if (!byModule.has(mod)) byModule.set(mod, new Map());
+    const ids = byModule.get(mod);
+    if (!ids.has(id)) ids.set(id, []);
+    ids.get(id).push(m);
+  }
+  for (const f of fs.readdirSync(PREVIEW)) if (f.startsWith('preview-world-')) fs.unlinkSync(path.join(PREVIEW, f));
+  for (const [mod, ids] of byModule) {
+    const rows = [...ids.values()], small = rows.every(r => r[0].foot[0] * r[0].foot[1] <= 6);
+    await worldSheet(rows, small ? 3 : 2).png(path.join(PREVIEW, `preview-world-${mod}.png`));
   }
 }
 
@@ -145,20 +172,33 @@ async function main() {
   // Replace PNGs but keep Unity .meta files of frames that still exist (stable GUIDs);
   // frames that are no longer generated lose both their PNG and their .meta.
   const expected = new Set();
-  for (const [group, items] of groups) for (const it of items) for (let i = 0; i < it.frames.length; i++) expected.add(path.join(group, `${it.name}_${i}.png`));
-  if (fs.existsSync(OUT)) for (const group of fs.readdirSync(OUT)) {
-    const dir = path.join(OUT, group);
-    if (!fs.statSync(dir).isDirectory()) continue;
-    for (const file of fs.readdirSync(dir)) {
-      const png = file.endsWith('.meta') ? file.slice(0, -5) : file;
-      if (file.endsWith('.png') || !expected.has(path.join(group, png))) fs.rmSync(path.join(dir, file));
+  for (const items of groups.values()) for (const it of items) for (let i = 0; i < it.frames.length; i++) expected.add(path.join(it.folder, `${it.name}_${i}.png`));
+  // Folder .meta files sit next to their folder; keep them while the folder exists.
+  function sweep(rel) {
+    for (const file of fs.readdirSync(path.join(OUT, rel))) {
+      const r = path.join(rel, file), full = path.join(OUT, r);
+      if (fs.statSync(full).isDirectory()) { sweep(r); continue; }
+      if (!rel) continue; // root: pixel-manifest.json and top-level folder metas
+      const png = file.endsWith('.meta') ? r.slice(0, -5) : r;
+      if (file.endsWith('.meta') && fs.existsSync(path.join(OUT, png)) && fs.statSync(path.join(OUT, png)).isDirectory()) continue;
+      if (file.endsWith('.png') || !expected.has(png)) fs.rmSync(full);
     }
   }
+  // Drop folders left empty (renamed or removed sprites) together with their .meta.
+  function prune(rel) {
+    const dir = path.join(OUT, rel);
+    // Dirent snapshot: pruning a child also deletes its sibling .meta, which must not be stat'ed afterwards.
+    for (const d of fs.readdirSync(dir, { withFileTypes: true })) if (d.isDirectory()) prune(path.join(rel, d.name));
+    if (rel && fs.readdirSync(dir).length === 0) { fs.rmdirSync(dir); fs.rmSync(dir + '.meta', { force: true }); }
+  }
+  if (fs.existsSync(OUT)) sweep('');
   fs.mkdirSync(PREVIEW, { recursive: true });
   let files = 0;
   for (const [group, items] of groups) {
-    fs.mkdirSync(path.join(OUT, group), { recursive: true });
-    for (const it of items) for (let i = 0; i < it.frames.length; i++) { await it.frames[i].png(path.join(OUT, group, `${it.name}_${i}.png`)); files++; }
+    for (const it of items) {
+      fs.mkdirSync(path.join(OUT, it.folder), { recursive: true });
+      for (let i = 0; i < it.frames.length; i++) { await it.frames[i].png(path.join(OUT, it.folder, `${it.name}_${i}.png`)); files++; }
+    }
     const plain = items.filter(it => !it.model);
     const big = plain.filter(it => it.frames[0].w > 200);
     const small = plain.filter(it => it.frames[0].w <= 200);
@@ -168,6 +208,7 @@ async function main() {
   await writeWorldPreviews();
   if (C && C.writePreviews) await C.writePreviews(PREVIEW);
   if (G && G.writePreviews) await G.writePreviews(PREVIEW);
+  prune('');
   fs.writeFileSync(path.join(OUT, 'pixel-manifest.json'), JSON.stringify({ version: VERSION, sprites: manifest }, null, 2));
   console.log(`PixelForge ${VERSION}: ${manifest.length} animations, ${files} frame files -> ${path.relative(ROOT, OUT)}`);
 }

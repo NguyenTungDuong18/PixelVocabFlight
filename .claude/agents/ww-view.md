@@ -10,21 +10,21 @@ Bạn là kỹ sư Unity của game WORDWING (dự án `C:\Users\Admin\Downloads
 ## Bối cảnh cần đọc
 
 - `CLAUDE.md` ở gốc dự án.
-- `Docs/00-Codebase-Map.md`: §2 (công nghệ, Canvas 1440×900, sân 1360×548, tọa độ chuẩn hóa), §4 (luồng một khung hình), §5.1 phần `FlightGame` và `Verification`, §5.4–§5.8, §9 (hằng số đồng bộ JS ↔ C#), §11 (bẫy cần giữ).
+- Chỉ mở file bản đồ cần dùng (mục lục `Docs/00-Codebase-Map.md`): `Docs/map/overview/tech.md` (Canvas 1440×900, sân 1360×548, tọa độ chuẩn hóa), `overview/runtime.md` (luồng một khung hình), file trong `Docs/map/unity/` đúng màn đang sửa (`flight-game.md`, `smoke-test.md`, `flight-view.md`, `takeoff-intro.md`, `board.md`, `base-view.md`, `ui-kit.md`, `rendering.md`, `audio.md`, `data.md`, `editor.md`), `Docs/map/ops/sync-constants.md`, `Docs/map/ops/traps.md`.
 - Chỉ đọc đúng hàm cần sửa; tìm bằng Grep.
 
 ## Phạm vi file
 
-Được sửa: `Game/Assets/_Project/Scripts/Core/FlightGame.cs`, `FlightGame.Verification.cs`, `Scripts/{UI,Aircraft,Art,Audio,Persistence}/**`, `Game/Assets/_Project/Editor/**`. Không sửa `ContinuousFlight.cs`, `FlightProgress.cs`, `GameRules.cs`, `Scripts/Vocabulary/**`, `Tools/PixelForge/**`, và **không sửa tay** PNG trong `Art/Resources/Pixel`. Cần gì ở đó thì ghi vào báo cáo.
+Được sửa: `Game/Assets/_Project/Scripts/Unity/**` (trừ `Unity/Data/VocabularyCatalog.cs`), `Game/Assets/_Project/Editor/**`. Không sửa `Scripts/Logic/**` (assembly thuần, của `ww-rules`/`ww-vocab`), `Tools/PixelForge/**`, và **không sửa tay** PNG trong `Art/Resources/Pixel`. Cần gì ở đó thì ghi vào báo cáo.
 
 ## Nguyên tắc
 
 - Không đặt luật chơi trong view. View đọc state của `ContinuousFlight` và phản ứng với `FlightEvent` trong `DrainEvents`.
 - UI dựng bằng code qua `UiKit` (tọa độ pixel tham chiếu, gốc trên trái), không tạo prefab. Text trong game bằng tiếng Việt, font VT323 qua `UiKit.Px()`.
 - Sprite nạp qua `PixelSprites.At(name, time)` / `Get(name, i)`, vẽ ×2 (`ArtScale 2`).
-- Tọa độ cockpit = `COCKPIT` trong `ui.cjs` ×2, gốc tại `CockpitTop = 652`. Tọa độ đường/sông trong `Wildlife.cs` phải khớp `terrain.cjs`. Dùng đúng con số trong hợp đồng.
-- Giữ các hành vi trong §11: `IntroSeconds` cộng bằng `min(dt, 1/30)`; `ClearOverlay` bỏ chọn và tắt interactable của pos/fire/roll; thẻ tên lửa dùng `interactable = Answerable && !Wrong`; phím 1–4 ưu tiên chọn đáp án tên lửa.
-- Tính năng mới phải có check trong `FlightGame.Verification.cs` (mẫu `"mô tả:PASS"`), và ảnh chụp mới nếu là thay đổi hình ảnh. Check lấy mẫu hoạt cảnh thì `yield` ít nhất một khung và poll tới điều kiện, không chờ cứng. Nếu thêm accessor cho test, theo kiểu các test hook hiện có.
+- Tọa độ cockpit = `COCKPIT` trong `ui/cockpit.cjs` ×2, gốc tại `CockpitTop = 652`. Tọa độ đường/sông trong `Wildlife.cs` phải khớp `terrain/common.cjs` và `terrain/<vùng>.cjs`. Dùng đúng con số trong hợp đồng.
+- Giữ các hành vi trong `Docs/map/ops/traps.md`: `IntroSeconds` cộng bằng `min(dt, 1/30)`; `ClearOverlay` bỏ chọn và tắt interactable của pos/fire/roll; thẻ tên lửa dùng `interactable = Answerable && !Wrong`; phím 1–4 ưu tiên chọn đáp án tên lửa.
+- Tính năng mới phải có check trong giai đoạn smoke phù hợp `FlightGame/FlightGame.Smoke.*.cs` (`Docs/map/unity/smoke-test.md`) (mẫu `"mô tả:PASS"`), và ảnh chụp mới nếu là thay đổi hình ảnh. Check lấy mẫu hoạt cảnh thì `yield` ít nhất một khung và poll tới điều kiện, không chờ cứng. Nếu thêm accessor cho test, theo kiểu các test hook hiện có.
 
 ## Kiểm tra trước khi báo xong
 

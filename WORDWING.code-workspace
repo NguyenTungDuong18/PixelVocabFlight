@@ -1,0 +1,49 @@
+{
+  // Mở file này trong VS Code (File > Open Workspace from File).
+  // "Game (Unity)" là Unity project: extension Unity cần nó là một thư mục gốc riêng để IntelliSense và Attach debugger.
+  "folders": [
+    { "name": "Game (Unity)", "path": "Game" },
+    { "name": "Tools", "path": "Tools" },
+    { "name": "Docs", "path": "Docs" },
+    { "name": "SourceAssets", "path": "SourceAssets" },
+    { "name": "WORDWING (gốc)", "path": "." }
+  ],
+  "settings": {
+    // Pattern không có **/ chỉ khớp thư mục cấp đầu của từng folder: ẩn bản trùng trong "WORDWING (gốc)".
+    "files.exclude": {
+      "Game": true,
+      "Tools": true,
+      "Docs": true,
+      "SourceAssets": true,
+      "Builds": true,
+      ".git": true,
+      "Library": true,
+      "Temp": true,
+      "Logs": true,
+      "UserSettings": true,
+      "BuildWorkspace": true,
+      "**/node_modules": true,
+      "**/bin": true,
+      "**/obj": true,
+      "**/*.meta": true,
+      "**/*.csproj.user": true
+    },
+    "search.exclude": {
+      "**/*.wav": true,
+      "**/Art/Resources/Pixel/**/*.png": true
+    },
+    "files.watcherExclude": {
+      "**/Library/**": true,
+      "**/Temp/**": true,
+      "**/BuildWorkspace/**": true,
+      "**/node_modules/**": true
+    }
+  },
+  "extensions": {
+    "recommendations": [
+      "visualstudiotoolsforunity.vstuc",
+      "ms-dotnettools.csdevkit",
+      "ms-dotnettools.csharp"
+    ]
+  }
+}

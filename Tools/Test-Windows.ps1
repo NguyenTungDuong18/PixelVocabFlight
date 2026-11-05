@@ -1,11 +1,11 @@
 param(
-    [string]$OutputFolder = 'Smoke-War-Final',
+    [string]$OutputFolder = 'Latest',
     [int]$Width = 1280,
     [int]$Height = 800
 )
 $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path -Parent $PSScriptRoot
-$qaDirectory = Join-Path $PSScriptRoot $OutputFolder
+$qaDirectory = Join-Path (Join-Path $PSScriptRoot 'Smoke') $OutputFolder
 New-Item -ItemType Directory -Path $qaDirectory -Force | Out-Null
 $log = Join-Path $qaDirectory 'player.log'
 $exe = Join-Path $projectRoot 'Builds\Windows\Wordwing.exe'

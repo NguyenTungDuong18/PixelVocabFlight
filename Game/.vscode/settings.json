@@ -1,0 +1,15 @@
+{
+  "dotnet.defaultSolution": "Game.slnx",
+  "files.exclude": {
+    "**/*.meta": true,
+    "Library": true,
+    "Temp": true,
+    "Logs": true,
+    "UserSettings": true,
+    "obj": true
+  },
+  "search.exclude": {
+    "**/*.wav": true,
+    "**/Art/Resources/Pixel/**/*.png": true
+  }
+}

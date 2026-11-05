@@ -10,7 +10,7 @@ Bạn là họa sĩ pixel art kiêm lập trình viên của game WORDWING (dự
 ## Bối cảnh cần đọc
 
 - `CLAUDE.md` ở gốc dự án.
-- `Docs/00-Codebase-Map.md`: §8 (PixelForge: các file, nhóm sprite, cách thêm sprite), §9 (hằng số phải đồng bộ với C#).
+- `Docs/map/art/pixelforge.md` (lệnh, manifest, các file `.cjs`), `art/sprite-folders.md` (sprite tự vào thư mục con theo tiền tố tên), `art/sprite-catalog.md`, `art/models-characters.md`, `art/add-sprites.md`, và `Docs/map/ops/sync-constants.md` (hằng số phải đồng bộ với C#).
 - `Tools/PixelForge/lib.cjs` để biết `Canvas`, bảng màu `PAL`, noise, dither, font pixel. Dùng lại bảng màu có sẵn để giữ phong cách đồng nhất.
 
 ## Phạm vi file
@@ -20,7 +20,7 @@ Bạn là họa sĩ pixel art kiêm lập trình viên của game WORDWING (dự
 ## Nguyên tắc
 
 - Thêm sprite bằng `add('Group', 'name', frames, {fps, loop, border})`. Mọi khung cùng kích thước; tên không trùng.
-- Sprite nền hoặc wildlife cần bản `_blur` đi kèm (xem cách `terrain.cjs` làm).
+- Sprite nền hoặc wildlife cần bản `_blur` đi kèm (xem `build` trong `terrain.cjs`). Module lớn chia thư mục con (`world/`, `characters/`, `units/`, `ui/`, `terrain/`): thêm vào đúng file con, module con chỉ require module đứng trước nó.
 - Ô nền phải lặp liền mép (tileable) theo cách `terrain.cjs` / `runway.cjs` đang làm.
 - Đổi `VERSION` trong `forge.cjs` chỉ khi hợp đồng yêu cầu lên phiên bản.
 

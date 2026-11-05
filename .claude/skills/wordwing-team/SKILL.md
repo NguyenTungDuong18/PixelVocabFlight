@@ -15,11 +15,11 @@ Báo cáo với người dùng bằng **tiếng Việt**. **Không commit / push
 
 | Agent | Mảng | Sở hữu (chỉ agent này được sửa) |
 | --- | --- | --- |
-| `ww-rules` | Luật chơi thuần C#, điểm, thời gian, xác suất | `Scripts/Core/ContinuousFlight.cs`, `FlightProgress.cs`, `GameRules.cs`, `Tools/RulesChecks/**` |
-| `ww-view` | Mọi thứ Unity: điều phối, UI, sân chơi, nền, âm thanh, lưu hồ sơ, editor, smoke test | `Scripts/Core/FlightGame.cs`, `FlightGame.Verification.cs`, `Scripts/{UI,Aircraft,Art,Audio,Persistence}/**`, `Editor/**` |
+| `ww-rules` | Logic thuần C#: luật bay, điểm, thời gian, xác suất; căn cứ, NPC, hội thoại, nhiệm vụ | `Scripts/Logic/Flight/**`, `Scripts/Logic/World/**`, `Tools/RulesChecks/**` |
+| `ww-view` | Mọi thứ Unity: điều phối, UI, sân chơi, nền, âm thanh, lưu hồ sơ, editor, smoke test | `Scripts/Unity/**` (trừ `Unity/Data/VocabularyCatalog.cs`), `Editor/**` |
 | `ww-pixel` | Sprite pixel art sinh bằng code | `Tools/PixelForge/*.cjs` (và đầu ra forge sinh tự động) |
-| `ww-vocab` | Dữ liệu từ vựng, nghĩa, chủ đề, phát âm, lọc/chọn từ | `SourceAssets/Vocabulary/**`, `Tools/{Prepare-Oxford-Data,Build-Oxford-Vocabulary}.cjs`, `Tools/Generate-Pronunciation.ps1`, `Scripts/Vocabulary/**`, `Data/Vocabulary/**` |
-| `ww-verify` | Chạy kiểm tra, build, smoke, soát ảnh. **Không sửa source** | Chỉ ghi vào `Tools/Smoke-*` và scratchpad |
+| `ww-vocab` | Dữ liệu từ vựng, nghĩa, chủ đề, phát âm, lọc/chọn từ | `SourceAssets/Vocabulary/**`, `Tools/Vocabulary/{Prepare-Oxford-Data,Build-Oxford-Vocabulary}.cjs`, `Tools/Vocabulary/Generate-Pronunciation.ps1`, `Scripts/Logic/Vocabulary/**`, `Scripts/Unity/Data/VocabularyCatalog.cs`, `Data/Vocabulary/**`, `Audio/Pronunciation/**` |
+| `ww-verify` | Chạy kiểm tra, build, smoke, soát ảnh. **Không sửa source** | Chỉ ghi vào `Tools/Smoke/*` và scratchpad |
 
 (`Scripts/...` = `Game/Assets/_Project/Scripts/...`, `Editor/...` = `Game/Assets/_Project/Editor/...`.)
 
@@ -29,7 +29,7 @@ Lý do chia theo quyền sở hữu file: các agent chạy cùng lúc trên **c
 
 ### Bước 0: Nắm bối cảnh
 
-- Nếu chưa có trong ngữ cảnh, đọc `Docs/00-Codebase-Map.md` (dài khoảng 700 dòng; đọc phần liên quan: §4–§5 cho code, §8–§9 cho art, §10–§13 cho build và công thức sửa).
+- Nếu chưa có trong ngữ cảnh, đọc mục lục `Docs/00-Codebase-Map.md` rồi chỉ mở file `Docs/map/<mảng>/<chủ đề>.md` liên quan (không đọc cả thư mục; `logic/` và `unity/` cho code, `art/` cho sprite, `ops/` cho build, bẫy và công thức sửa).
 - Đọc đúng hàm hoặc đoạn liên quan trong source để kế hoạch dựa trên code thật, không đoán.
 
 ### Bước 1: Phân loại quy mô (để không tốn công vô ích)
@@ -47,9 +47,9 @@ Nếu yêu cầu mơ hồ ở điểm ảnh hưởng thiết kế (ví dụ "là
 - Field / thuộc tính / enum mới mà `ww-rules` thêm và `ww-view` sẽ đọc (tên chính xác, kiểu, ý nghĩa, đơn vị).
 - `FlightEventKind` mới: tên, khi nào phát, `Value`/`EntityId` mang gì; `ww-view` xử lý trong `DrainEvents`.
 - Sprite mới: tên, group, số khung, kích thước, fps, loop. `ww-pixel` vẽ, `ww-view` dùng `PixelSprites.At/Get`.
-- **Hằng số phải đồng bộ JS ↔ C#** (§9 bản đồ): tọa độ `COCKPIT` (`ui.cjs` ↔ `FlightView` ×2, gốc `CockpitTop = 652`), đường/sông (`terrain.cjs` ↔ `Wildlife.cs`), đường băng (`runway.cjs` ↔ `FlightView`), số khung `bomber_guns` (↔ `FlightBoardView.GunDeployFrames`), số khung `gauge_needle`, version. Ghi rõ con số cho **cả hai** agent.
+- **Hằng số phải đồng bộ JS ↔ C#** (`Docs/map/ops/sync-constants.md`): tọa độ `COCKPIT` (`ui/cockpit.cjs` ↔ `FlightView` ×2, gốc `CockpitTop = 652`), đường/sông (`terrain/*.cjs` ↔ `Wildlife.cs`), đường băng (`runway.cjs` ↔ `FlightView`), số khung `bomber_guns` (↔ `FlightBoardView.GunDeployFrames`), số khung `gauge_needle`, version. Ghi rõ con số cho **cả hai** agent.
 - Text tiếng Việt hiển thị trong game (người dùng sẽ thấy, nên chốt một lần).
-- Check mới cần thêm: RulesChecks (`ww-rules`) hay smoke `FlightGame.Verification.cs` (`ww-view`), và ảnh smoke mới (tên file).
+- Check mới cần thêm: RulesChecks (`ww-rules`) hay smoke `FlightGame.Smoke.*.cs` (`ww-view`), và ảnh smoke mới (tên file).
 
 Nếu một thay đổi cần sửa file thuộc mảng khác (ví dụ luật mới cần một dòng trong `FlightGame.DrainEvents`), giao phần đó cho chủ file thay vì để agent kia "tiện tay" sửa.
 
@@ -78,7 +78,7 @@ Sau khi các implementer báo xong, giao cho `ww-verify`:
 ### Bước 5: Tự soát và tài liệu
 
 - Xem `git diff --stat` và lướt diff: có file nào ngoài phạm vi bị sửa không, hằng số JS/C# có khớp nhau không, text có đúng tiếng Việt không.
-- Thay đổi lớn hoặc lên phiên bản (theo `CLAUDE.md`): bạn tự cập nhật `Docs/00-Codebase-Map.md`, thêm `Docs/NN-*.md` (số tiếp theo) và đoạn đầu `README.md`. Làm việc này ở cuối để tài liệu khớp code đã qua kiểm tra.
+- Thay đổi lớn hoặc lên phiên bản (theo `CLAUDE.md`): bạn tự cập nhật `Docs/00-Codebase-Map.md`, thêm `Docs/history/NN-*.md` (số tiếp theo) và đoạn đầu `README.md`. Làm việc này ở cuối để tài liệu khớp code đã qua kiểm tra.
 
 ### Bước 6: Báo cáo cho người dùng
 
@@ -111,10 +111,10 @@ Nếu người dùng nói "lên kế hoạch", "xem trước", "chưa làm", ho�
 → Lớn. `ww-rules`: thêm loại địch, quỹ đạo, loạt 5 viên + RulesChecks. `ww-pixel`: sprite `bomber_desert_raider` (+ bank, damaged). `ww-view`: vẽ loại mới, smoke check + ảnh. Hợp đồng chốt tên enum/field, tên sprite và số khung. Có build + smoke.
 
 **"Đổi thời gian khóa mục tiêu từ 4,5 xuống 4 giây"**
-→ Nhỏ, tự làm: `AircraftLockSeconds` trong `ContinuousFlight.cs` + kỳ vọng trong `CombatChecks.cs`, chạy RulesChecks. Lưu ý `bomber_guns` chạy theo `LockProgress` nên không cần sửa ảnh.
+→ Nhỏ, tự làm: `AircraftLockSeconds` trong `ContinuousFlight.cs` + kỳ vọng trong `Tools/RulesChecks/Combat/`, chạy RulesChecks. Lưu ý `bomber_guns` chạy theo `LockProgress` nên không cần sửa ảnh.
 
 **"Thêm nút tắt nhạc nền vào cockpit"**
-→ Vừa. `ww-pixel`: sửa `cockpit_panel` + `COCKPIT` trong `ui.cjs`. `ww-view`: nút trong `FlightView` theo đúng tọa độ ×2 trong hợp đồng, logic trong `FlightAudio`. Build + smoke, soát `02b-cockpit-typing`.
+→ Vừa. `ww-pixel`: sửa `cockpit_panel` + `COCKPIT` trong `ui/cockpit.cjs`. `ww-view`: nút trong `FlightView` theo đúng tọa độ ×2 trong hợp đồng, logic trong `FlightAudio`. Build + smoke, soát `02b-cockpit-typing`.
 
 **"Sửa nghĩa tiếng Việt của từ 'bank' cho rõ hơn"**
 → Nhỏ hoặc vừa: `ww-vocab` (sửa `curated-overrides.tsv`, chạy `Build-Oxford-Vocabulary.cjs`), rồi RulesChecks kiểm tra dữ liệu. Không cần build nếu người dùng không muốn.

@@ -24,21 +24,10 @@
 !/Builds/Windows/
 !/Builds/Windows/.gitkeep
 /Tools/*.log
-/Tools/RulesChecks/bin/
-/Tools/RulesChecks/obj/
-/Tools/Smoke/
-/Tools/Smoke-Oxford/
-/Tools/Smoke-FullOxford/
-/Tools/PdfAudit/node_modules/
-/Tools/ArtImport/node_modules/
-/Tools/Smoke-Continuous/
-/Tools/Smoke-Health/
-/Tools/Smoke-Hover/
-/Tools/Smoke-Hover-Final/
-/Tools/Smoke-Player-Carrier/
-/Tools/Smoke-Carrier-Route/
-/Tools/Smoke-Ocean/
-/Tools/Smoke-Heading/
+/Tools/Smoke*/
+/Tools/**/bin/
+/Tools/**/obj/
+node_modules/
 /Tools/BuildWorkspace/
 /SourceAssets/Vocabulary/Oxford/Raw/
 /SourceAssets/Vocabulary/Oxford/dictionary-commit.json
@@ -52,9 +41,4 @@
 Thumbs.db
 .DS_Store
 
-/Tools/UnityCompileChecks/bin/
-/Tools/UnityCompileChecks/obj/
 
-/Tools/Smoke-Interactions/
-/Tools/Smoke-War-*/
-/Tools/Smoke-Pixel-*/

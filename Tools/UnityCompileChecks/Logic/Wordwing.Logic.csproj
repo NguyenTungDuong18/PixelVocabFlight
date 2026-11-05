@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Mirrors Scripts/Logic/Wordwing.Logic.asmdef: its own assembly, no Unity references, Unity's API level and C# 9. -->
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <LangVersion>9.0</LangVersion>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <AssemblyName>Wordwing.Logic</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../../Game/Assets/_Project/Scripts/Logic/**/*.cs" />
+  </ItemGroup>
+</Project>

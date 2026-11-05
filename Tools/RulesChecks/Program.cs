@@ -71,7 +71,7 @@ foreach(var entry in oxford.entries)
     Check(!string.IsNullOrWhiteSpace(entry.meaning),"Vietnamese meaning: "+entry.id);
     Check(VocabularyQuery.Levels.Contains(entry.cefr),"valid source CEFR: "+entry.id);
     Check(entry.topics.Length>0 && entry.topics.All(t=>oxford.topics.Any(topic=>topic.id==t)),"known topics: "+entry.id);
-    Check(File.Exists(Path.Combine(audioFolder,entry.audioKey+".wav")),"offline pronunciation: "+entry.id);
+    Check(File.Exists(Path.Combine(audioFolder,PronunciationPath.Resource(entry)+".wav")),"offline pronunciation: "+entry.id);
 }
 var filter=new VocabularyFilter {minimumLevel=2,maximumLevel=2,topics=new[]{"food"},from=1,to=3};
 var foodB1=VocabularyQuery.Filter(oxford.entries,filter);

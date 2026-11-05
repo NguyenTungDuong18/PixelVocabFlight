@@ -2,15 +2,19 @@
 
 > Bản đồ mã nguồn chi tiết (file nào làm gì, hằng số, pipeline, lệnh build/test): [Docs/00-Codebase-Map.md](Docs/00-Codebase-Map.md).
 
-**Bản 0.15 — Căn cứ quân sự:** màn hình chính giờ là một căn cứ không quân năm 1944 đi lại được. Người chơi điều khiển Phi công 01 (22 tuổi, tóc nâu) bằng WASD, giữ Shift để chạy. Căn cứ có tháp chỉ huy, sở chỉ huy, nhà chứa máy bay, doanh trại, nhà ăn, trạm y tế, trường ngoại ngữ, xưởng, kho nhiên liệu, kho đạn, radar, tháp canh, ụ cao xạ, bãi xe và sân đỗ máy bay. Muốn bay phải nói chuyện với Giáo sư Whitmore (nhấn E) để nhận nhiệm vụ và chọn chiến trường, rồi ra SKYLARK MK.I ở sân đỗ để cất cánh. Chế độ bay cũ giữ nguyên luật và thành một nhiệm vụ; hết trận thì về căn cứ. Mọi công trình, đạo cụ, xe và máy bay là model voxel riêng, mỗi model có 4 hướng (43 model), để dùng lại trên bản đồ khác. Nhân vật dựng từ một rig chung (6 nhân vật, có chân dung). Hệ thống bản đồ, NPC, hội thoại và nhiệm vụ nằm trong lớp C# thuần `Scripts/World/` để dễ mở rộng. Xem [báo cáo 0.15](Docs/20-Military-Base.md).
+**Sau 0.15 — Thư viện model căn cứ:** vẽ lại toàn bộ nhà, cây và đồ vật của căn cứ theo hướng ấm áp kiểu Stardew Valley nhưng mang chất 1944. Thư viện tăng từ 43 lên 247 model 4 hướng: nhiều tòa doanh trại/HQ/bệnh viện, hệ thống kho, nhà máy chế tạo máy bay, sân bay lớn (hangar T2, Bellman, blister, tháp chỉ huy, nhà ga), 24 máy bay đỗ, 40 loại cây/bụi/đá có đung đưa, thùng gỗ, thùng dầu, đồ nghề xưởng, hiệu ứng lá rơi và kỹ sư thiên tài tóc vàng. Model mới chưa đặt lên bản đồ. Chi tiết: [Docs/history/22-Model-Library.md](Docs/history/22-Model-Library.md).
 
-**Bản 0.14 — Buồng lái & khóa mục tiêu:** thanh chỉ số dưới cùng thành bảng điều khiển phi công (đồng hồ xăng/tốc độ/giờ bay, đèn GIÁP, màn CRT hiện nghĩa tiếng Việt, cần gạt LÁI/BẮN). Khe gõ chỉ hiện NHẬP ĐỂ BẮN khi đang lái; nhấn Tab là vào thẳng khe gõ với dấu nháy sát chữ. Máy bay địch vừa lao chậm tới vừa thò súng ra từ từ, khóa mục tiêu rồi bắn loạt đạn đuổi không né được và nghiêng cánh bay khỏi màn hình; tên lửa khóa mục tiêu rồi tăng tốc lao tới. Bốn ô đáp án tên lửa tách rời, bật lớn dần từ thân tên lửa, chọn bằng chuột hoặc phím 1–4. Nền rừng/sa mạc/băng được vẽ chi tiết với động vật, đoàn xe, tàu hỏa và làm mờ khi chiến đấu (biển giữ nét). Bấm CẤT CÁNH: bảng trượt sang hai bên, máy bay nổ máy, lăn bánh một quãng dài với camera đi theo từ căn cứ ra đường băng xuyên rừng, rồi cất cánh, màn hình tối dần; vào trận máy bay bay lên từ mép dưới và HUD hiện dần. Đã build Windows và qua 72/72 smoke test. Xem [báo cáo 0.14](Docs/19-Cockpit-Lock-On-Blur.md).
+**Sau 0.15 — Sắp xếp mã nguồn:** không đổi gameplay. Code tách `Logic/` (C# thuần) và `Unity/`; class và module lớn chia thành nhiều file nhỏ theo phần việc (`partial class` trong thư mục cùng tên, module PixelForge có thư mục con). Chi tiết: [Docs/history/21-Codebase-Restructure.md](Docs/history/21-Codebase-Restructure.md).
 
-**Bản 0.13 — Pixel 1944:** toàn bộ máy bay, tàu, rocket, tiếp tế, hiệu ứng và giao diện được vẽ lại thành pixel art lấy cảm hứng Thế chiến II, lưu từng khung hình trong `Game/Assets/_Project/Art/Resources/Pixel`. Màn hình chờ mới là sân bay dã chiến nhìn từ trên xuống, chọn chiến trường bằng phím 1–4 và cất cánh bằng Enter. Đã thống nhất thuật ngữ GIÁP, đổi tia laser thành đạn vạch, thêm rung màn hình khi trúng đòn. Đã build Windows và qua 54/54 smoke test. Xem [báo cáo 0.13](Docs/18-Pixel-Art-1944.md); vẽ lại đồ họa bằng `node Tools/PixelForge/forge.cjs`. Các mục phiên bản cũ bên dưới giữ lại để tra lịch sử.
+**Bản 0.15 — Căn cứ quân sự:** màn hình chính giờ là một căn cứ không quân năm 1944 đi lại được. Người chơi điều khiển Phi công 01 (22 tuổi, tóc nâu) bằng WASD, giữ Shift để chạy. Căn cứ có tháp chỉ huy, sở chỉ huy, nhà chứa máy bay, doanh trại, nhà ăn, trạm y tế, trường ngoại ngữ, xưởng, kho nhiên liệu, kho đạn, radar, tháp canh, ụ cao xạ, bãi xe và sân đỗ máy bay. Muốn bay phải nói chuyện với Giáo sư Whitmore (nhấn E) để nhận nhiệm vụ và chọn chiến trường, rồi ra SKYLARK MK.I ở sân đỗ để cất cánh. Chế độ bay cũ giữ nguyên luật và thành một nhiệm vụ; hết trận thì về căn cứ. Mọi công trình, đạo cụ, xe và máy bay là model voxel riêng, mỗi model có 4 hướng (43 model), để dùng lại trên bản đồ khác. Nhân vật dựng từ một rig chung (6 nhân vật, có chân dung). Hệ thống bản đồ, NPC, hội thoại và nhiệm vụ nằm trong lớp C# thuần `Scripts/Logic/World/` để dễ mở rộng. Xem [báo cáo 0.15](Docs/history/20-Military-Base.md).
+
+**Bản 0.14 — Buồng lái & khóa mục tiêu:** thanh chỉ số dưới cùng thành bảng điều khiển phi công (đồng hồ xăng/tốc độ/giờ bay, đèn GIÁP, màn CRT hiện nghĩa tiếng Việt, cần gạt LÁI/BẮN). Khe gõ chỉ hiện NHẬP ĐỂ BẮN khi đang lái; nhấn Tab là vào thẳng khe gõ với dấu nháy sát chữ. Máy bay địch vừa lao chậm tới vừa thò súng ra từ từ, khóa mục tiêu rồi bắn loạt đạn đuổi không né được và nghiêng cánh bay khỏi màn hình; tên lửa khóa mục tiêu rồi tăng tốc lao tới. Bốn ô đáp án tên lửa tách rời, bật lớn dần từ thân tên lửa, chọn bằng chuột hoặc phím 1–4. Nền rừng/sa mạc/băng được vẽ chi tiết với động vật, đoàn xe, tàu hỏa và làm mờ khi chiến đấu (biển giữ nét). Bấm CẤT CÁNH: bảng trượt sang hai bên, máy bay nổ máy, lăn bánh một quãng dài với camera đi theo từ căn cứ ra đường băng xuyên rừng, rồi cất cánh, màn hình tối dần; vào trận máy bay bay lên từ mép dưới và HUD hiện dần. Đã build Windows và qua 72/72 smoke test. Xem [báo cáo 0.14](Docs/history/19-Cockpit-Lock-On-Blur.md).
+
+**Bản 0.13 — Pixel 1944:** toàn bộ máy bay, tàu, rocket, tiếp tế, hiệu ứng và giao diện được vẽ lại thành pixel art lấy cảm hứng Thế chiến II, lưu từng khung hình trong `Game/Assets/_Project/Art/Resources/Pixel`. Màn hình chờ mới là sân bay dã chiến nhìn từ trên xuống, chọn chiến trường bằng phím 1–4 và cất cánh bằng Enter. Đã thống nhất thuật ngữ GIÁP, đổi tia laser thành đạn vạch, thêm rung màn hình khi trúng đòn. Đã build Windows và qua 54/54 smoke test. Xem [báo cáo 0.13](Docs/history/18-Pixel-Art-1944.md); vẽ lại đồ họa bằng `node Tools/PixelForge/forge.cjs`. Các mục phiên bản cũ bên dưới giữ lại để tra lịch sử.
 
 Game bắn máy bay pixel art học từ vựng tiếng Anh, viết bằng C# và Unity.
 
-**Trạng thái:** bản 0.10 sửa tàu xoay mũi tại chỗ trước khi rời đi, thân tàu đi đúng hướng mũi. Nền biển gốc được giảm kích thước khoảng 35%, có thêm lớp biển rộng đồng phong cách để phủ kín hai bên. Xem [thay đổi và kiểm tra 0.10](Docs/16-Carrier-Heading-and-Ocean-Scale.md). Giữ thời gian thả quân 20 giây, nhịp sinh 12 giây, tên lửa giảm tốc 20%, hiệu ứng nước, sprite trong suốt và đủ 5.981 mục học Oxford.
+**Trạng thái:** bản 0.10 sửa tàu xoay mũi tại chỗ trước khi rời đi, thân tàu đi đúng hướng mũi. Nền biển gốc được giảm kích thước khoảng 35%, có thêm lớp biển rộng đồng phong cách để phủ kín hai bên. Xem [thay đổi và kiểm tra 0.10](Docs/history/16-Carrier-Heading-and-Ocean-Scale.md). Giữ thời gian thả quân 20 giây, nhịp sinh 12 giây, tên lửa giảm tốc 20%, hiệu ứng nước, sprite trong suốt và đủ 5.981 mục học Oxford.
 
 Tên hiển thị trong game: **WORDWING**. Thư mục dự án vẫn là `PixelVocabFlight`.
 
@@ -22,9 +26,11 @@ Tên hiển thị trong game: **WORDWING**. Thư mục dự án vẫn là `Pixel
 4. Đợi Unity hoàn tất nhập asset và package ở lần mở đầu.
 5. Mở scene `Assets/_Project/Scenes/Flight.unity`, rồi nhấn Play.
 
-Bản chạy độc lập nằm ở `Builds/Windows/Wordwing.exe`. Đọc [thay đổi tên lửa và phát âm bản 0.6](Docs/12-Missile-Hover-and-Audio.md), [máu và va chạm bản 0.5](Docs/11-Metal-Health.md) và [môi trường, chọn từ bản 0.4](Docs/10-Continuous-Flight.md). Trong chuyến bay, rê chuột ngang để lái; nhấn **Tab** hoặc công tắc để chuyển sang bắn, rồi gõ từ + **Enter**. Sa mạc cần chọn thêm từ loại. Tên lửa gần nhất tự mở bốn ô đáp án (chuột hoặc phím 1–4). Địch khóa mục tiêu thì phải gõ đúng để hạ trước khi nó bắn — đòn đánh không thể né. Xem [hướng dẫn thư viện và chọn bộ học](Docs/07-Oxford-Library.md). Tài liệu phiên bản cũ lưu lại lịch sử; ưu tiên luật của phiên bản mới hơn.
+**Mở bằng VS Code:** cài extension *Unity* (`visualstudiotoolsforunity.vstuc`, kèm C# Dev Kit), rồi **File › Open Workspace from File** → `WORDWING.code-workspace`. Workspace có các thư mục gốc Game (Unity), Tools, Docs, SourceAssets và gốc dự án; file `.meta`, `Library`, `Temp` được ẩn. Trong Unity, đặt **Edit › Preferences › External Tools › External Script Editor = Visual Studio Code** và bấm **Regenerate project files** để có `Game/Game.slnx`. Gỡ lỗi: chạy cấu hình **Attach to Unity** trong VS Code.
 
-Xem [đối chiếu trọn bộ và thay đổi bản 0.3](Docs/09-Full-Oxford-5000.md). Mở lại game sau khi cập nhật; nút **TOÀN BỘ OXFORD 5000** chọn toàn kho bằng một lần bấm.
+Bản chạy độc lập nằm ở `Builds/Windows/Wordwing.exe`. Đọc [thay đổi tên lửa và phát âm bản 0.6](Docs/history/12-Missile-Hover-and-Audio.md), [máu và va chạm bản 0.5](Docs/history/11-Metal-Health.md) và [môi trường, chọn từ bản 0.4](Docs/history/10-Continuous-Flight.md). Trong chuyến bay, rê chuột ngang để lái; nhấn **Tab** hoặc công tắc để chuyển sang bắn, rồi gõ từ + **Enter**. Sa mạc cần chọn thêm từ loại. Tên lửa gần nhất tự mở bốn ô đáp án (chuột hoặc phím 1–4). Địch khóa mục tiêu thì phải gõ đúng để hạ trước khi nó bắn — đòn đánh không thể né. Xem [hướng dẫn thư viện và chọn bộ học](Docs/history/07-Oxford-Library.md). Tài liệu phiên bản cũ lưu lại lịch sử; ưu tiên luật của phiên bản mới hơn.
+
+Xem [đối chiếu trọn bộ và thay đổi bản 0.3](Docs/history/09-Full-Oxford-5000.md). Mở lại game sau khi cập nhật; nút **TOÀN BỘ OXFORD 5000** chọn toàn kho bằng một lần bấm.
 
 Phạm vi hiện tại là danh mục Oxford 3000/5000, không phải toàn bộ từ điển Oxford. Mức CEFR lấy theo mục từ/từ loại từ trang Oxford; nghĩa Việt từ nguồn mở và phần biên soạn của dự án, còn cần rà soát chất lượng. Chủ đề do game phân loại.
 
@@ -32,13 +38,13 @@ Phạm vi hiện tại là danh mục Oxford 3000/5000, không phải toàn bộ
 
 | Thư mục | Nội dung |
 |---|---|
-| `Game/` | Project mở bằng Unity: mã C#, scene, prefab, asset và cấu hình |
-| `Docs/` | Kế hoạch game, giải thích cấu trúc và hướng dẫn sử dụng |
-| `SourceAssets/` | File thiết kế gốc, audio gốc và bảng biên soạn từ vựng |
-| `Builds/Windows/` | Nơi xuất bản game Windows khi đã có bản chơi được |
-| `Tools/` | Công cụ hỗ trợ và nhật ký khởi tạo |
+| `Game/` | Project mở bằng Unity: mã C#, scene, asset sinh tự động và cấu hình |
+| `Docs/` | `00-Codebase-Map.md` + `map/` (bản đồ mã nguồn), `history/` (báo cáo từng phiên bản) |
+| `SourceAssets/` | Ảnh gốc, ảnh xem trước sprite, dữ liệu Oxford thô và bảng biên soạn từ vựng |
+| `Builds/Windows/` | Bản game Windows (`Wordwing.exe`) |
+| `Tools/` | Build, smoke test, PixelForge (sinh sprite), RulesChecks, pipeline từ vựng (`Tools/Vocabulary`) |
 
-Đọc [kế hoạch](Docs/01-Game-Plan.md), [cấu trúc thư mục](Docs/02-Folder-Structure.md) và [hướng dẫn mở dự án](Docs/03-Getting-Started.md).
+Cây thư mục chi tiết và quy ước đặt file: [Docs/map/overview/folders.md](Docs/map/overview/folders.md). Lịch sử: [kế hoạch ban đầu](Docs/history/01-Game-Plan.md), [hướng dẫn mở dự án](Docs/history/03-Getting-Started.md).
 
 Chỉ giữ một bản asset dùng trong game dưới `Game/Assets/_Project`. File vẽ hoặc bản ghi gốc nằm trong `SourceAssets`, để Unity không phải nhập những file không dùng khi chạy game.
 
