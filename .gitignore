@@ -25,6 +25,7 @@
 !/Builds/Windows/.gitkeep
 /Tools/*.log
 /Tools/Smoke*/
+/Tools/BlenderForge/preview/
 /Tools/**/bin/
 /Tools/**/obj/
 node_modules/

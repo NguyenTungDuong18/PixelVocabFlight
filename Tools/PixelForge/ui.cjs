@@ -7,6 +7,8 @@ const {
 } = require('./ui/widgets.cjs');
 const { airbase, clouds } = require('./ui/title.cjs');
 const { cockpit, needleFrames, lamp, leverFrames, inputFrame } = require('./ui/cockpit.cjs');
+const dialog = require('./ui/dialog.cjs');
+const menu = require('./ui/menu.cjs');
 
 function build(add) {
   add('UI', 'cockpit_panel', [cockpit()], { fps: 1 });
@@ -27,6 +29,8 @@ function build(add) {
   for (const kind of ['fuel', 'clock', 'speed', 'medal', 'sound_on', 'sound_off', 'pause', 'armor', 'radio', 'arrow_right', 'arrow_left', 'check', 'target'])
     add('UI', 'icon_' + kind, [icon(kind)], { fps: 1 });
   add('UI', 'ui_pointer', pointerFrames(), { fps: 3 });
+  dialog.build(add);
+  menu.build(add);
   add('Title', 'logo', [logo()], { fps: 1 });
   for (const kind of ['jungle', 'desert', 'ice', 'ocean']) add('Title', 'card_' + kind, [thumbnail(kind)], { fps: 1 });
   add('Title', 'title_airbase', [0, 1, 2, 3].map(airbase), { fps: 3 });

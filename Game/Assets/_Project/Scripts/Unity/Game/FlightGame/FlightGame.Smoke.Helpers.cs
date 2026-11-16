@@ -17,7 +17,8 @@ namespace PixelVocabFlight
         private bool smokeCaptured = true;
         private Mouse smokeMouse;
 
-        private void Check(bool pass,string name) => smokeChecks.Add(name + (pass ? ":PASS" : ":FAIL"));
+        // Names go into smoke-report.json as they are: no backslashes (paths) or quotes.
+        private void Check(bool pass,string name) => smokeChecks.Add(name.Replace('\\','/').Replace('"','\'') + (pass ? ":PASS" : ":FAIL"));
         private void SmokeCapture(string fileName) => smokeCaptured &= view.Capture(Path.Combine(smokeOutput,fileName));
 
         private void SmokeFixture(FlightEnvironment environment)
@@ -37,11 +38,23 @@ namespace PixelVocabFlight
             foreach(var enemy in flight.Enemies){enemy.Age=0;enemy.Phase=EnemyPhase.Patrol;enemy.Y=0;}
             foreach(var missile in flight.Missiles.Where(m=>m.Id!=missileId)){missile.X=.05f;missile.Y=.02f;missile.Phase=MissilePhase.Cruise;missile.PhaseSeconds=0;}
         }
+        // Stages may push the deadline out (the story stage adds time for its 27 s of timed frames).
+        private float smokeDeadline;
         private IEnumerator SmokeWatchdog(string output)
         {
-            yield return new WaitForSecondsRealtime(120);
-            File.WriteAllText(Path.Combine(output,"watchdog-failure.txt"),"Runtime verification exceeded 120 seconds. See player log.");
+            smokeDeadline = Time.realtimeSinceStartup + 120;
+            while (Time.realtimeSinceStartup < smokeDeadline) yield return null;
+            File.WriteAllText(Path.Combine(output,"watchdog-failure.txt"),"Runtime verification exceeded its time limit (120 s + stage extensions). See player log.");
             Application.Quit(1);
+        }
+
+        // Polls until the condition holds or `seconds` of real time pass; smokeOk tells which (nested coroutine, no return value).
+        private bool smokeOk;
+        private IEnumerator SmokeUntil(Func<bool> condition, float seconds)
+        {
+            float end = Time.realtimeSinceStartup + seconds;
+            while (!condition()) { if (Time.realtimeSinceStartup > end) { smokeOk = false; yield break; } yield return null; }
+            smokeOk = true;
         }
 
         private IEnumerator SmokeType(string value)

@@ -2,11 +2,11 @@
 // World models: base building variants (bld_*): Nissen huts, timber and brick barracks, grand HQ with
 // flag, officers' club, large mess, NAAFI canteen, field and station hospitals, chapel, ablutions,
 // post office, village cottages and the MT garage. Same warm "Stardew" 1944 style as buildings.cjs.
-const { PAL, K, hash, fbm, shift } = require('../lib.cjs');
+const { PAL, K, hash, fbm, shift, ramp, withAlpha, dither } = require('../lib.cjs');
 const { mat } = require('../voxel.cjs');
 const { OL, CR, GD, ST, GL, RD, WD, NV, GR, SN } = PAL;
 const {
-  BR, WH, CN, TN, CV, TP, PT, cl, ix, flat, glow, mottled, tin, planks, brick, sandbag, canvasMat,
+  BR, WH, CN, TN, CV, TP, PT, DT, cl, uv, ix, flat, glow, mottled, tin, planks, brick, sandbag, canvasMat,
   concrete, rooftile, glass, darkGlass, interior, steel, darkSteel, rubber, woodDark, woodPost, rope,
   trimWhite, trimGreen, redPaint, lampGlow, blackPaint, windowOn, doorOn, steps, def, tarpaper,
   railing, smokeOverlay, leaf, cross5, earth
@@ -540,84 +540,320 @@ def('bld_canteen', 'World', [6, 5], 72, g => {
   tufts(g, -6, -6, 102, 86, 13);
 });
 
-// ===== Field hospital: large canvas ward tent, red crosses, flaps rolled up over cots, guy ropes.
-def('bld_medical_tent', 'World', [10, 7], 56, g => {
-  const cv = canvasMat(CV, 3, 10), cvd = canvasMat(CV, 2, 10), white = flat(WH[4]), red = flat(RD[2]);
-  g.box(12, 22, 0, 148, 90, 1, flat(CV[1]));
-  g.box(12, 22, 1, 148, 90, 21, cvd);
-  roofX(g, 8, 152, 18, 94, 21, 24, cv, { wall: cvd, w0: 12, w1: 148, inset: 4 });
-  for (const x of [50, 110]) { g.cylZ(x, 56, 1, 43, 49, woodPost); g.cylZ(x, 56, 1.5, 49, 50, flat(ST[2])); }
-  for (const cy of [30, 82]) g.topPaint(64, cy - 12, 96, cy + 12, (x, y) => {
-    const dx = Math.abs(x - 80), dy = Math.abs(y - cy);
-    if (dx > 14 || dy > 9) return null;
-    return (dx <= 3 && dy <= 7) || (dy <= 2.5 && dx <= 9) ? red : white;
+// ---------- Medical kit (copy of the one in buildings.cjs: model modules never require each other) ----------
+const TL = ramp('#3b1b14', '#5b2b1f', '#7b3d2b', '#995139', '#b56b4d', '#cd8b67');   // clay roof tile
+const NG = ramp('#1b231d', '#2b372d', '#3d4b3f', '#536350', '#6d7d66', '#8c9a80');             // dark green Nissen paint
+const RU = ramp('#2b170d', '#4c2814', '#6e3c1c', '#925426', '#b47137');              // rust (same as clutter)
+const XR = ramp('#4b1015', '#7b1a20', '#a9252b', '#c9393b', '#e3655d');              // red-cross red
+const WG = ramp('#4b2d13', '#8b5521', '#d1913b', '#f2b65a', '#ffe3a1');              // warm lamplight
+const KH = ramp('#4c402d', '#6f6147', '#8f8260', '#b8a87e', '#d3c497');              // khaki canvas
+const OX = ramp('#1f3125', '#2d4534', '#3e5a45', '#567a5f', '#79a07f');              // oxygen-bottle green
+const xWhite = flat(WH[4]), xDirt = flat(WH[3]), xRed = flat(XR[2]), xRedHi = flat(XR[3]), xRedLo = flat(XR[1]);
+const xCanvas = mottled(KH, 2, 4, .66, .3), xGut = flat(ST[2]);
+// Painted corrugated tin: rust blooms, streaks bleeding down from bolt lines, optional bare replacement sheet.
+function paintedTin(R, i, seed = 1, bare = null) {
+  const base = tin(R, i, 'y', 16), raw = tin(TN, 3, 'y', 16);
+  return mat((x, y, z, f) => {
+    const u = ix(f === 'e' || f === 'w' ? y : x), w = f === 'u' ? y : z * 1.5;
+    if (bare && u >= bare[0] && u < bare[1]) return raw.fn(x, y, z, f);
+    const n = fbm(x * .14 + (f === 'u' ? 0 : 30), w * .14, seed);
+    if (n > .76) return cl(RU, n > .8 ? 3 : 2);
+    if (hash(u, 3, seed) < .07 && fbm(u * .9, w * .1, seed + 4) > .5) return hash(u, ix(w / 2), seed) < .5 ? cl(RU, 2) : shift(base.fn(x, y, z, f), -1);
+    return base.fn(x, y, z, f);
   });
-  // Rolled-up wall flaps showing cots inside.
-  for (const [a, b] of [[18, 62], [98, 142]]) {
-    g.erase(a, 88, 1, b, 90, 18); g.box(a, 60, 1, b, 88, 1.5, flat(CV[1]));
-    g.cylX(89, 19.5, 1.6, a - 1, b + 1, flat(CV[2]));
-    for (let x = a + 2; x < b - 12; x += 15) cot(g, x, 78, 1, 12, 6);
-    g.box(a, 60, 1, b, 62, 18, interior); for (let x = a + 8; x < b; x += 20) { g.box(x, 70, 1, x + 1, 71, 18, woodPost); g.box(x - 1, 70, 15, x + 2, 72, 17, flat(ST[2])); g.set(x, 72, 15, lampGlow); }
+}
+// Moss and damp creeping up the foot of a wall.
+function mossFoot(m, seed = 3, top = 6) {
+  return mat((x, y, z, f) => {
+    if (f !== 'u' && z < top) { const n = fbm((x + y) * .28, z * .45, seed); if (n > .5 + z * .045) return cl(GR, n > .62 ? 3 : 2); }
+    return m.fn(x, y, z, f);
+  }, { flat: m.flat });
+}
+// Lamplit window pane (unshaded): warm body, a few hot pixels, darker glazing bars.
+const warmGlass = mat((x, y, z, f) => {
+  const [u, v] = uv(x, y, z, f), k = hash(ix(u), ix(v), 77);
+  if (f === 'u') return WG[2];
+  return k < .1 ? WG[4] : (ix(v) & 3) === 3 ? WG[2] : WG[3];
+}, { flat: true });
+// Weathered red cross on a white panel painted over top faces. ys = slope stretch (1 + rise/run) so the
+// cross reads square from above on a slope facing the camera.
+function crossPanel(g, cx, cy, hw, hh, arm, th, seed = 1, ys = 1) {
+  g.topPaint(cx - hw - 1, cy - hh / ys - 1, cx + hw + 1, cy + hh / ys + 1, (x, y) => {
+    const sy = (y - cy) * ys, dx = Math.abs(x - cx), dy = Math.abs(sy), h = hash(ix(x), ix(y), seed);
+    if (dx > hw || dy > hh) return null;
+    if ((dx > hw - 1 || dy > hh - ys) && h < .3) return null;
+    if ((dx <= th && dy <= arm) || (dy <= th && dx <= arm)) return h < .06 ? xRedLo : (x < cx - th + 1.5 || sy < -th + 1) && h < .55 ? xRedHi : xRed;
+    return h < .08 ? xDirt : xWhite;
+  });
+}
+// Red-cross flag on a white pole, flying with the world wind (always toward screen right).
+function crossFlag(g, x, y, ztop, ctx, L = 11, H = 8) {
+  g.cylZ(x, y, .9, 0, ztop + 2, flat(WH[3])); g.ell(x, y, ztop + 2.5, 1.3, 1.3, 1.3, flat(GD[3]));
+  g.line(x + .6, y + .6, 2, x + .6, y + .6, ztop, rope);
+  const [wx, wy] = ctx.wind, px = -wy, py = wx, f = ctx.frame;
+  for (let t = 0; t < L; t += .5) for (let s = 0; s < H; s++) {
+    const ph = t / L, a = t * .55 - f * Math.PI / 2, off = Math.sin(a) * 1.4 * (ph + .2), sag = ph * ph * 1.4 + Math.cos(a) * .45 * ph;
+    const c = L * .45, red = (Math.abs(t - c) < 1.3 && s >= 1 && s <= H - 2) || (Math.abs(s - (H - 1) / 2) < 1 && Math.abs(t - c) <= 3.6);
+    g.set(x + wx * (t + 1.2) + px * off, y + wy * (t + 1.2) + py * off, ztop - s - sag, red ? xRed : s === 0 ? xDirt : xWhite);
   }
-  // Porch tent with an open, tied-back flap.
-  g.box(66, 88, 0, 94, 104, 14, cvd); g.erase(68, 88, 1, 92, 104, 14);
-  roofY(g, 86, 106, 63, 97, 14, 11, cv, { thick: 3 });
-  g.erase(70, 103, 1, 90, 106, 18);
-  for (const x of [68, 89]) g.box(x, 103, 1, x + 3, 105, 14, flat(CV[2]));
-  g.box(70, 88, 1, 90, 103, 2, flat(CV[1]));
-  g.bitmap('s', 78, 105, 23, cross5, { r: RD[2] });
-  // Guy ropes and pegs.
-  for (let x = 14; x <= 146; x += 22) for (const [ey, py] of [[18, 8], [93, 104]]) { g.line(x, ey, 21, x, py, 0, rope); g.box(x, py, 0, x + 1, py + 1, 2, woodDark); }
-  for (const [ex, px] of [[8, -2], [151, 160]]) for (const y of [36, 76]) { g.line(ex, y, 21, px, y, 0, rope); g.box(px, y, 0, px + 1, y + 1, 2, woodDark); }
-  // Stretchers, medical crates, oxygen, lantern post, sandbags, sign.
-  for (const [x, y] of [[100, 100], [100, 106]]) { g.box(x, y, 2, x + 16, y + 1, 3, woodDark); g.box(x, y + 4, 2, x + 16, y + 5, 3, woodDark); g.box(x + 1, y + 1, 2, x + 15, y + 4, 3, canvasMat(CV, 3, 6)); for (const lx of [x + 1, x + 14]) g.box(lx, y, 0, lx + 1, y + 5, 2, woodDark); }
-  for (const [x, y, z] of [[126, 98, 0], [134, 98, 0], [128, 98, 7]]) { g.box(x, y, z, x + 7, y + 6, z + 7, white); g.bitmap('s', x + 1, y + 5, z + 6, cross5, { r: RD[2] }); }
-  for (const x of [140, 142.5, 145]) { g.cylZ(x, 102, 1.1, 0, 10, flat(OL[3])); g.set(x, 102, 10, flat(ST[3])); }
-  g.box(58, 104, 0, 59, 105, 22, woodPost); g.box(56, 103, 18, 61, 106, 22, flat(ST[2])); g.set(58, 106, 19, lampGlow); g.set(59, 106, 19, lampGlow);
-  bags(g, 2, 92, 30, 98, 7);
-  for (const x of [2, 56]) g.box(x, 106, 0, x + 1, 107, 10, woodPost);
-  board(g, 0, 107, 14, 58, 'FIELD HOSPITAL', RD[2], white, red);
-  tufts(g, -6, -6, 166, 118, 14);
-});
+}
+// Washing line with bandages, a towel and a sheet strip swaying in the wind (4 frames).
+function bandageLine(g, x0, x1, y, z, ctx) {
+  const [wx, wy] = ctx.wind, f = ctx.frame;
+  for (const x of [x0, x1]) { g.box(x, y, 0, x + 1, y + 1, z + 2, woodPost); g.box(x, y - 1, z + 1, x + 1, y + 2, z + 2, woodPost); }
+  const sag = x => z - 1.6 * Math.sin(Math.PI * (x - x0) / (x1 - x0));
+  for (let x = x0 + 1; x < x1; x++) g.set(x, y, sag(x), rope);
+  const cols = [xWhite, flat(CR[3]), xWhite, flat(OL[3]), xWhite, flat(WH[3])];
+  for (let x = x0 + 3, k = 0; x < x1 - 2; x += 4, k++) {
+    const L = 5 + (k * 3) % 4, w = k % 3 === 1 ? 3 : 2, top = Math.round(sag(x + 1)) - 1;
+    for (let i = 0; i <= L; i++) {
+      const sw = Math.pow(i / L, 1.3) * (1.3 + 1.1 * Math.sin(f * Math.PI / 2 + k * 1.3));
+      for (let j = 0; j < w; j++) g.set(x + j + wx * sw, y + wy * sw, top - i, cols[k % cols.length]);
+    }
+  }
+}
+// Stretcher leaning on a south-facing wall (wall plane y-1): poles and khaki canvas.
+function leanStretcher(g, x, y, h = 18) {
+  for (let z = 0; z < h; z++) {
+    const yy = y + 4 * (1 - z / h);
+    g.set(x, yy, z, woodDark); g.set(x + 5, yy, z, woodDark);
+    if (z >= 3 && z < h - 3) for (let xx = x + 1; xx < x + 5; xx++) g.set(xx, yy, z, xCanvas);
+  }
+}
+function oxygen(g, x, y, h = 13) {
+  g.cylZ(x, y, 1.5, 0, h - 2, mottled(OX, 2, 5, .7, .3)); g.cylZ(x, y, 1.1, h - 2, h, flat(OX[3]));
+  g.cylZ(x, y, 1.6, h - 5, h - 4, xWhite); g.box(x - .5, y - .5, h, x + .5, y + .5, h + 2, flat(ST[3]));
+}
+// 1940s wooden wheelchair facing +y: big wheels, cane seat and back, footrest, casters.
+function wheelchair(g, x, y) {
+  const tyre = flat(TP[1]), fr = flat(ST[3]), cane = mottled(SN, 3, 3, .6, .5);
+  for (const wx of [x, x + 7]) g.shape(wx, y, 0, wx + 1, y + 9, 9, (a, b, c) => { const d = Math.hypot(b - (y + 4.5), c - 4.5); return d <= 4.4 && (d >= 3.4 ? tyre : d < 1 || Math.abs(b - y - 4.5) < .5 || Math.abs(c - 4.5) < .5 ? fr : null); });
+  g.box(x + 1, y + 2, 5, x + 7, y + 7, 6, cane); g.box(x + 1, y + 1, 6, x + 7, y + 2, 13, cane);
+  for (const wx of [x + 1, x + 6]) g.box(wx, y, 12, wx + 1, y + 1, 14, woodDark);
+  g.box(x + 2, y + 8, 1, x + 6, y + 10, 2, woodDark);
+  for (const wx of [x + 1, x + 6]) g.box(wx, y + 9, 0, wx + 1, y + 10, 2, tyre);
+}
+// Stacked sandbags as individual pillows (rows offset by half a bag), in front of a south wall.
+function bagPile(g, x0, x1, y, layers) {
+  const m = mottled(SN, 2, 6, .62, .5);
+  for (let l = 0; l < layers; l++) for (let x = x0 + 2 + (l & 1) * 2 + l; x < x1 - 1 - l; x += 4) g.ell(x, y + 2, l * 2.6 + 1.4, 2.3, 2.1, 1.6, m);
+}
+// Two-line painted sign board on a south face.
+function board2(g, x0, y, ztop, w, l1, l2, tc, bg, tr) {
+  const h = 14;
+  g.box(x0, y, ztop - h, x0 + w, y + 1, ztop, bg);
+  for (const z of [ztop - 1, ztop - h]) g.box(x0 - 1, y, z, x0 + w + 1, y + 1, z + 1, tr);
+  for (const x of [x0 - 1, x0 + w]) g.box(x, y, ztop - h, x + 1, y + 1, ztop, tr);
+  g.text('s', x0 + Math.floor((w - tw(l1)) / 2), y, ztop - 2, l1, tc);
+  g.text('s', x0 + Math.floor((w - tw(l2)) / 2), y, ztop - 8, l2, tc);
+}
+// Warm light pool around lamps (overlay): ordered-dither halo that flickers over 4 frames.
+function glowOverlay(pts) {
+  return (c, project, f) => {
+    for (const [x, y, z, r0] of pts) {
+      const [sx, sy] = project(x, y, z), r = r0 + [0, .8, -.5, .4][f & 3];
+      for (let yy = Math.floor(sy - r); yy <= sy + r; yy++) for (let xx = Math.floor(sx - r); xx <= sx + r; xx++) {
+        const t = 1 - Math.hypot(xx + .5 - sx, (yy + .5 - sy) * 1.2) / r;
+        if (t <= 0 || !dither(xx, yy, .2 + t * .8)) continue;
+        c.paint(xx, yy, withAlpha(t > .65 ? WG[4] : WG[3], Math.round(25 + 95 * t * t)));
+      }
+    }
+  };
+}
 
-// ===== Station hospital: brick admin block, two long wards with tall windows, ambulance canopy.
-def('bld_medical_hospital', 'World', [12, 7], 92, g => {
-  const wall = aged(brick(BR, 2), 19), base = concrete(CN, 2), white = aged(flat(WH[3]), 7), tile = mossy(rooftile(TN, 3, 'x'), .76, 19), red = flat(RD[2]), whiteP = flat(WH[4]);
-  g.box(5, 9, 0, 187, 70, 3, base);
-  g.box(72, 12, 3, 120, 68, 48, wall); quoins(g, 72, 12, 120, 68, 3, 46, white);
-  g.box(71, 11, 24, 121, 69, 26, white); g.box(70, 10, 46, 122, 70, 49, white);
-  g.box(70, 10, 48, 122, 70, 50, concrete(CN, 3, 12)); g.shape(69, 9, 49, 123, 71, 53, (x, y) => x < 71 || x > 121 || y < 11 || y > 69, flat(WH[3]));
-  g.box(84, 16, 50, 96, 26, 58, flat(CN[3])); g.box(83, 15, 58, 97, 27, 59, flat(CN[2]));
-  g.topPaint(84, 28, 108, 64, (x, y) => { const dx = Math.abs(x - 96), dy = Math.abs(y - 46); if (dx > 11 || dy > 11) return null; return (dx <= 3 && dy <= 9) || (dy <= 3 && dx <= 9) ? red : whiteP; });
-  for (const [a, b] of [[8, 72], [120, 184]]) {
-    g.box(a, 20, 3, b, 64, 30, wall); g.box(a, 20, 3, b, 64, 6, white); g.box(a - 1, 19, 28, b + 1, 65, 30, white);
-    roofX(g, a === 8 ? 4 : 120, a === 8 ? 72 : 188, 14, 70, 30, 20, tile, { wall, w0: a, w1: b, inset: 6, barge: white, fascia: flat(WD[1]) });
-    for (let x = a + 6; x < b - 6; x += 11) { win(g, 's', x, 63, 9, 6, 15, { frame: white }); win(g, 'n', x, 20, 9, 6, 15, { frame: white }); }
-    g.cylZ(a + 32, 42, 1.6, 40, 52, darkSteel); g.cone(a + 32, 42, 3.2, .6, 52, 55, flat(ST[1]));
+// ---------- End medical kit ----------
+
+// Tent canvas: khaki with seams, weather mottling, sewn-on patches, mud splashed up the foot.
+// rot swaps the seam direction on top faces (ridge along y).
+function tentCanvas(i = 3, seed = 1, rot = false, seam = 12) {
+  return mat((x, y, z, f) => {
+    let [u, v] = uv(x, y, z, f);
+    if (f === 'u' && rot) [u, v] = [v, u];
+    if (f !== 'u' && z < 3.5 && fbm(u * .4, z * .5, seed + 9) > .4 + z * .08) return cl(DT, 2 + (hash(ix(u), ix(z), seed) < .3 ? 1 : 0));
+    if (hash(ix(u / 9), ix(v / 7), seed + 3) < .045) {
+      const du = ((ix(u) % 9) + 9) % 9, dv = ((ix(v) % 7) + 7) % 7;
+      if (du < 5 && dv < 4) return du === 0 || du === 4 || dv === 0 || dv === 3 ? cl(KH, i - 2) : cl(KH, i + 1);
+    }
+    const n = fbm(u * .18, v * .18, seed);
+    return cl(KH, i + ((((ix(u) % seam) + seam) % seam) === 0 ? -1 : n > .64 ? 1 : n < .36 ? -1 : 0));
+  });
+}
+const crossBox = ['wwwww', 'wwrww', 'wrrrw', 'wwrww', 'wwwww'];
+// Ground stretcher along x (16 x 5); patient = a casualty under an olive-drab blanket.
+function stretcher(g, x, y, patient = false) {
+  for (const yy of [y, y + 4]) g.box(x, yy, 2, x + 16, yy + 1, 3, woodDark);
+  g.box(x + 1, y + 1, 2, x + 15, y + 4, 3, xCanvas);
+  for (const lx of [x + 2, x + 13]) g.box(lx, y, 0, lx + 1, y + 5, 2, woodDark);
+  if (!patient) return;
+  g.ell(x + 7, y + 2.5, 4, 6, 2.4, 1.7, mottled(OL, 3, 8, .65, .4));
+  g.ell(x + 13.2, y + 2.5, 3.8, 1.8, 2, 1, xWhite); g.ell(x + 13, y + 2.5, 4.8, 1.4, 1.4, 1.3, flat(RD[4]));
+}
+function medCrate(g, x, y, z, w = 8, d = 6, h = 6) {
+  crate(g, x, y, z, w, d, h, KH);
+  g.bitmap('s', x + ix((w - 5) / 2), y + d - 1, z + h - 1 - ix((h - 5) / 2), crossBox, { w: WH[4], r: XR[2] });
+  g.bitmap('u', x + ix((w - 5) / 2), y + ix((d - 5) / 2), z + h - 1, crossBox, { w: WH[4], r: XR[2] });
+}
+// Hurricane lantern hanging off a post's arm (lit glass is unshaded).
+function lanternPost(g, x, y, h = 22) {
+  g.box(x, y, 0, x + 1, y + 1, h, woodPost); g.box(x, y, h - 1, x + 4, y + 1, h, woodDark);
+  g.box(x + 2, y - .5, h - 6, x + 4, y + 1.5, h - 3, glow(WG[3])); g.box(x + 1.5, y - 1, h - 3, x + 4.5, y + 2, h - 2, flat(ST[1]));
+  g.box(x + 1.5, y - 1, h - 7, x + 4.5, y + 2, h - 6, flat(ST[1]));
+}
+// Trampled mud (1 voxel) with a ragged edge.
+function mud(g, cx, cy, rx, ry, seed = 1) {
+  const m = earth(1);
+  g.shape(cx - rx, cy - ry, 0, cx + rx, cy + ry, 1, (x, y) => ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2 + (fbm(x * .25, y * .25, seed) - .5) * 1.2 < 1, m);
+}
+function duckboards(g, x0, y0, x1, y1, along = 'x') {
+  const m = planks(WD, 3, 3, along === 'x' ? 'y' : 'x');
+  if (along === 'x') for (let x = x0; x < x1; x += 3) g.box(x, y0, 0, x + 2, y1, 1, m);
+  else for (let y = y0; y < y1; y += 3) g.box(x0, y, 0, x1, y + 2, 1, m);
+}
+
+// ===== Field hospital: a long ward tent (side walls rolled up over a row of cots, lantern inside),
+// a reception tent end-on with tied-back door and stove pipe, duckboards, guy ropes, a big red-cross
+// ground sheet for aircraft, stretchers with a casualty, medical crates, oxygen, lantern, flag.
+def('bld_medical_tent', 'World', [10, 7], 56, (g, ctx) => {
+  const cvW = tentCanvas(3, 3), cvR = tentCanvas(3, 5), cvR2 = tentCanvas(3, 7, true), roll = flat(KH[2]), floor = planks(WD, 2, 3, 'x');
+  for (const [x, y, rx, ry] of [[130, 82, 15, 9], [62, 61, 46, 6], [118, 66, 10, 6]]) mud(g, x, y, rx, ry, x);
+  // Ward tent (ridge along x): plank floor, hollow low walls, steep fly with valance, gable ends.
+  g.box(7, 13, 0, 101, 49, 1, floor);
+  g.box(8, 14, 0, 100, 48, 15, cvW); g.erase(9, 15, 1, 99, 47, 15);
+  roofX(g, 5, 103, 12, 50, 15, 18, cvR, { thick: 3 });
+  for (const y of [12, 49]) g.box(5, y, 13, 103, y + 1, 15, flat(KH[2]));
+  for (const x of [8, 99]) g.shape(x, 14, 15, x + 1, 48, 36, (a, b, c) => Math.abs(b - 31) <= 19 * (1 - (c - 15) / 18) - 2, cvW);
+  for (const x of [8, 99]) g.box(x, 30, 30, x + 1, 32, 36, woodPost);
+  // South wall rolled up between the poles: cots, blankets, a lantern hanging from the ridge.
+  g.erase(13, 47, 1, 95, 48, 14);
+  g.cylX(48.4, 14.2, 1.5, 12, 96, roll);
+  for (const x of [13, 33, 53, 73, 94]) { g.box(x, 47, 0, x + 1, 48, 15, woodPost); g.box(x - .5, 48, 12, x + 1.5, 49, 13, rope); }
+  // Lantern-lit interior: unshaded warm materials so the ward reads through the opening.
+  const lit = c => mat(() => c, { flat: true });
+  g.box(9, 30, 0, 99, 47, 1, lit(WD[2]));
+  for (const x of [16, 36, 56, 76]) {
+    cot(g, x, 18, 1, 13, 6);
+    g.box(x, 38, 1, x + 13, 44, 4, lit(ST[1])); g.box(x, 38, 4, x + 13, 44, 5, lit(CR[3])); g.box(x + 4, 38, 5, x + 13, 44, 6, lit(OL[3])); g.box(x, 39, 5, x + 3, 43, 6, lit(WH[4]));
   }
-  for (const [face, p] of [['w', 8], ['e', 183]]) { win(g, face, 28, p, 9, 8, 14, { frame: white }); win(g, face, 46, p, 9, 8, 14, { frame: white }); }
-  for (const x of [76, 108]) { win(g, 's', x, 67, 9, 8, 12, { frame: white }); win(g, 's', x, 67, 31, 8, 12, { frame: white, box: trimGreen, seed: x }); }
-  win(g, 's', 92, 67, 31, 8, 12, { frame: white });
-  for (const x of [78, 92, 106]) { win(g, 'n', x, 12, 9, 8, 12, { frame: white }); win(g, 'n', x, 12, 31, 8, 12, { frame: white }); }
-  chimney(g, 74, 20, 49, 72, 7, 7); chimney(g, 111, 20, 49, 72, 7, 7);
-  // Ambulance canopy (shallow so the doors stay visible) with HOSPITAL fascia.
-  doorOn(g, 's', 89, 67, 3, 14, 21, { leaf: planks(WH, 2, 4), frame: white }); g.box(95.5, 66, 3, 96.5, 67, 24, flat(WH[1]));
-  g.box(80, 68, 24, 112, 80, 26, white); g.box(80, 79, 22, 112, 80, 30, white); g.box(80, 79, 22, 112, 80, 23, red);
-  g.text('s', 81, 79, 28, 'HOSPITAL', RD[2]);
-  for (const x of [81, 110]) g.box(x, 77, 3, x + 2, 79, 22, white);
-  g.bitmap('s', 93, 67, 20 + 25, cross5, { r: RD[2] });
-  steps(g, 86, 106, 70, 2, base, 1, 2, 2);
-  // Ambulance bay markings, benches, wheelchair, beds and bushes.
-  g.box(72, 74, 0, 120, 112, 1, concrete(CN, 3, 8));
-  for (const x of [72, 119]) g.box(x, 82, 0, x + 1, 112, 1.2, flat(GD[3]));
-  g.text('u', 78, 100, 0, 'AMBULANCE', GD[3]);
-  for (const x of [20, 140]) bench(g, x, 65, 14);
-  for (const y of [70, 74]) g.shape(52, y, 0, 60, y + 1, 8, (a, b, c) => { const d = Math.hypot(a - 56, c - 4); return d <= 3.6 && d >= 2.6; }, flat(TP[1]));
-  g.box(53, 70, 4, 59, 75, 5, flat(CV[3])); g.box(53, 70, 5, 54, 75, 11, flat(CV[3]));
-  bed(g, 8, 66, 18, 72, 4, [WH[4], RD[3]]); bed(g, 160, 66, 184, 72, 6, [WH[4], GD[3], RD[3]]);
-  for (const [x, y] of [[4, 90], [188, 90], [64, 98], [128, 98]]) bush(g, x, y, 5, x + y, x % 3 ? FLOWERS : null);
+  g.box(54, 31, 25, 55, 32, 34, flat(ST[1])); g.box(53, 30, 21, 56, 33, 25, glow(WG[3]));
+  crossPanel(g, 54, 41, 12, 13, 9, 2.6, 21, 1.95);
+  // Reception tent end-on (ridge along y): door flaps tied back, cross on the gable, stove pipe.
+  g.box(113, 13, 0, 147, 75, 1, floor);
+  g.box(114, 14, 0, 146, 74, 15, cvW); g.erase(115, 15, 1, 145, 73, 15);
+  roofY(g, 12, 76, 111, 149, 15, 20, cvR2, { thick: 3 });
+  for (const x of [111, 148]) g.box(x, 12, 13, x + 1, 76, 15, flat(KH[2]));
+  for (const y of [14, 73]) g.shape(114, y, 15, 146, y + 1, 35, (a, b, c) => Math.abs(a - 130) <= 19 * (1 - (c - 15) / 20) - 2, cvW);
+  g.erase(124, 73, 1, 136, 74, 16);
+  for (const x of [121, 136]) { g.box(x, 74, 1, x + 3, 76, 16, roll); g.box(x, 76, 9, x + 3, 77, 10, rope); }
+  g.box(127, 73, 17, 134, 74, 24, xWhite); g.bitmap('s', 128, 73, 23, cross5, { r: XR[2] });
+  g.box(129, 66, 10, 131, 68, 13, glow(WG[3]));
+  g.cylZ(140, 26, 1.3, 20, 44, darkSteel); g.cylZ(140, 26, 2.4, 44, 45.5, flat(ST[1])); g.cylZ(140, 26, 2.6, 26, 27, flat(ST[3]));
+  // Guy ropes and stakes.
+  for (let x = 12; x <= 98; x += 17) for (const [ey, sy] of [[12, 4], [50, 56]]) { g.line(x, ey, 14, x, sy, 0, rope); g.box(x, sy, 0, x + 1, sy + 1, 2, woodDark); }
+  for (let y = 20; y <= 70; y += 16) for (const [ex, sx] of [[111, 106], [148, 154]]) { g.line(ex, y, 14, sx, y, 0, rope); g.box(sx, y, 0, sx + 1, y + 1, 2, woodDark); }
+  // Duckboards along the ward and down from the reception door.
+  duckboards(g, 6, 58, 124, 64, 'x'); duckboards(g, 125, 64, 135, 102, 'y');
+  // Red-cross ground sheet pegged out for aircraft.
+  g.box(12, 72, 0, 50, 100, 1, xWhite);
+  crossPanel(g, 31, 86, 18, 13, 12, 3.6, 23, 1);
+  for (const [x, y] of [[11, 71], [50, 71], [11, 100], [50, 100]]) g.box(x, y, 0, x + 1, y + 1, 2.5, woodDark);
+  // Stretchers (one casualty), medical crates, oxygen, lantern, flag, sign.
+  stretcher(g, 64, 70, true); stretcher(g, 64, 79); stretcher(g, 64, 88);
+  for (const [x, y, z] of [[140, 82, 0], [148, 82, 0], [143, 83, 6]]) medCrate(g, x, y, z, 8, 6, 6);
+  for (const x of [104, 107.5]) oxygen(g, x, 68, 12);
+  lanternPost(g, 118, 92, 22);
+  crossFlag(g, 154, 98, 34, ctx);
+  for (const x of [62, 116]) g.box(x, 107, 0, x + 1, 108, 12, woodPost);
+  board(g, 62, 108, 14, 55, 'FIELD HOSPITAL', XR[2], xWhite, xRed);
+  bagPile(g, 86, 104, 96, 2);
+  tufts(g, -6, -6, 166, 118, 14);
+}, { frames: 4, fps: 6, animated: true, margin: 10, overlay: both(smokeOverlay(140, 26, 46, 26), glowOverlay([[121, 92, 17, 6], [130, 70, 11, 5]])) });
+
+
+// Dodge WC-54 ambulance facing +y (12 x 24): olive box body with white red-cross squares on both
+// sides and the roof, cab, bonnet, dark windscreen, headlamps.
+const crossSq = ['wwwwwww', 'wwwrwww', 'wwwrwww', 'wrrrrrw', 'wwwrwww', 'wwwrwww', 'wwwwwww'];
+function ambulance(g, x, y) {
+  const od = mottled(OL, 2, 7, .7, .25), tyre = rubber;
+  for (const wy of [y + 5, y + 19]) { g.cylX(wy, 3, 3, x - .5, x + 12.5, tyre); g.cylX(wy, 3, 1.3, x - .6, x + 12.6, flat(ST[3])); }
+  g.box(x, y, 3, x + 12, y + 15, 17, od);
+  g.box(x + .5, y + 15, 3, x + 11.5, y + 19, 14, od); g.box(x + 1, y + 18, 9, x + 11, y + 19, 13, darkGlass);
+  g.box(x + 1, y + 19, 3, x + 11, y + 24, 9, od); g.box(x + 3, y + 23, 4, x + 9, y + 24, 8, flat(OL[1]));
+  for (const hx of [x + 1, x + 10]) g.box(hx, y + 23, 7, hx + 1, y + 24.5, 9, glow(WG[4]));
+  g.bitmap('e', x + 11, y + 11, 14, crossSq, { w: WH[4], r: XR[2] }); g.bitmap('w', x, y + 4, 14, crossSq, { w: WH[4], r: XR[2] });
+  g.bitmap('u', x + 2, y + 4, 16, crossSq, { w: WH[4], r: XR[2] });
+  g.box(x + 5.5, y, 4, x + 6.5, y + .5, 15, flat(OL[1]));
+}
+
+// ===== Station hospital (Odstock / 65th General style): tall brick admin block under a pyramid tile
+// roof with a red-cross panel, flag and chimneys; a brick ward wing west and a Nissen ward east, joined
+// by covered walkways on brick piers; HOSPITAL board, entrance canopy and lamps, ambulance in the bay,
+// wheelchair, benches, flower beds, bandages drying, smoke from every ward.
+def('bld_medical_hospital', 'World', [12, 7], 92, (g, ctx) => {
+  const wall = aged(brick(BR, 3, CN[4]), 19), plinth = mossFoot(concrete(CN, 2, 8), 19), base = concrete(CN, 3);
+  const tiles = mossy(rooftile(TL, 3, 'x'), .72, 19), white = aged(flat(WH[4]), 7), trim = flat(WH[3]);
+  // Admin block: two storeys, string course, pyramid roof.
+  g.box(72, 12, 0, 120, 60, 2, base);
+  g.box(74, 14, 0, 118, 58, 4, plinth);
+  g.box(74, 14, 4, 118, 58, 46, wall);
+  g.box(73, 13, 19, 119, 59, 21, white); g.box(73, 13, 44, 119, 59, 46, white);
+  for (const x of [74, 117]) g.paint(x, 57, 4, x + 1, 58, 44, flat(BR[1]));
+  hipRoof(g, 71, 11, 121, 61, 46, 22, tiles, white);
+  g.box(71, 60, 44, 121, 61, 45, xGut);
+  crossPanel(g, 96, 50, 11, 11, 8, 2.4, 31, 1.88);
+  chimney(g, 78, 30, 40, 66, 6, 6); chimney(g, 108, 30, 40, 66, 6, 6);
+  crossFlag(g, 96, 36, 80, ctx);
+  // Front: HOSPITAL board between the floors, entrance with canopy and lamps, windows.
+  doorOn(g, 's', 90, 57, 4, 12, 15, { leaf: planks(WH, 3, 4), frame: trim });
+  for (const x of [91, 97]) g.box(x, 56, 10, x + 4, 57, 15, warmGlass);
+  steps(g, 86, 106, 58, 2, base, 1, 2, 2);
+  g.box(86, 58, 18, 106, 63, 20, trim); g.box(86, 62, 16, 106, 63, 19, white);
+  g.bitmap('s', 94, 62, 19, ['  r  ', 'rrrrr', '  r  '], { r: XR[2] });
+  for (const x of [87, 104]) g.box(x, 61, 2, x + 1, 62, 18, trim);
+  board(g, 80, 58, 29, 32, 'HOSPITAL', XR[2], xWhite, xRed, 8);
+  lamp(g, 's', 84, 57, 11, trim); lamp(g, 's', 108, 57, 11, trim);
+  for (const x of [77, 109]) win(g, 's', x, 57, 7, 6, 10, { glass: x < 90 ? warmGlass : glass, frame: trim });
+  for (const x of [77, 88, 99, 110]) win(g, 's', x, 57, 32, 6, 9, { glass: x === 88 ? warmGlass : glass, frame: trim });
+  for (const x of [78, 92, 106]) { win(g, 'n', x, 14, 7, 7, 10, { frame: trim, tape: x === 92 }); win(g, 'n', x, 14, 32, 7, 9, { frame: trim }); }
+  // West ward: long brick wing, tall windows, chimney.
+  g.box(4, 20, 0, 64, 56, 2, base); g.box(6, 22, 0, 62, 54, 4, plinth);
+  g.box(6, 22, 4, 62, 54, 26, wall); g.box(5, 21, 24, 63, 55, 26, white);
+  roofX(g, 3, 65, 19, 57, 26, 17, tiles, { wall, w0: 6, w1: 62, inset: 3, barge: white, fascia: white, ridge: flat(TL[1]) });
+  g.box(3, 57, 24, 65, 58, 25, xGut); downpipe(g, 4, 54, 25);
+  for (let x = 10, k = 0; x < 58; x += 10, k++) { win(g, 's', x, 53, 7, 5, 14, { glass: k % 2 ? warmGlass : glass, frame: trim }); win(g, 'n', x, 22, 7, 5, 14, { frame: trim }); }
+  for (const y of [28, 42]) win(g, 'w', y, 6, 7, 6, 14, { frame: trim });
+  chimney(g, 30, 30, 26, 46, 6, 5);
+  // East ward: Nissen hut painted dark green, brick end wall with door, dormer windows, stove pipe.
+  const nis = paintedTin(NG, 3, 23);
+  g.box(130, 21, 0, 188, 55, 2, base);
+  g.vaultX(130, 184, 38, 16, 2, 22, nis);
+  g.vaultX(184, 186, 38, 14.6, 2, 20.6, wall); g.vaultX(183, 184, 38, 16.6, 2, 22.6, flat(NG[2]));
+  doorOn(g, 'e', 34, 185, 2, 8, 14, { leaf: planks(NG, 2, 4), frame: trim });
+  for (const [x, k] of [[138, 0], [156, 1], [172, 0]]) {
+    g.box(x, 47, 2, x + 10, 54, 14, flat(NG[3])); g.shed(x - 1, 45, x + 11, 55, 14, 2, 1, nis);
+    win(g, 's', x + 2, 53, 6, 6, 6, { glass: k ? warmGlass : glass, frame: trim });
+  }
+  for (const x of [144, 168]) g.box(x, 22, 2, x + 8, 26, 13, flat(NG[3]));
+  g.cylZ(162, 32, 1.3, 18, 31, darkSteel); g.cylZ(162, 32, 2.3, 31, 32.5, flat(ST[1]));
+  for (const y of [23, 53]) g.box(130, y, 0, 184, y + 1, 3, plinth);
+  // Covered walkways on brick piers.
+  for (const [x0, x1] of [[62, 74], [118, 130]]) {
+    g.box(x0, 40, 0, x1, 50, 1, base);
+    for (const x of [x0 + 1, x1 - 3]) for (const y of [40, 48]) g.box(x, y, 0, x + 2, y + 2, 13, brick(BR, 2));
+    g.box(x0, 39, 13, x1, 51, 15, tarpaper(TP, 3)); g.box(x0, 50, 13, x1, 51, 14, white);
+  }
+  // Grounds: ambulance bay, ambulance, wheelchair, benches, beds, bandages, bushes.
+  g.box(74, 66, 0, 118, 112, 1, concrete(CN, 3, 11));
+  for (const x of [74, 117]) g.box(x, 70, 0, x + 1, 112, 1.2, flat(GD[3]));
+  g.text('u', 79, 104, 0, 'AMBULANCE', GD[3]);
+  ambulance(g, 100, 72);
+  wheelchair(g, 77, 64);
+  bench(g, 14, 56, 14); bench(g, 40, 56, 14); bench(g, 160, 56, 14);
+  bed(g, 30, 57, 38, 61, 4, [WH[4], RD[3]]); bed(g, 132, 57, 156, 61, 6, [WH[4], GD[3], RD[3]]);
+  bandageLine(g, 8, 44, 90, 14, ctx);
+  for (const [x, y] of [[2, 100], [186, 98], [62, 104], [130, 102], [186, 66]]) bush(g, x, y, 5, x + y, x % 3 ? FLOWERS : null);
   tufts(g, -6, -6, 198, 118, 15);
-});
+}, { frames: 4, fps: 6, animated: true, margin: 8, overlay: both(smokeOverlay(81, 33, 69, 30), smokeOverlay(33, 32.5, 49, 26), smokeOverlay(162, 32, 33, 24), glowOverlay([[85, 60, 14, 5], [109, 60, 14, 5]])) });
+
 
 // ===== Chapel: white weatherboard nave, slate roof, front bell tower with spire, lancets, picket fence.
 def('bld_chapel', 'World', [6, 9], 136, g => {

@@ -28,6 +28,7 @@ namespace PixelVocabFlight
 
         private void UpdateActor(Actor actor, float x, float y, Facing facing, bool moving, bool running, bool talking, float delta)
         {
+            if (UpdatePose(actor, x, y)) return;
             running &= moving;
             bool isPlayer = actor == player;
             string sprite = CharacterSprite(actor, facing, moving, running, talking, out bool stride);
@@ -83,12 +84,12 @@ namespace PixelVocabFlight
         }
 
         // Characters: the anchor pixel (centre of the feet) lands on the feet point, snapped to whole art pixels.
-        private static void Place(RectTransform rect, string sprite, float x, float y)
+        private void Place(RectTransform rect, string sprite, float x, float y)
         {
             var size = PixelSprites.Size(sprite, 1);
             var anchor = AnchorOf(sprite, size, new Vector2(12, 30));
-            rect.sizeDelta = size * Scale;
-            rect.anchoredPosition = new Vector2(Snap(x * TileSize - anchor.x * Scale), -Snap(y * TileSize - anchor.y * Scale));
+            rect.sizeDelta = size * scale;
+            rect.anchoredPosition = new Vector2(Snap(x * tileSize - anchor.x * scale), -Snap(y * tileSize - anchor.y * scale));
         }
 
         // Characters slot in after every static model whose sort key is <= their feet Y.

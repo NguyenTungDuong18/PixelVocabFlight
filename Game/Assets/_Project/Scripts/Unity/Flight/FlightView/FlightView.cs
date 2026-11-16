@@ -52,6 +52,8 @@ namespace PixelVocabFlight
         // 0.15: the walkable airbase (main screen) and its dialogue box.
         public BaseView Base { get; }
         public DialogueView Dialogue { get; }
+        public StoryView Story { get; }
+        public MenuView Menu { get; }
         public bool TakeOffVisible => airfieldWorld;
         public bool OverlayVisible => overlay.gameObject.activeSelf;
         public bool PartOfSpeechOpen => pos.transform.Find("Dropdown List") != null;
@@ -139,7 +141,7 @@ namespace PixelVocabFlight
             focusButton.transition = Selectable.Transition.None; focusButton.navigation = new Navigation { mode = Navigation.Mode.None };
             focusButton.onClick.AddListener(game.FocusTyping);
             UiKit.Label(">", inputFrame.transform, 14, -1, 20, 52, 20, Brass, true, TextAnchor.MiddleCenter);
-            inputText = UiKit.Label("", inputFrame.transform, 38, -1, 436, 52, 22, UiKit.Cream);
+            inputText = UiKit.English(UiKit.Label("", inputFrame.transform, 38, -1, 436, 52, 22, UiKit.Cream));
             inputText.horizontalOverflow = HorizontalWrapMode.Overflow;
             placeholder = UiKit.Label("NHẬP ĐỂ BẮN", inputFrame.transform, 38, -1, 436, 52, 18, UiKit.Muted);
             caret = UiKit.Box("Caret", inputFrame.transform, 38, 14, 4, 24, Brass);
@@ -158,6 +160,10 @@ namespace PixelVocabFlight
             // Walkable base above the flight layers; menus, results and the take-off use the overlay on top of it.
             Base = new BaseView(root, (RectTransform)canvas.transform);
             Dialogue = new DialogueView(Base.Root, game);
+            // Story (Act 0): its own opaque layer with a BaseView for the rooms and a DialogueView, above the base.
+            var shell = CreateShell();
+            Story = new StoryView(shell, (RectTransform)shellCanvas.transform, game);
+            Menu = new MenuView(shell, game);
 
             overlay = UiKit.Box("Overlay", root, 0, 0, 1440, 900, new Color(.07f, .085f, .065f, 1f)).rectTransform;
             overlay.GetComponent<Image>().raycastTarget = true;
@@ -214,11 +220,14 @@ namespace PixelVocabFlight
         public bool Capture(string path)
         {
             var camera = Camera.main; var previousMode = canvas.renderMode; var previousCamera = canvas.worldCamera;
+            // The story canvas (overlay) is rendered by the same camera while capturing.
+            var shellMode = shellCanvas.renderMode; var shellCamera = shellCanvas.worldCamera;
             var previousTarget = camera.targetTexture; var previousActive = RenderTexture.active;
             var targetTexture = RenderTexture.GetTemporary(1280, 800, 24, RenderTextureFormat.ARGB32); Texture2D image = null;
             try
             {
                 canvas.renderMode = RenderMode.ScreenSpaceCamera; canvas.worldCamera = camera; canvas.planeDistance = 1; camera.targetTexture = targetTexture;
+                shellCanvas.renderMode = RenderMode.ScreenSpaceCamera; shellCanvas.worldCamera = camera; shellCanvas.planeDistance = 1;
                 Canvas.ForceUpdateCanvases(); var request = new UniversalRenderPipeline.SingleCameraRequest { destination = targetTexture };
                 if (RenderPipeline.SupportsRenderRequest(camera, request)) RenderPipeline.SubmitRenderRequest(camera, request); else camera.Render();
                 RenderTexture.active = targetTexture; image = new Texture2D(1280, 800, TextureFormat.RGB24, false);
@@ -227,7 +236,7 @@ namespace PixelVocabFlight
             catch (Exception exception) { Debug.LogException(exception); return false; }
             finally
             {
-                canvas.renderMode = previousMode; canvas.worldCamera = previousCamera; camera.targetTexture = previousTarget; RenderTexture.active = previousActive;
+                canvas.renderMode = previousMode; canvas.worldCamera = previousCamera; shellCanvas.renderMode = shellMode; shellCanvas.worldCamera = shellCamera; camera.targetTexture = previousTarget; RenderTexture.active = previousActive;
                 RenderTexture.ReleaseTemporary(targetTexture); if (image) UnityEngine.Object.Destroy(image);
             }
         }

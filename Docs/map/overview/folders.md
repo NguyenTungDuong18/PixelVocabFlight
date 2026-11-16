@@ -10,15 +10,19 @@ PixelVocabFlight/
 ├─ Docs/
 │  ├─ 00-Codebase-Map.md     mục lục (đọc trước)
 │  ├─ map/<mảng>/<chủ đề>.md bản đồ chi tiết, mỗi file một chủ đề
+│  ├─ design/                kịch bản, bản đồ thế giới, định hướng mỹ thuật (thiết kế, chưa phải code)
 │  └─ history/NN-*.md        báo cáo từng phiên bản
 ├─ Builds/Windows/Wordwing.exe          (gitignore)
 ├─ SourceAssets/             nguồn KHÔNG vào build
 │  ├─ PixelArt/Pixel1944/    contact sheet do PixelForge sinh
 │  ├─ PixelArt/{Ocean,Prepared,UserSelected,War1944}/   ảnh gốc cũ, prompt
+│  ├─ Blender/OpeningHands/  G-buffer tay cảnh mở do Tools/BlenderForge/render.cjs sinh (forge đọc)
 │  └─ Vocabulary/Oxford/     dữ liệu Oxford thô + từ điển
 ├─ Tools/
 │  ├─ Build-Windows.ps1, Test-Windows.ps1
 │  ├─ PixelForge/            forge.cjs + module; module lớn có thư mục con world/ characters/ units/ ui/ terrain/
+│  │  └─ cinema/             bộ dựng phim mở màn (film.cjs; không do forge gọi), xem art/cinema.md
+│  ├─ BlenderForge/          render.cjs + opening_hands.py + makehuman/ (lưới tay CC0) cho tay cảnh mở
 │  ├─ RulesChecks/           Program.cs, InteractionChecks.cs, Combat/, World/
 │  ├─ UnityCompileChecks/(+ Logic/)
 │  ├─ Vocabulary/            Prepare-Oxford, Build-Oxford, Generate-Pronunciation, PdfAudit/
@@ -46,6 +50,7 @@ PixelVocabFlight/
          │     └─ Data/      VocabularyCatalog, ProfileStore
          ├─ Editor/          PrototypeBuild, SelectedArtImporter
          ├─ Art/Resources/Pixel/   SINH TỰ ĐỘNG, xem art/sprite-folders.md
+         ├─ Art/Resources/Cinema/title_intro.bytes   SINH TỰ ĐỘNG bởi Tools/PixelForge/cinema/film.cjs
          ├─ Art/Resources/Fonts/VT323-Regular.ttf
          ├─ Audio/Pronunciation/US/Resources/Pronunciation/<a..z|_>/<audioKey>.wav  (4.998 file)
          └─ Data/Vocabulary/Resources/{oxford-vocabulary.json, prototype-vocabulary.json}
@@ -60,6 +65,7 @@ PixelVocabFlight/
 | Chế độ chơi mới | cặp thư mục `Logic/<Mode>/` + `Unity/<Mode>/`, và một file `Docs/map/{logic,unity}/<mode>.md` |
 | Sprite, model, nhân vật | sửa `Tools/PixelForge/*.cjs` (không thêm PNG tay); thư mục con tự chọn theo tên |
 | Ảnh gốc, prompt | `SourceAssets/PixelArt/` |
+| Sprite vẽ tay (LibreSprite/Aseprite, thay bản code) | `SourceAssets/Aseprite/<thư mục sprite>/<tên>.ase` (`art/add-sprites.md`) |
 | Dữ liệu từ | `SourceAssets/Vocabulary/`, rồi chạy pipeline (`data/vocabulary-pipeline.md`) |
 | Báo cáo phiên bản | `Docs/history/NN-*.md` |
 

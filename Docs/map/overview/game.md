@@ -1,6 +1,6 @@
 # Game là gì
 
-**WORDWING** là game bắn máy bay pixel art phong cách Thế chiến II (1944), nhìn từ trên xuống, dùng để học từ vựng Oxford 5000. Tên hiển thị: **WORDWING**. Thư mục dự án: `PixelVocabFlight`. Namespace C#: `PixelVocabFlight` (editor: `PixelVocabFlight.Editor`). Giao diện toàn bộ bằng tiếng Việt.
+**WORDWING** là game bắn máy bay pixel art phong cách Thế chiến II (1944), nhìn từ trên xuống, dẫn dắt bằng cốt truyện. Chế độ bay gõ từ Oxford 5000 mô tả dưới đây là luật hiện có trong code; theo thiết kế mới nó chỉ còn là một mini game (Buồng tập Link), còn mỗi màn bay trong truyện có cơ chế riêng (chưa code, xem `C:\Users\Admin\Documents\Obsidian Vault\story\Màn bay - Luật chơi.md`). Tên hiển thị: **WORDWING**. Thư mục dự án: `PixelVocabFlight`. Namespace C#: `PixelVocabFlight` (editor: `PixelVocabFlight.Editor`). Giao diện toàn bộ bằng tiếng Việt.
 
 ## Căn cứ (màn chính từ 0.15, góc nhìn 3/4 kiểu RPG)
 

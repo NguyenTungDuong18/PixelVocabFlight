@@ -6,7 +6,8 @@ internal static partial class WorldChecks
     private static void CheckModels()
     {
         // --- Model catalogue ---
-        Check(WorldModels.All.Count == 43 && WorldModels.All.Select(m => m.Id).Distinct().Count() == 43, "43 world models with unique ids");
+        // 43 airbase models (the contract table) plus the Act 0 dormitory models, checked in StoryChecks.
+        Check(Contract.Length == 43 && WorldModels.All.Count >= 43 && WorldModels.All.Select(m => m.Id).Distinct().Count() == WorldModels.All.Count, "43 airbase world models and unique ids");
         foreach (var m in WorldModels.All)
             Check(m.FootW > 0 && m.FootH > 0 && !string.IsNullOrWhiteSpace(m.Name) && m.Frames > 0, "model footprint, name and frames: " + m.Id);
         foreach (var c in Contract)
@@ -53,7 +54,7 @@ internal static partial class WorldChecks
         Check(map.Placements.Count(p => p.Tag == MapDef.PlayerAircraftTag) == 1, "exactly one player-aircraft placement");
         var skylark = map.FindTag(MapDef.PlayerAircraftTag);
         Check(skylark.Model == "air_fighter" && skylark.Facing == Facing.E && skylark.DisplayName == "SKYLARK MK.I", "player aircraft is a SKYLARK facing east");
-        foreach (var m in WorldModels.All) Check(map.Placements.Any(p => p.Model == m.Id), "airbase shows model: " + m.Id);
+        foreach (var c in Contract) Check(map.Placements.Any(p => p.Model == c.id), "airbase shows model: " + c.id);
         Check(map.Placements.Count(p => p.Model == "bld_hangar" && p.Facing == Facing.E) == 2, "two hangars facing the apron");
         Check(map.Placements.Count(p => p.Model == "bld_watchtower") == 4 && map.Placements.Count(p => p.Model == "bld_aa_emplacement") >= 3, "watchtowers and AA sites");
         Check(map.Find("academy").Facing == Facing.S && map.Find("hq").Facing == Facing.S, "academy and HQ face south");

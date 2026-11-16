@@ -12,8 +12,9 @@ namespace PixelVocabFlight
 {
     public sealed partial class FlightGame : MonoBehaviour
     {
-        // Base = walkable airbase (main screen). Vocabulary = word-set screen opened from the professor.
-        private enum Mode { Base, Vocabulary, Launching, Intro, Flying, Paused, Dying, Results, Error }
+        // Boot = the intro, Menu = main menu and its pages (FlightGame.Menu.cs). Story = Act 0 (the game starts: Boot, Menu, Story). Base = walkable airbase (legacy; --legacy and --smoke-test start here).
+        // Vocabulary = word-set screen opened from the professor.
+        private enum Mode { Base, Vocabulary, Launching, Intro, Flying, Paused, Dying, Results, Error, Story, Boot, Menu }
         public const float IntroSeconds = 1.4f;
         private float introTime;
         private VocabularyEntry[] launchPool;
@@ -67,9 +68,12 @@ namespace PixelVocabFlight
                 dialogue = new DialogueRunner(BaseContent.Dialogues);
                 view.Base.Build(world);
                 audioPlayer = gameObject.AddComponent<FlightAudio>(); audioPlayer.Initialize(catalog.Entries);
+                LoadProfile();   // settings.json (volumes, Full HD full screen) and the three story save slots
                 keyboard = smokeMode ? InputSystem.AddDevice<Keyboard>("Wordwing QA keyboard") : Keyboard.current;
                 if (keyboard != null) keyboard.onTextInput += ReceiveCharacter;
-                EnterBase(true, false);
+                // Normal start = the story. The old airbase and sorties: --legacy; --smoke-test runs them first, then the story.
+                bool legacy = Array.IndexOf(System.Environment.GetCommandLineArgs(), "--legacy") >= 0;
+                if (smokeMode || legacy) EnterBase(true, false); else EnterBoot();
                 if (smokeMode) StartCoroutine(SmokeTest());
             }
             catch (Exception exception) { SetMode(Mode.Error); view.ShowError(exception.Message); Debug.LogException(exception); if (smokeMode) Application.Quit(1); }
@@ -78,8 +82,15 @@ namespace PixelVocabFlight
         private void OnDestroy() { if (keyboard != null) keyboard.onTextInput -= ReceiveCharacter; Time.timeScale = 1; Cursor.visible = true; }
         private void OnApplicationFocus(bool focused) { if (!focused && mode == Mode.Flying && !smokeMode) TogglePause(); }
 
-        // The base is only drawn (and only takes input) in Mode.Base.
-        private void SetMode(Mode value) { mode = value; if (view != null) view.Base.Visible = value == Mode.Base; }
+        // The base is only drawn (and only takes input) in Mode.Base; the story in Mode.Story.
+        private void SetMode(Mode value)
+        {
+            mode = value;
+            if (view == null) return;
+            view.Base.Visible = value == Mode.Base; view.Story.Visible = value == Mode.Story;
+            // The intro and the menus are drawn by view.Menu; every other mode hides it (the story pause page is the exception).
+            if (value != Mode.Boot && value != Mode.Menu && !(value == Mode.Story && storyPaused)) view.Menu.Hide();
+        }
 
         private bool Pressed(params Key[] keys)
         {
@@ -100,6 +111,9 @@ namespace PixelVocabFlight
             if (view == null) return;
             bool escape = keyboard != null && keyboard.escapeKey.wasPressedThisFrame;
             if (mode == Mode.Base) { UpdateBase(escape); return; }
+            if (mode == Mode.Story) { UpdateStory(); return; }
+            if (mode == Mode.Boot) { UpdateBoot(); return; }
+            if (mode == Mode.Menu) { UpdateMenu(); return; }
             if (escape) TogglePause();
             if (mode == Mode.Vocabulary || mode == Mode.Error) return;
             if (mode == Mode.Results)

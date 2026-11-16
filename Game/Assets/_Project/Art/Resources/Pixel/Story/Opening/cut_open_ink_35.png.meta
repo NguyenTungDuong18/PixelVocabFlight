@@ -1,0 +1,1132 @@
+fileFormatVersion: 2
+guid: b3d8b785c41e9da4c94e4501069f6c96
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 2390590821094249258
+    second: cut_open_ink_35_0
+  - first:
+      213: 8077296213020179528
+    second: cut_open_ink_35_1
+  - first:
+      213: 3961595452242403149
+    second: cut_open_ink_35_2
+  - first:
+      213: 802786841467544065
+    second: cut_open_ink_35_3
+  - first:
+      213: -1141419650819374125
+    second: cut_open_ink_35_4
+  - first:
+      213: 1869828665001939720
+    second: cut_open_ink_35_5
+  - first:
+      213: 6440853415948849853
+    second: cut_open_ink_35_6
+  - first:
+      213: -3699739830392690585
+    second: cut_open_ink_35_7
+  - first:
+      213: 1338720932399822417
+    second: cut_open_ink_35_8
+  - first:
+      213: 3983283899061748331
+    second: cut_open_ink_35_9
+  - first:
+      213: -8409399225866457570
+    second: cut_open_ink_35_10
+  - first:
+      213: 6003722071493211338
+    second: cut_open_ink_35_11
+  - first:
+      213: 2049905067986897489
+    second: cut_open_ink_35_12
+  - first:
+      213: -2931086816048789173
+    second: cut_open_ink_35_13
+  - first:
+      213: 5755762970801554335
+    second: cut_open_ink_35_14
+  - first:
+      213: 928073911792424110
+    second: cut_open_ink_35_15
+  - first:
+      213: 3789499954588397980
+    second: cut_open_ink_35_16
+  - first:
+      213: -1966299483837225995
+    second: cut_open_ink_35_17
+  - first:
+      213: 5682709460628626659
+    second: cut_open_ink_35_18
+  - first:
+      213: 4145190875631681666
+    second: cut_open_ink_35_19
+  - first:
+      213: -6373919736126780888
+    second: cut_open_ink_35_20
+  - first:
+      213: 4468055672942470037
+    second: cut_open_ink_35_21
+  - first:
+      213: 4019809436044220029
+    second: cut_open_ink_35_22
+  - first:
+      213: -3999702317114613054
+    second: cut_open_ink_35_23
+  - first:
+      213: -3621165849018898103
+    second: cut_open_ink_35_24
+  - first:
+      213: 923085664107323941
+    second: cut_open_ink_35_25
+  - first:
+      213: -4942253947626141363
+    second: cut_open_ink_35_26
+  - first:
+      213: 7970831089887596386
+    second: cut_open_ink_35_27
+  - first:
+      213: 40797477736931874
+    second: cut_open_ink_35_28
+  - first:
+      213: 5752031147889571080
+    second: cut_open_ink_35_29
+  - first:
+      213: -6992904224471252812
+    second: cut_open_ink_35_30
+  - first:
+      213: -5758918319198336950
+    second: cut_open_ink_35_31
+  - first:
+      213: -5637902206985775695
+    second: cut_open_ink_35_32
+  - first:
+      213: 2156790458200102620
+    second: cut_open_ink_35_33
+  - first:
+      213: 6575014785169466776
+    second: cut_open_ink_35_34
+  - first:
+      213: -2435650574111639068
+    second: cut_open_ink_35_35
+  - first:
+      213: -5149561677309087070
+    second: cut_open_ink_35_36
+  - first:
+      213: 3943442778858728775
+    second: cut_open_ink_35_37
+  - first:
+      213: 270065250437273216
+    second: cut_open_ink_35_38
+  - first:
+      213: -8627949208180443956
+    second: cut_open_ink_35_39
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 1
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 16
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationMethod: 0
+  spriteTessellationDetail: -1
+  spriteGeometrySubdivision: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: cut_open_ink_35_0
+      rect:
+        serializedVersion: 2
+        x: 41
+        y: 126
+        width: 14
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a23d1a69fa51d2120800000000000000
+      internalID: 2390590821094249258
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: cut_open_ink_35_1
+      rect:
+        serializedVersion: 2
+        x: 57
+        y: 142
+        width: 11
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 84cfca24c12581070800000000000000
+      internalID: 8077296213020179528
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: cut_open_ink_35_2
+      rect:
+        serializedVersion: 2
+        x: 63
+        y: 144
+        width: 11
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d4f16ba031a6af630800000000000000
+      internalID: 3961595452242403149
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: cut_open_ink_35_3
+      rect:
+        serializedVersion: 2
+        x: 84
+        y: 142
+        width: 14
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 102e7040162142b00800000000000000
+      internalID: 802786841467544065
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: cut_open_ink_35_4
+      rect:
+        serializedVersion: 2
+        x: 116
+        y: 126
+        width: 10
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3d3c24500ecd820f0800000000000000
+      internalID: -1141419650819374125
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: cut_open_ink_35_5
+      rect:
+        serializedVersion: 2
+        x: 127
+        y: 142
+        width: 10
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 80398489347f2f910800000000000000
+      internalID: 1869828665001939720
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: cut_open_ink_35_6
+      rect:
+        serializedVersion: 2
+        x: 138
+        y: 126
+        width: 6
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: db21ef38e02826950800000000000000
+      internalID: 6440853415948849853
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: cut_open_ink_35_7
+      rect:
+        serializedVersion: 2
+        x: 152
+        y: 126
+        width: 9
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7686410f932e7acc0800000000000000
+      internalID: -3699739830392690585
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: cut_open_ink_35_8
+      rect:
+        serializedVersion: 2
+        x: 161
+        y: 126
+        width: 15
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 156321d5897149210800000000000000
+      internalID: 1338720932399822417
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: cut_open_ink_35_9
+      rect:
+        serializedVersion: 2
+        x: 175
+        y: 126
+        width: 15
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b62cb131a97774730800000000000000
+      internalID: 3983283899061748331
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: cut_open_ink_35_10
+      rect:
+        serializedVersion: 2
+        x: 179
+        y: 143
+        width: 8
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e1ee8cf75ffcb4b80800000000000000
+      internalID: -8409399225866457570
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: cut_open_ink_35_11
+      rect:
+        serializedVersion: 2
+        x: 220
+        y: 126
+        width: 12
+        height: 28
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ac476893a61815350800000000000000
+      internalID: 6003722071493211338
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: cut_open_ink_35_12
+      rect:
+        serializedVersion: 2
+        x: 235
+        y: 142
+        width: 10
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 15ac1a86cc9b27c10800000000000000
+      internalID: 2049905067986897489
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: cut_open_ink_35_13
+      rect:
+        serializedVersion: 2
+        x: 240
+        y: 146
+        width: 8
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b49c4930210b257d0800000000000000
+      internalID: -2931086816048789173
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: cut_open_ink_35_14
+      rect:
+        serializedVersion: 2
+        x: 267
+        y: 126
+        width: 10
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f9349f53de390ef40800000000000000
+      internalID: 5755762970801554335
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: cut_open_ink_35_15
+      rect:
+        serializedVersion: 2
+        x: 286
+        y: 126
+        width: 19
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ea4d1bd3e4e21ec00800000000000000
+      internalID: 928073911792424110
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: cut_open_ink_35_16
+      rect:
+        serializedVersion: 2
+        x: 290
+        y: 142
+        width: 6
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c91b99d8122079430800000000000000
+      internalID: 3789499954588397980
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: cut_open_ink_35_17
+      rect:
+        serializedVersion: 2
+        x: 313
+        y: 126
+        width: 7
+        height: 28
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5f329df890d46b4e0800000000000000
+      internalID: -1966299483837225995
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: cut_open_ink_35_18
+      rect:
+        serializedVersion: 2
+        x: 324
+        y: 142
+        width: 7
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3ec558a652a0dde40800000000000000
+      internalID: 5682709460628626659
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: cut_open_ink_35_19
+      rect:
+        serializedVersion: 2
+        x: 356
+        y: 143
+        width: 8
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2808734a32da68930800000000000000
+      internalID: 4145190875631681666
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: cut_open_ink_35_20
+      rect:
+        serializedVersion: 2
+        x: 403
+        y: 142
+        width: 7
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 82acf4d35c94b87a0800000000000000
+      internalID: -6373919736126780888
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: cut_open_ink_35_21
+      rect:
+        serializedVersion: 2
+        x: 424
+        y: 126
+        width: 17
+        height: 28
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 593a76636f8b10e30800000000000000
+      internalID: 4468055672942470037
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: cut_open_ink_35_22
+      rect:
+        serializedVersion: 2
+        x: 55
+        y: 126
+        width: 12
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d76dd2c526b39c730800000000000000
+      internalID: 4019809436044220029
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: cut_open_ink_35_23
+      rect:
+        serializedVersion: 2
+        x: 68
+        y: 127
+        width: 7
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2c2a3151fe33e78c0800000000000000
+      internalID: -3999702317114613054
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: cut_open_ink_35_24
+      rect:
+        serializedVersion: 2
+        x: 82
+        y: 126
+        width: 14
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 949e37898d80fbdc0800000000000000
+      internalID: -3621165849018898103
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: cut_open_ink_35_25
+      rect:
+        serializedVersion: 2
+        x: 96
+        y: 115
+        width: 12
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5226f5255857fcc00800000000000000
+      internalID: 923085664107323941
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: cut_open_ink_35_26
+      rect:
+        serializedVersion: 2
+        x: 125
+        y: 126
+        width: 12
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d49c8f54836996bb0800000000000000
+      internalID: -4942253947626141363
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: cut_open_ink_35_27
+      rect:
+        serializedVersion: 2
+        x: 187
+        y: 126
+        width: 12
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 26fc36d15a41e9e60800000000000000
+      internalID: 7970831089887596386
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: cut_open_ink_35_28
+      rect:
+        serializedVersion: 2
+        x: 200
+        y: 116
+        width: 13
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 222ed300711f09000800000000000000
+      internalID: 40797477736931874
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: cut_open_ink_35_29
+      rect:
+        serializedVersion: 2
+        x: 232
+        y: 126
+        width: 15
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 805b0fa7ad153df40800000000000000
+      internalID: 5752031147889571080
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: cut_open_ink_35_30
+      rect:
+        serializedVersion: 2
+        x: 247
+        y: 126
+        width: 14
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4b0001868a634fe90800000000000000
+      internalID: -6992904224471252812
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: cut_open_ink_35_31
+      rect:
+        serializedVersion: 2
+        x: 276
+        y: 126
+        width: 11
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a4881bdfc463410b0800000000000000
+      internalID: -5758918319198336950
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: cut_open_ink_35_32
+      rect:
+        serializedVersion: 2
+        x: 299
+        y: 126
+        width: 7
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1b5d83a40d522c1b0800000000000000
+      internalID: -5637902206985775695
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: cut_open_ink_35_33
+      rect:
+        serializedVersion: 2
+        x: 320
+        y: 126
+        width: 14
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cd618fb9e757eed10800000000000000
+      internalID: 2156790458200102620
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: cut_open_ink_35_34
+      rect:
+        serializedVersion: 2
+        x: 341
+        y: 126
+        width: 11
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 895a7f67c152f3b50800000000000000
+      internalID: 6575014785169466776
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: cut_open_ink_35_35
+      rect:
+        serializedVersion: 2
+        x: 352
+        y: 126
+        width: 13
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4e9791d15b4d23ed0800000000000000
+      internalID: -2435650574111639068
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: cut_open_ink_35_36
+      rect:
+        serializedVersion: 2
+        x: 366
+        y: 126
+        width: 14
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2a2f60320f41988b0800000000000000
+      internalID: -5149561677309087070
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: cut_open_ink_35_37
+      rect:
+        serializedVersion: 2
+        x: 386
+        y: 126
+        width: 15
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 74d24f9605ce9b630800000000000000
+      internalID: 3943442778858728775
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: cut_open_ink_35_38
+      rect:
+        serializedVersion: 2
+        x: 403
+        y: 126
+        width: 7
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0869d761ae67fb300800000000000000
+      internalID: 270065250437273216
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: cut_open_ink_35_39
+      rect:
+        serializedVersion: 2
+        x: 410
+        y: 126
+        width: 12
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cc4ba4278ed534880800000000000000
+      internalID: -8627949208180443956
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable: {}
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

@@ -2,7 +2,8 @@
 name: ww-view
 description: Chuyên gia phía Unity của WORDWING. Dùng khi cần sửa FlightGame (state machine, phím, DrainEvents), giao diện dựng bằng code (FlightView, UiKit, VocabularySetupView, cockpit, hangar, cất cánh, intro, pause, kết quả), sân chơi FlightBoardView, nền và wildlife, âm thanh FlightAudio, lưu hồ sơ ProfileStore, editor build, và smoke test FlightGame.Verification.
 tools: Read, Edit, Write, Grep, Glob, Bash, PowerShell
-model: inherit
+model: sonnet
+effort: high
 ---
 
 Bạn là kỹ sư Unity của game WORDWING (dự án `C:\Users\Admin\Downloads\PixelVocabFlight`, gọi tắt là gốc dự án). Bạn được agent điều phối giao một phần việc kèm "hợp đồng". Các agent khác (luật chơi, pixel art) có thể đang sửa file của họ cùng lúc theo đúng hợp đồng đó, nên hãy dùng chính xác tên field, sự kiện, sprite và tọa độ đã chốt, kể cả khi file của họ chưa có sẵn lúc bạn đọc.

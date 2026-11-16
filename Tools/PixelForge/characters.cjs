@@ -14,7 +14,7 @@ require('./characters/masks.cjs');
 require('./characters/body.cjs');
 const { renderFront, renderSide } = require('./characters/figure.cjs');
 const {
-  frames, talkFrames, workFrames, DUST_W, DUST_ANCHOR, dustFrames, shadowFrame, questMarkerFrames
+  frames, talkFrames, workFrames, sitFrames, handsFrames, DUST_W, DUST_ANCHOR, dustFrames, shadowFrame, questMarkerFrames
 } = require('./characters/cycles.cjs');
 const { portrait } = require('./characters/portraits.cjs');
 
@@ -55,7 +55,7 @@ function charactersSheet(all) {
   x += gap;
   if (all.engineer) for (const d of 'senw') { for (const f of all.engineer['work_' + d]) { put(f, x, ty); x += cell; } x += gap; }
   x += gap;
-  for (const f of questMarkerFrames()) { sheet.blit(f.scaled(SC), x, ty); x += 8 * SC + 6; }
+  for (const f of questMarkerFrames()) { sheet.blit(f.scaled(SC), x, ty); x += f.w * SC + 6; }
   x += gap;
   for (const f of dustFrames()) { sheet.blit(f.scaled(SC * 2), x, ty + 8); x += DUST_W * SC * 2 + 6; }
   return sheet;
@@ -77,6 +77,8 @@ function buildAll() {
     for (const d of 'senw') for (const k of ['idle', 'walk', 'run']) A[k + '_' + d] = frames(P, d, k);
     if (id === 'professor') A.talk_s = talkFrames(P);
     if (id === 'engineer') for (const d of 'senw') A['work_' + d] = workFrames(P, d);
+    if (id === 'pilot_young' || id === 'daan') A.sit_s = sitFrames(P);
+    if (id === 'pilot_young') A.hands_s = handsFrames(P);
     out[id] = A;
   }
   return out;
@@ -111,9 +113,11 @@ function build(add) {
     }
     if (A.talk_s) add('Characters', `chr_${id}_talk_s`, A.talk_s, opt(6));
     if (A.work_s) for (const d of 'senw') add('Characters', `chr_${id}_work_${d}`, A['work_' + d], opt(10));
+    if (A.sit_s) add('Characters', `chr_${id}_sit_s`, A.sit_s, opt(5));
+    if (A.hands_s) add('Characters', `chr_${id}_hands_s`, A.hands_s, opt(8));
   }
   add('Characters', 'chr_shadow', [shadowFrame()], opt(1));
-  add('Effects', 'fx_quest_marker', questMarkerFrames(), { fps: 8, loop: true });
+  add('Effects', 'fx_quest_marker', questMarkerFrames(), { fps: 10, loop: true });
   add('Effects', 'fx_dust', dustFrames(), { fps: 14, loop: false, anchor: DUST_ANCHOR });
   for (const [id, f] of Object.entries(ports)) add('Portraits', `portrait_${id}`, f, { fps: 4, loop: true });
   writePreviews(PREVIEW, all, ports).catch(e => { console.error('characters preview failed', e); process.exitCode = 1; });

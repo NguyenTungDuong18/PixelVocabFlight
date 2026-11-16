@@ -1,10 +1,13 @@
 'use strict';
 // Units: rocket cruise and boost frames.
-const { PAL, K, hash, dither, Canvas } = require('../lib.cjs');
+const { PAL, K, Canvas } = require('../lib.cjs');
+const { paint } = require('../pfx.cjs');
+const { rgb } = require('../pfx.cjs').core;
+const { FIRE, streak } = require('../pfx.cjs').kit;
 const { GD, ST, RD, FI } = PAL;
 
 // ---------------- Rocket (12x36) ----------------
-function rocketFrames(hot = false) {
+function rocketBody(hot) {
   const tone = hot ? RD : ST;
   const body = new Canvas(12, 36);
   for (let y = 3; y < 25; y++) for (let x = 4; x < 8; x++) body.put(x, y, x === 5 ? tone[3] : x === 7 ? tone[1] : tone[2]);
@@ -17,41 +20,43 @@ function rocketFrames(hot = false) {
   body.put(0, 22, RD[3]); body.put(11, 22, RD[3]); body.put(0, 21, RD[3]); body.put(11, 21, RD[3]);
   body.put(5, 25, ST[0]); body.put(6, 25, ST[0]);
   body.bevel(1, -1).outline(K);
-  return [6, 9, 7, 10].map((len, f) => {
-    const c = body.clone();
-    for (let y = 26; y < 26 + len && y < 36; y++) {
-      const t = (y - 26) / len;
-      for (let x = 3; x < 9; x++) {
-        const d = Math.abs(x + .5 - 6);
-        let col = null;
-        if (d <= .5 && t < .35) col = FI[4]; else if (d <= 1 && t < .65) col = FI[3]; else if (d <= 1.5 && t < .9) col = FI[2]; else if (d <= 2 && t < .4) col = FI[1];
-        if (col && t > .5 && !dither(x, y + f, 1.3 - t)) col = null;
-        if (col) c.put(x, y, col);
-      }
-    }
-    return c;
-  });
+  return body;
 }
 
-// Boosting rocket: same airframe, flame doubled in length and width.
+// Exhaust under the nozzle (row 26 down), drawn with the pixelfx Painter: a white-hot throat, shock diamonds
+// pinching the plume, a yellow-orange sheath cooling to a translucent red tail, sparks shed behind, and light
+// that spills back onto the airframe. cx: plume axis (pixel edge), len: plume length, half: half width at the throat.
+function exhaust(p, cx, len, half, f, boost) {
+  const top = 26, wob = k => Math.sin(f * 2.1 + k) * .5 + .5;
+  p.glow(cx, top + 1, half * 3 + 3, FIRE[4], boost ? .45 : .35);
+  p.glowLine(cx, top + 2, cx, top + len * .7, half + 2.5, FIRE[5], boost ? .18 : .12);
+  for (let y = top; y <= top + len; y++) for (let x = Math.floor(cx - half - 2); x < cx + half + 2; x++) {
+    const t = (y + .5 - top) / len; if (t > 1) continue;
+    const ph = (y - top) / (boost ? 6.5 : 4.5) - f * .25, diamond = .5 + .5 * Math.cos(ph * Math.PI * 2);
+    const w = half * (1 - .72 * t) * (.8 + .32 * diamond) + (wob(y) - .5) * .6 * t, d = Math.abs(x + .5 - cx) / Math.max(.45, w);
+    if (d > 1) continue;
+    const heat = (1 - t) * (1.05 - d * .75) + diamond * .3 * (1 - t) - .08 + (t < .12 ? .3 : 0);
+    const c = FIRE[Math.max(0, Math.min(FIRE.length - 1, Math.round((1 - heat) * 7)))];
+    // the tail cools into a truly translucent red (blended, not dithered)
+    if (t > .6) p.blend(x, y, c, Math.min(1, (1 - t) / .4 * 1.1)); else p.px(x, y, c);
+  }
+  // sparks shed down the plume, two px long so they survive being scaled down
+  for (let k = 0; k < (boost ? 5 : 2); k++) {
+    const u = ((k * .37 + f * .23) % 1), x = cx + (Math.sin(k * 7.1 + f * 1.3)) * half * .9, y = top + len * (.45 + .6 * u);
+    streak(p, x, y, 0, 1, 1.5, 1 - u * .8, .8);
+  }
+}
+const drawCanvas = (p, c, dx = 0) => { for (let y = 0; y < c.h; y++) for (let x = 0; x < c.w; x++) { const q = c.get(x, y); if (q) p.blend(x + dx, y, rgb(q[0], q[1], q[2]), q[3] / 255); } };
+
+function rocketFrames(hot = false) {
+  const body = rocketBody(hot);
+  return [7, 9, 8, 10].map((len, f) => paint(12, 36, p => { drawCanvas(p, body); exhaust(p, 6, len, 1.6, f, false); }));
+}
+
+// Boosting rocket: same airframe, the plume three times longer and twice as wide.
 function rocketBoostFrames() {
-  const body = rocketFrames(true)[0];
-  return [20, 26, 23, 28].map((len, f) => {
-    const c = new Canvas(16, 56);
-    for (let y = 0; y < 26; y++) for (let x = 0; x < 12; x++) { const p = body.get(x, y); if (p) c.put(x + 2, y, p); }
-    for (let y = 26; y < 26 + len && y < 56; y++) {
-      const t = (y - 26) / len;
-      for (let x = 0; x < 16; x++) {
-        const d = Math.abs(x + .5 - 8), w = 3.6 * (1 - t * .7) + (f % 2) * .4;
-        let col = null;
-        if (d <= w * .35 && t < .45) col = PAL.WHITE; else if (d <= w * .6 && t < .7) col = FI[4]; else if (d <= w * .85) col = FI[3]; else if (d <= w) col = FI[2];
-        if (col && t > .55 && !dither(x, y + f, 1.35 - t)) col = t < .8 ? FI[1] : null;
-        if (col) c.put(x, y, col);
-      }
-    }
-    for (let k = 0; k < 4; k++) c.put(Math.floor(2 + hash(k, f, 41) * 12), Math.floor(30 + hash(k, f, 42) * 24), FI[3]);
-    return c;
-  });
+  const body = rocketBody(true);
+  return [26, 29, 27, 30].map((len, f) => paint(16, 56, p => { drawCanvas(p, body, 2); exhaust(p, 8, len, 3.4, f, true); }));
 }
 
 module.exports = {

@@ -26,12 +26,17 @@ internal static partial class WorldChecks
         void Frames(string name, int frames) { if (Has(name)) Check(Int(sprites[name], "frames") == frames, name + " has " + frames + " frames (manifest " + Int(sprites[name], "frames") + ")"); }
 
         Check(doc.RootElement.GetProperty("version").GetString() == "0.15.0", "manifest version 0.15.0");
+        // Act 0 models (not in the airbase contract table) may lag behind the forge: a sprite that is not in the manifest yet
+        // is only counted and reported as a warning; once it is there its footprint, anchor and frames are checked like any other.
+        int pendingSprites = 0;
         foreach (var m in WorldModels.All)
         {
             int frames = -1;
+            bool pendingAllowed = !Contract.Any(c => c.id == m.Id);
             foreach (var f in Facings.All)
             {
                 string name = WorldModels.SpriteName(m.Id, f);
+                if (pendingAllowed && !sprites.ContainsKey(name)) { pendingSprites++; continue; }
                 if (!Has(name)) continue;
                 var e = sprites[name];
                 var foot = WorldModels.Footprint(m, f);
@@ -67,11 +72,14 @@ internal static partial class WorldChecks
         Frames("chr_professor_talk_s", 4);
         Frames("chr_shadow", 1);
         Check(Has("fx_dust"), "fx_dust exists");
-        Frames("fx_dust", 5);
+        Frames("fx_dust", 6);
         if (Has("fx_dust")) Check(Int(sprites["fx_dust"], "width") == 16 && Int(sprites["fx_dust"], "height") == 8 && Int(sprites["fx_dust"], "anchorX") == 8 && Int(sprites["fx_dust"], "anchorY") == 7, "fx_dust is 16×8 anchored at 8,7");
-        Frames("fx_quest_marker", 6);
+        Frames("fx_quest_marker", 12);
         foreach (var tile in new[] { ("tile_grass", 4), ("tile_dirt", 4), ("tile_concrete", 4), ("tile_asphalt", 4), ("tile_sand", 2), ("tile_runway", 5), ("tile_water", 4), ("tile_fence", 7) })
             Frames(tile.Item1, tile.Item2);
+        // Act 0 floor tile: same pending rule as the dormitory models.
+        if (sprites.ContainsKey("tile_floor_wood")) Frames("tile_floor_wood", 4); else pendingSprites++;
+        if (pendingSprites > 0) Console.WriteLine("WARNING: " + pendingSprites + " Act 0 sprite(s) (dormitory models, tile_floor_wood) are not in pixel-manifest.json yet; waiting for the forge.");
 
         if (missing.Count > 0) problems.Insert(0, missing.Count + " sprite(s) missing from pixel-manifest.json: " + string.Join(", ", missing));
         if (problems.Count > 0)

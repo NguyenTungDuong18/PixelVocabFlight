@@ -87,8 +87,15 @@ namespace PixelVocabFlight
             for(int i=0;i<60&&view.Dialogue.VisibleCharacters<8;i++)yield return null;
             Check(view.Dialogue.Typing&&view.Dialogue.VisibleCharacters>0&&!view.Dialogue.ChoicesVisible&&audioPlayer.BlipCount>blipsBefore,"dialogue-line-types-out-with-blips");
             Check(view.Dialogue.PortraitName.StartsWith("portrait_professor")&&view.Base.NpcSpriteName("professor").StartsWith("chr_professor_talk_s"),"professor-portrait-and-talking-gestures");
+            // 0.16 chat frames and fonts: asserted only once the forge has produced them.
+            if(PixelSprites.Has("ui_dialog_box"))Check(view.Dialogue.BoxSpriteName.StartsWith("ui_dialog_box")&&(!PixelSprites.Has("ui_dialog_name")||view.Dialogue.NamePlateVisible),"dialogue-uses-new-frame-and-name-plate:"+view.Dialogue.BoxSpriteName);
+            Check(!view.Dialogue.NextArrowVisible,"dialogue-next-arrow-hidden-while-typing");
+            if(UnityEngine.Resources.Load<Font>("Fonts/WordwingVi"))Check(UiKit.Font.name=="WordwingVi"&&UiKit.PixelFontLoaded,"main-font-is-wordwing-vi:"+UiKit.Font.name);
+            if(UiKit.Wordwing)Check(UiKit.Px(15)==16&&UiKit.Px(18)==32&&UiKit.Px(30)==48&&view.Dialogue.BodyFontSize%16==0,"wordwing-sizes-are-multiples-of-16:"+view.Dialogue.BodyFontSize);
+            if(UnityEngine.Resources.Load<Font>("Fonts/WordwingEn"))Check(UiKit.EnglishFont.name=="WordwingEn","english-font-is-wordwing-en:"+UiKit.EnglishFont.name);
             yield return SmokeKey(Key.E);
             Check(!view.Dialogue.Typing&&view.Dialogue.ChoicesVisible&&view.Dialogue.ChoiceCount==4&&dialogue.Open,"e-shows-whole-line-then-numbered-choices");
+            Check(view.Dialogue.NextArrowVisible==(view.Dialogue.ChoiceCount==0&&PixelSprites.Has("ui_dialog_next")),"dialogue-next-arrow-only-without-choices");
             Check(!view.Base.QuestMarkerVisible&&!view.Base.PromptVisible,"marker-and-prompt-hide-while-talking");
             SmokeCapture("00d-professor-dialogue.png");
             yield return SmokeKey(Key.Escape);

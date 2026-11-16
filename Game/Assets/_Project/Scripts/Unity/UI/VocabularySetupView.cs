@@ -70,7 +70,7 @@ namespace PixelVocabFlight
                 UiKit.Box("Preview row",panel,497,y,834,46,selected?new Color(UiKit.Mint.r,UiKit.Mint.g,UiKit.Mint.b,0.07f):new Color(0,0,0,0.07f));
                 if(selected)UiKit.Box("Range selection",panel,497,y,3,46,UiKit.Mint);
                 UiKit.Label((index+1).ToString(),panel,505,y,47,46,13,UiKit.Muted);
-                var word=UiKit.Label(entry.word,panel,559,y+2,240,24,18,UiKit.Cream,true);
+                var word=UiKit.English(UiKit.Label(entry.word,panel,559,y+2,240,24,18,UiKit.Cream,true));
                 UiKit.Fit(word,12,18);
                 UiKit.Label(entry.partOfSpeech,panel,559,y+26,240,18,11,UiKit.Muted);
                 UiKit.Label(entry.cefr,panel,811,y,68,46,15,UiKit.Mint,true);

@@ -1,6 +1,7 @@
 # Bản đồ mã nguồn WORDWING (mục lục)
 
-> Bản **0.15.0**: smoke 113 check; RulesChecks 47.121 gameplay + căn cứ, 13 interaction, 16.572 walkable, 1.238 manifest. Thư viện 247 model căn cứ (43 đang đặt trên map).
+> Bản **0.15.0**: smoke 344 check; RulesChecks 49.857 gameplay + căn cứ, 13 interaction, 16.588 walkable, 2.720 story, 1.576 manifest. Thư viện 247 model căn cứ (43 đang đặt trên map).
+> **Người dùng muốn sửa một thứ cụ thể (lời thoại, cảnh, bàn tay, phòng, menu, save…)? Mở [overview/where-to-edit.md](map/overview/where-to-edit.md) trước**: bảng "muốn sửa gì → file nào".
 > **Cách đọc tiết kiệm token:** chỉ mở đúng một file trong bảng dưới. Mỗi file một chủ đề, dưới khoảng 5 KB. Thư mục tài liệu soi gương thư mục code: code ở `Scripts/Logic/World/` thì đọc `map/logic/world.md`, code ở `Scripts/Unity/Flight/` thì đọc `map/unity/` (`flight-view.md`, `board.md`…).
 > Số dòng ghi trong file là để ước lượng; vị trí cụ thể nên tìm bằng Grep theo tên hàm hoặc hằng.
 
@@ -8,6 +9,7 @@
 
 | File | Mở khi |
 | --- | --- |
+| [where-to-edit.md](map/overview/where-to-edit.md) | **tra nhanh**: yêu cầu sửa X → mở file Y (truyện, hình, menu, save) |
 | [game.md](map/overview/game.md) | cần hiểu game chơi thế nào |
 | [tech.md](map/overview/tech.md) | công nghệ, Canvas, tọa độ, **quy tắc tách Logic/Unity** |
 | [folders.md](map/overview/folders.md) | cây thư mục, **file mới đặt ở đâu** |
@@ -35,11 +37,21 @@
 | [takeoff-intro.md](map/unity/takeoff-intro.md) | hoạt cảnh cất cánh, vào trận |
 | [board.md](map/unity/board.md) | sân chơi: vẽ máy bay, tên lửa, thẻ đáp án, hiệu ứng |
 | [base-view.md](map/unity/base-view.md) | vẽ căn cứ, hoạt cảnh nhân vật, hộp hội thoại |
+| [story-view.md](map/unity/story-view.md) | màn truyện Hồi 0: Text, Cut, Vista, phòng, hội thoại, fade, âm thanh |
+| [menu-save-settings.md](map/unity/menu-save-settings.md) | intro không chiến, màn hình chính, 3 ô save, chọn đoạn, cài đặt, tạm dừng, Full HD |
 | [ui-kit.md](map/unity/ui-kit.md) | builder UI, màn chọn từ |
 | [rendering.md](map/unity/rendering.md) | nạp sprite, nền cuộn, wildlife, biển |
 | [audio.md](map/unity/audio.md) | phát âm, âm thanh tạo bằng code |
 | [data.md](map/unity/data.md) | nạp JSON từ vựng, hồ sơ lưu |
 | [editor.md](map/unity/editor.md) | build editor, importer sprite |
+
+## Thiết kế — `Docs/design/` (khung, chờ duyệt)
+
+| File | Nội dung |
+| --- | --- |
+| [story.md](design/story.md) | kịch bản: thế giới Velmark, nhân vật, các hồi, vòng lặp chương, câu hỏi chờ trả lời |
+| [world-map.md](design/world-map.md) | bản đồ Brandhaven 512 × 384 ô, 16 khu, trình tự mở khóa (+ `world-map.svg`) |
+| [art-direction.md](design/art-direction.md) | **bắt buộc khi vẽ:** mức sàn chất lượng, luật đa dạng, 12 phong cách kiến trúc, nhân vật, xe, vũ khí |
 
 ## Art — `Tools/PixelForge/`, `Art/Resources/Pixel/` → `map/art/`
 
@@ -50,6 +62,8 @@
 | [sprite-catalog.md](map/art/sprite-catalog.md) | tra tên sprite |
 | [models-characters.md](map/art/models-characters.md) | model voxel, rig nhân vật, ô nền căn cứ |
 | [add-sprites.md](map/art/add-sprites.md) | công thức thêm sprite, model, NPC, sửa cockpit |
+| [cinema.md](map/art/cinema.md) | **phim mở màn dựng sẵn** (`Tools/PixelForge/cinema/`): cảnh quay, model máy bay, hiệu ứng, lệnh `film.cjs` |
+| [quality-bar.md](map/art/quality-bar.md) | **tiêu chuẩn chất lượng bắt buộc** cho model, nhân vật, hiệu ứng, khung UI, chữ + checklist duyệt |
 
 ## Dữ liệu và vận hành
 

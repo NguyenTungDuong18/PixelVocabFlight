@@ -7,18 +7,22 @@ Code: thư mục `Scripts/Unity/Game/FlightGame/` (partial class; scene gắn Mo
 - `FlightGame.Vocabulary.cs`: màn chọn bộ từ, `PrepareFlightPool`.
 - `FlightGame.Sortie.cs`: `BoardAircraft`, `BeginFlight`, `CompleteSortie`, gõ/bắn, tên lửa, roll, `TogglePause`, `ToggleMute`, `EndFlight`.
 - `FlightGame.Events.cs`: `DrainEvents` (FlightEvent → view/âm thanh).
+- `FlightGame.Menu.cs`: intro, màn hình chính, ô save, chọn đoạn, cài đặt, tạm dừng, `SaveStory`.
+- `FlightGame.Story.cs`: Hồi 0 (`EnterStory`, `StartStory`, `UpdateStory`, `EnterStoryBeat`, hội thoại và phím truyện). Vẽ: `story-view.md`.
 - Smoke: `FlightGame.Verification.cs` + `FlightGame.Smoke.*.cs` (`smoke-test.md`). Luồng một khung: `overview/runtime.md`.
 
-**`enum Mode { Base, Vocabulary, Launching, Intro, Flying, Paused, Dying, Results, Error }`**, `IntroSeconds = 1.4f`. `SetMode()` bật/tắt `view.Base`.
+**`enum Mode { Base, Vocabulary, Launching, Intro, Flying, Paused, Dying, Results, Error, Story, Boot, Menu }`**, `IntroSeconds = 1.4f`. `SetMode()` bật/tắt `view.Base` và `view.Story`.
 
 ## `Start()`
 
-Đặt 60 FPS → tạo `FlightView` → cờ `--smoke-test` (bật `runInBackground`, thêm bàn phím ảo "Wordwing QA keyboard") → nạp `VocabularyCatalog`, `ProfileStore` → chuyển hồ sơ cũ sang toàn bộ thư viện một lần (`fullLibraryVersion < 1`) → tạo `FlightAudio` → `MissionLog` (nạp `missionsCompleted`/`lastScore`), `BaseWorld(AirbaseMap.Create())`, `DialogueRunner` → `EnterBase(title: true)`. Lỗi → `Mode.Error` + `view.ShowError`.
+Đặt 60 FPS → tạo `FlightView` → cờ `--smoke-test` (bật `runInBackground`, thêm bàn phím ảo "Wordwing QA keyboard") → nạp `VocabularyCatalog`, `ProfileStore` → chuyển hồ sơ cũ sang toàn bộ thư viện một lần (`fullLibraryVersion < 1`) → tạo `FlightAudio` → `MissionLog` (nạp `missionsCompleted`/`lastScore`), `BaseWorld(AirbaseMap.Create())`, `DialogueRunner` → **bình thường `EnterBoot()` (intro → menu → Hồi 0)**; cờ **`--legacy`** hoặc **`--smoke-test`** thì `EnterBase(title: true)` (luồng cũ: căn cứ, chọn từ, bay gõ từ; smoke chạy `SmokeStory` và `SmokeMenu` sau cùng). `LoadProfile()` nạp `settings.json` và ba ô save ngay sau khi tạo `FlightAudio`; chạy thường thì áp độ phân giải, `--smoke-test` thì không và dùng thư mục `<smoke output>/story-profile`. Lỗi → `Mode.Error` + `view.ShowError`.
 
 ## `Update()` theo Mode
 
 | Mode | Việc làm mỗi khung |
 | --- | --- |
+| Boot / Menu | `UpdateBoot` (intro `TitleScene`, phím bất kỳ bỏ qua), `UpdateMenu` (W/S, A/D, Enter, Esc): `menu-save-settings.md` |
+| Story | `UpdateStory`: rút sự kiện `StoryRunner`, fade, phím theo loại khung (đi/E trong phòng, A/D + E ở vista, E/1-9 trong hội thoại, Enter ở thẻ End); Esc không làm gì. `storySpeed` nhân đồng hồ (smoke đặt 5) |
 | Base | Thẻ tiêu đề (phím bất kỳ để ẩn). Hội thoại mở: 1–9, W/S, E/Enter/Space, Esc. Không: WASD/mũi tên + Shift → `world.Tick`, E/Space/Enter → `Interact`, rút `WorldEvent`. Sau khi vào Base, tương tác khóa 0,2 giây |
 | Vocabulary | `VocabularySetupView`; "XONG" → `FinishVocabulary` (kiểm tra bộ từ) → Base; "<< CĂN CỨ" → Base |
 | Launching | `view.AnimateTakeOff(dt)`; `true` khi xong → `BeginFlight(launchPool)` |
@@ -36,7 +40,7 @@ Code: thư mục `Scripts/Unity/Game/FlightGame/` (partial class; scene gắn Mo
 
 ## API công khai UI gọi
 
-- Căn cứ: `ChooseDialogue(index)`, `ReturnToBase()`, `CompleteSortie()`.
+- Căn cứ: `ChooseDialogue(index)` (ở `Mode.Story` chuyển sang hội thoại truyện), `ReturnToBase()`, `CompleteSortie()`.
 - Từ vựng: `OpenVocabulary`, `ChooseCollection`, `SelectFullOxford`, `ChooseLevel`, `ToggleTopic`, `ChooseRangeSize`, `ApplyMenuSearch`, `ApplyMenuRange`, `ChangePreviewPage`, `ShowVocabularyCredits`, `FinishVocabulary`.
 - Bắt đầu trận: `WorldEvent.BoardAircraft` → chuẩn bị pool (lỗi → mở màn chọn từ), `StartingEnvironment = missions.Environment`, `Mode.Launching`, `audio.Engine()`, `view.BeginTakeOff()`. `BeginFlight(pool)` → `ContinuousFlight(pool, seed, StartingEnvironment)`, `view.BeginIntro`.
 - Trong trận: `ToggleControlMode`, `FocusTyping`, `ChooseMissileAnswer(id, choice)` (tự sang BẮN; sai → `Board.MarkWrongChoice`), `RollMeaning`, `Submit`, `TogglePause`, `ToggleMute`.

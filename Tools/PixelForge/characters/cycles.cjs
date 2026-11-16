@@ -3,9 +3,11 @@
 const fs = require('fs');
 const path = require('path');
 const { Canvas, PAL, K, hex, withAlpha } = require('../lib.cjs');
+const PFX = require('../pfx.cjs');
 const { GD } = PAL;
 const { FW, FH, R } = require('./palette.cjs');
 const { renderFront, renderSide, mirror } = require('./figure.cjs');
+const { drawHead, drawNeck, drawTorsoFront, drawArmFront, bentArm } = require('./body.cjs');
 
 // ---------------------------------------------------------------- cycles (8 frames each)
 // Walk/run follow the classic 8-frame layout: 0 contact (right leg forward), 1 down, 2 passing,
@@ -85,37 +87,86 @@ function talkFrames(P) {
   }, false));
 }
 
-// Kicked-up dust puff for running feet: 16x8, anchor (8,7) = the ground point under the heel.
-// Two tufts curl outward and up, a third rises in the middle, then the cloud breaks up and fades.
-// Masks are the left half (x 0..7) and mirror onto the right; shading is derived from the shape
-// (lit crown, dusty underside) so it matches the top-left light of the characters.
-const DUST_W = 16, DUST_H = 8, DUST_ANCHOR = [8, 7];
-const DUST_MASKS = [
-  ['........', '........', '........', '........', '....##..', '...####.', '...#####', '....###.'],
-  ['........', '........', '........', '..##....', '.####.##', '.#######', '.######.', '..###...'],
-  ['........', '......##', '.##..###', '#####.##', '########', '.######.', '..####..', '........'],
-  ['......#.', '.#.#.##.', '#.###.#.', '.####.#.', '#.#.##..', '.#.#.#..', '........', '........'],
-  ['.....#..', '.#..#...', '#.#...#.', '..#..#..', '.#......', '........', '........', '........']
-];
-// Earthy, semi-transparent ramp (the 0.15 review found the cream CR ramp read as white cloud on grass).
-const DUST = R('#5c4a36', '#7f6a50', '#a08a6c', '#bba687');
-function dustFrames() {
-  const alpha = [215, 205, 185, 145, 95];
-  return DUST_MASKS.map((rows, f) => {
-    const on = (x, y) => {
-      if (x < 0 || y < 0 || x >= DUST_W || y >= DUST_H) return false;
-      return rows[y][x < 8 ? x : 15 - x] === '#';
-    };
-    const c = new Canvas(DUST_W, DUST_H), fade = f >= 3 ? f - 2 : 0;
-    for (let y = 0; y < DUST_H; y++) for (let x = 0; x < DUST_W; x++) {
-      if (!on(x, y)) continue;
-      let k = 2;
-      if (!on(x, y - 1)) k = 3;
-      else if (!on(x, y + 1)) k = y >= 6 ? 0 : 1;
-      k = Math.max(0, k - fade);
-      c.put(x, y, withAlpha(DUST[k], alpha[f]));
+// ---------------------------------------------------------------- Act 0 poses (pilot_young, daan)
+// Seated on the edge of a bed, facing south: hips 4 px lower; the thighs come toward the camera as a
+// lap wider than the hips (knees a little apart, knee caps lit), a dark row of shin under the knees,
+// feet planted at the usual anchor row.
+function seated(P, pose, arms) {
+  const c = new Canvas(FW, FH), o = 4, ch = pose.chest || 0, ho = o + (pose.head || 0), pr = P.pants, sh = P.shoes;
+  drawTorsoFront(c, P, o, false, ch);
+  for (const [x0, x1] of [[6, 11], [12, 17]]) {
+    for (let x = x0; x <= x1; x++) {
+      const inner = x === (x0 === 6 ? 11 : 12), outer = x === x0 || x === x1;
+      c.put(x, 24, outer ? pr[2] : pr[3]);                                               // top of the thigh, lit
+      c.put(x, 25, inner ? pr[1] : outer ? pr[1] : pr[2]);
+      c.put(x, 26, inner || outer ? pr[0] : pr[1]);                                      // front of the knee turning under
     }
-    return c;
+    c.put(x0 === 6 ? 8 : 14, 24, pr[4] || pr[3]); c.put(x0 === 6 ? 9 : 15, 25, pr[3]);  // knee caps catch the light
+    for (let x = x0 + 1; x <= x1 - 1; x++) { c.put(x, 27, pr[0]); c.put(x, 28, x === x0 + 2 || x === x1 - 2 ? pr[2] : pr[1]); }   // shins hanging: shaded under the knee, then lit
+  }
+  for (const sx of [7, 13]) { for (let k = 0; k < 4; k++) { c.put(sx + k, 29, sh[2]); c.put(sx + k, 30, sh[1]); } c.put(sx + 1, 29, sh[3]); }
+  const hands = arms(c, o, ch);
+  drawNeck(c, P, 's', ho, 15 + o - ch);
+  drawHead(c, P, 's', ho, pose.mouth, pose.blink, pose.hx || 0);
+  if (hands) hands(c);
+  c.outline(K);
+  return c;
+}
+// Sit idle, 8 frames @5: breathing, blink on frame 6. Jonas leans on his hands planted on the
+// mattress behind him (arms straight, out to the sides); Daan sits forward, hands on his knees,
+// the notebook flat on his right knee.
+function sitFrames(P) {
+  const book = P.held === 'book';
+  return N8.map(i => seated(P, idleBase(i), (c, o, ch) => {
+    if (!book) { drawArmFront(c, P, 0, { dy: 1, dx: -1 }, o, ch, false); drawArmFront(c, P, 1, { dy: 1, dx: -1 }, o, ch, false); return null; }
+    return cc => {
+      const a = drawArmFront(cc, P, 0, { dy: 2, dx: 2 }, o, ch, false); drawArmFront(cc, P, 1, { dy: 2, dx: 2 }, o, ch, false);
+      for (let y = 0; y < 3; y++) for (let x = 0; x < 5; x++) cc.put(a.x - 1 + x, a.y - 1 + y, y === 2 ? CR_PAGE : x === 0 ? BOOK[0] : BOOK[1]);
+    };
+  }));
+}
+const CR_PAGE = hex('#ddd4b0'), BOOK = [hex('#6a2117'), hex('#963826')];
+// "Hands" (m1.P1.09), 8 frames @8: Jonas, seated, flies the glide with his right hand (flat hand =
+// aeroplane: it comes round high, banks, and sinks to the knee = the landing cloth) while the left
+// holds a pencil upright as the stick and eases it over. His head follows the hand; he talks.
+const GLIDE = [[-2.5, -2.9, -1], [-2.2, -2.5, -1], [-1.9, -2.0, 0], [-1.6, -1.5, 1], [-1.3, -1.0, 1], [-1.0, -.6, 0], [-.7, -.3, 0], [-1.6, -2.2, -1]];
+const STICK = [0, 0, -1, -1, 0, 1, 1, 0];
+function handsFrames(P) {
+  return N8.map(i => seated(P, { chest: i === 0 || i === 7 ? 1 : 0, head: i < 3 ? -1 : 0, hx: i >= 1 && i <= 4 ? -1 : 0, mouth: i === 1 || i === 2 || i === 5, blink: i === 6 }, (c, o, ch) => {
+    const [au, af, bank] = GLIDE[i], sk = P.skin;
+    const h = bentArm(c, P, 5, 16 + o - ch, au, 3.6, af, 3.2, true, false);
+    const s = bentArm(c, P, 17, 16 + o - ch, .35, 3.4, -1.9, 2.6, true, false);
+    return cc => {
+      // The flat hand: four pixels, the leading edge dipped or lifted as it banks.
+      for (let k = -2; k <= 2; k++) cc.put(h.x + k, h.y + (k < 0 ? bank : 0) * (k === -2 ? 1 : 0), k === 2 ? sk[1] : sk[3]);
+      cc.put(h.x - 1, h.y + 1, sk[1]); cc.put(h.x, h.y + 1, sk[1]);
+      // The pencil, held like a control column.
+      for (let k = 1; k <= 4; k++) cc.put(s.x + Math.round(STICK[i] * k / 4), s.y - k, k === 4 ? hex('#3a2a1a') : GD[2]);
+    };
+  }));
+}
+
+// Kicked-up dust puff for running feet: 16x8, anchor (8,7) = the ground point under the heel.
+// pixelfx-style soft puffs (blended, never dithered): two kicked out sideways from the heel, one rising in the
+// middle, each lit on top and thinning as it swells; a few grains of grit hop out and drop back.
+const DUST_W = 16, DUST_H = 8, DUST_ANCHOR = [8, 7], DUST_FPS = 14;
+// Earthy ramp, light first (the 0.15 review found the cream CR ramp read as white cloud on grass).
+const DUST = ['#bba687', '#a08a6c', '#7f6a50', '#5c4a36'].map(PFX.kit.H);
+const DUST_PUFFS = [[-1, 30, 2.2, 1.5, 2.6, 0], [1, 26, 1.8, 1.4, 2.4, 0], [.15, 3, 3.6, 1.3, 2.3, .03], [-.4, 12, 1.2, 1.1, 1.8, .05]];
+const DUST_GRIT = [[-1, 34, 40], [1, 30, 44], [-.5, 18, 36]];
+function dustFrames() {
+  const travel = (v, k, t) => v * (1 - Math.exp(-k * t)) / k;
+  return PFX.frames(DUST_W, DUST_H, 6, (p, f) => {
+    const t = f / DUST_FPS;
+    for (const [dir, v, rise, r0, r1, delay] of DUST_PUFFS) {
+      const age = t - delay + .02, u = age / .44; if (age < 0 || u >= 1) continue;
+      const x = 8 + dir * (1.4 + travel(v, 7, age)), y = 6.6 - travel(rise * 6, 6, age), r = r0 + (r1 - r0) * Math.min(1, u * 1.6);
+      PFX.kit.puff(p, x, y, r, Math.min(1.5, 1.6 * Math.pow(1 - u, 1.2)), .2 * u, DUST);
+    }
+    for (const [dir, v, up] of DUST_GRIT) {
+      const h = up * t - 120 * t * t; if (t === 0 || h < 0) continue;
+      p.px(8 + dir * travel(v, 4, t), 6.5 - h, DUST[3]);
+    }
   });
 }
 
@@ -127,19 +178,33 @@ function shadowFrame() {
   return c;
 }
 
+// Quest marker over the professor: 16x24, a bold gold '!' (after pixelfx ui/exclamation) bobbing on a slow
+// sine, lit down its left side with a dark outline, a glint running down the bar, a soft pulsing glow and a
+// twinkle off its shoulder. BaseView reads the size from the sprite and stands it on the bottom row.
+const MARK = ['#fff6c8', '#f0d47c', '#d2a845', '#a07a2a', '#6b4c17'].map(PFX.kit.H);
 function questMarkerFrames() {
-  const bob = [0, -1, -2, -2, -1, 0];
-  return bob.map((b, i) => {
-    const c = new Canvas(8, 16), y = 3 + b;
-    const rows = [[2, 5], [2, 5], [2, 5], [3, 4], [3, 4], [3, 4]];
-    rows.forEach(([a, z], k) => { for (let x = a; x <= z; x++) c.put(x, y + k, x === a ? GD[3] : x === z ? GD[1] : GD[2]); });
-    for (let x = 3; x <= 4; x++) { c.put(x, y + 8, x === 3 ? GD[3] : GD[1]); c.put(x, y + 9, GD[1]); }
-    // Glint travelling down the bar.
-    const g = i % 3; c.put(3, y + g * 2, hex('#fff6c8'));
-    return c.outline(K);
+  const N = 12, { TAU, sparkle } = PFX.core;
+  const inBar = (x, y) => y >= 0 && y < 11 && Math.abs(x - 8) < 2.6 - y * .12 && !(y < 1 && Math.abs(x - 8) > 1.6);
+  const inDot = (x, y) => Math.hypot(x - 8, y - 14.2) < 2.1;
+  return PFX.frames(16, 24, N, (p, f) => {
+    const b = Math.round(1 - Math.cos(f / N * TAU)), top = 5 - b, glint = (f * 1.5) % 18 - 3, pulse = .5 + .5 * Math.sin(f / N * TAU);
+    p.glow(8, top + 8, 11, MARK[1], .18 + .14 * pulse);
+    const pix = [];
+    for (let y = 0; y < 17; y++) for (let x = 4; x < 12; x++) {
+      const cx = x + .5, cy = y + .5, bar = inBar(cx, cy), dot = inDot(cx, cy);
+      if (!bar && !dot) continue;
+      const w = bar ? 2.6 - cy * .12 : 2.1, q = (cx - 8 + w) / (2 * w);
+      let c = q < .3 ? MARK[0] : q > .72 ? MARK[3] : MARK[1];
+      if (bar && cy > 8 && q >= .3 && q <= .72) c = MARK[2];
+      if (dot && Math.hypot(cx - 7.2, cy - 13.4) < .9) c = MARK[0];
+      if (bar && Math.abs(cy - glint) < 1 && q < .8) c = PFX.kit.H('#ffffff');
+      pix.push([x, top + y, c]);
+    }
+    PFX.kit.crisp(p, pix, PFX.kit.H('#2a1405'), .92);
+    if (f >= 3 && f <= 5) sparkle(p, 4.5, top + 1.5, [1, 2, 1][f - 3], MARK[0], MARK[1], .3);
   });
 }
 
 module.exports = {
-  frames, talkFrames, workFrames, DUST_W, DUST_ANCHOR, dustFrames, shadowFrame, questMarkerFrames
+  frames, talkFrames, workFrames, sitFrames, handsFrames, DUST_W, DUST_ANCHOR, dustFrames, shadowFrame, questMarkerFrames
 };

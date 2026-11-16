@@ -9,6 +9,8 @@ const { hl } = require('./body.cjs');
 // ---------------------------------------------------------------- portraits (48x48)
 const PORTRAIT = 48;
 function portrait(P, mouthOpen) {
+  if (P.portrait.soft) return softPortrait(P, mouthOpen);
+  if (P.portrait.youth) return require('./portraits_youth.cjs').youthPortrait(P, mouthOpen);
   const pp = P.portrait, c = new Canvas(PORTRAIT, PORTRAIT), fig = new Canvas(PORTRAIT, PORTRAIT);
   // Backdrop: vertical light falloff with ordered dither and a soft window glow top-left.
   const bg = pp.bg;
@@ -109,6 +111,122 @@ function portrait(P, mouthOpen) {
   return c;
 }
 const BAY = [[0, 8, 2, 10], [12, 4, 14, 6], [3, 11, 1, 9], [15, 7, 13, 5]];
+const bay = (x, y) => (BAY[y & 3][x & 3] + .5) / 16;
+// Picks one of a 4-tone ramp from a light value with ordered dither between neighbouring tones.
+const tone = (R, L, x, y, spread = .32) => { const v = L + (bay(x, y) - .5) * spread; return R[v > 1 ? 3 : v > .58 ? 2 : v > .2 ? 1 : 0]; };
+
+// Higher-fidelity portrait (portrait.soft, used by the nurse): warm lamplit room, dithered soft light
+// from the upper left on skin, hair and cloth, eyes with irises and catchlights, 1940s side curls under
+// a white nurse cap with a black band, seersucker shoulders with a white round collar, warm rim light.
+function softPortrait(P, mouthOpen) {
+  const pp = P.portrait, c = new Canvas(PORTRAIT, PORTRAIT), fig = new Canvas(PORTRAIT, PORTRAIT);
+  const sk = P.skin, hr = P.hair, t = P.top, st = P.stripe || t, cap = P.hatCol, col = P.collar || cap, bg = pp.bg;
+  const glowC = pp.glow || bg[2];
+  c.fill((x, y) => {
+    const L = 1.05 - Math.hypot(x - 7, y - 5) / 34 - y / 120 + (bay(x, y) - .5) * .28;
+    return L > .78 ? glowC : L > .5 ? bg[2] : L > .2 ? bg[1] : bg[0];
+  });
+  // Shoulders: seersucker with pin stripes, lit from the left.
+  for (let y = 37; y < 48; y++) {
+    const hw = Math.min(21, 11 + (y - 37) * 1.5);
+    for (let x = Math.ceil(24 - hw); x < 24 + hw; x++) {
+      const u = (x + .5 - 24) / hw, R = x % 3 === 0 ? st : t;
+      fig.put(x, y, tone(R, .95 - u * .6 - (y - 37) * .015, x, y));
+    }
+  }
+  // Neck, shaded under the jaw.
+  for (let y = 30; y < 41; y++) for (let x = 19; x < 29; x++) fig.put(x, y, tone(sk, .62 - (x - 19) * .07 - (y < 35 ? (35 - y) * .09 : 0), x, y, .16));
+  // Head: same profile as the base portraits, slightly finer jaw; light falls off to the right and down,
+  // with a soft bump on the lit cheek.
+  const hwAt = y => y < 10 ? 0 : y === 10 ? 5 : y === 11 ? 7 : y === 12 ? 8 : y <= 26 ? 9 : [8.5, 8, 7.5, 7, 6.5, 5.5, 4.5, 3.5, 2.5][y - 27] || 0;
+  for (let y = 10; y <= 35; y++) {
+    const hw = hwAt(y);
+    for (let x = Math.ceil(24 - hw); x < 24 + hw; x++) {
+      const u = (x + .5 - 24) / hw, v = (y - 22) / 13;
+      const L = .9 - .6 * u - .2 * v + .25 * Math.exp(-((x - 18.5) ** 2 + (y - 25.5) ** 2) / 9) - (y >= 33 ? .25 : 0);
+      fig.put(x, y, tone(sk, L, x, y, .14));
+    }
+  }
+  for (let y = 22; y <= 27; y++) { fig.put(14, y, sk[2]); fig.put(33, y, sk[1]); }
+  fig.put(14, 24, sk[1]); fig.put(33, 24, sk[0]);
+  // Blush.
+  for (const [x, y] of [[17, 27], [18, 27], [18, 26], [29, 27], [30, 27], [29, 26]]) fig.put(x, y, hex('#e39a83'));
+  // Eyes: lash line with an outer flick, eye white, iris, pupil, catchlight; lower lid.
+  const catchL = hex('#fff8e8');
+  const irisD = hex('#5a3a22');
+  for (const [x0, right] of [[17, false], [26, true]]) {
+    hl(fig, x0 + 1, x0 + 4, 21, P.eye); fig.put(x0, 21, sk[0]); fig.put(right ? x0 + 5 : x0 - 1, 20, P.eye);
+    fig.put(x0, 22, CR[3]); fig.put(x0 + 1, 22, catchL); fig.put(x0 + 2, 22, P.eye); fig.put(x0 + 3, 22, pp.iris); fig.put(x0 + 4, 22, CR[2]);
+    fig.put(x0, 23, sk[1]); fig.put(x0 + 1, 23, pp.iris); fig.put(x0 + 2, 23, irisD); fig.put(x0 + 3, 23, pp.iris); fig.put(x0 + 4, 23, sk[1]);
+    hl(fig, x0 + 1, x0 + 3, 24, sk[1]);
+  }
+  // Brows: thin arches.
+  for (const [x, y] of [[16, 19], [17, 18], [18, 18], [19, 18], [20, 18], [21, 19], [26, 19], [27, 18], [28, 18], [29, 18], [30, 18], [31, 19]]) fig.put(x, y, x < 24 ? hr[1] : hr[0]);
+  // Nose: lit bridge, shadow side, tip and nostril.
+  for (let y = 23; y <= 26; y++) { fig.put(23, y, sk[3]); fig.put(25, y, sk[1]); }
+  fig.put(23, 27, sk[3]); fig.put(24, 28, sk[0]); fig.put(25, 28, sk[0]); fig.put(22, 28, sk[1]);
+  // Mouth.
+  const lipD = hex('#8a3a32'), lipL = P.lips || hex('#b0534a'), lipH = hex('#d07a6a');
+  if (mouthOpen) {
+    hl(fig, 22, 25, 30, lipL); fig.put(21, 30, lipD); fig.put(26, 30, lipD);
+    hl(fig, 21, 26, 31, hex('#3a1610')); hl(fig, 22, 25, 31, CR[2]); hl(fig, 22, 25, 32, hex('#5a2218'));
+    hl(fig, 22, 25, 33, lipL); fig.put(23, 33, lipH);
+  } else {
+    hl(fig, 22, 25, 30, lipD); fig.put(21, 30, sk[1]); fig.put(26, 30, sk[1]);
+    hl(fig, 22, 25, 31, lipL); fig.put(23, 31, lipH); fig.put(22, 32, sk[1]); fig.put(25, 32, sk[1]);
+  }
+  // Hair: centre part, waves swept back to a bun, rolled side curls over the ears.
+  const hairline = x => 12.5 + .07 * (x - 24) ** 2;
+  for (let y = 4; y <= 30; y++) for (let x = 10; x <= 38; x++) {
+    const dx = (x + .5 - 24) / 12.8, dy = (y + .5 - 18) / 13.5, inCrown = dx * dx + dy * dy <= 1 && y < hairline(x + .5);
+    const side = y >= 15 && y <= 29 && ((x >= 11 && x <= 16) || (x >= 32 && x <= 37));
+    const curlEnd = y >= 27 && (Math.hypot(x + .5 - 13.5, y + .5 - 27) > 3.2 && x < 20 || Math.hypot(x + .5 - 34.5, y + .5 - 27) > 3.2 && x > 28);
+    if (!inCrown && !(side && !curlEnd)) continue;
+    if ((x === 14 || x === 15) && y >= 22 && y <= 25 && !inCrown) continue;          // ear lobe peeks out
+    const w = (Math.floor(Math.abs(x + .5 - 24) * .75 + y * .55) % 4 + 4) % 4, left = x < 24;
+    let L = (left ? .72 : .38) - (y - 10) * .012 + (w === 2 ? .38 : w === 0 ? -.32 : 0);
+    if (y >= 8 && y <= 10 && x >= 15 && x <= 22) L += .35;                             // sheen across the crown
+    if (x === 24 && y < 13) L = -1;                                                     // parting
+    fig.put(x, y, tone(hr, L, x, y, .2));
+  }
+  for (const [cx, k] of [[13.5, 1], [34.5, 0]]) for (let a = 0; a < 6.3; a += .4) {             // curl rolls
+    const x = Math.round(cx + Math.cos(a) * 2.2 - .5), y = Math.round(27 + Math.sin(a) * 2 - .5);
+    fig.put(x, y, hr[a > 3.2 ? k + 1 : k + 2 > 3 ? 3 : k + 2]);
+  }
+  for (let y = 0; y <= 9; y++) for (let x = 18; x <= 30; x++) if (Math.hypot(x + .5 - 24, y + .5 - 4.5) <= 4.4 && !fig.get(x, y)) fig.put(x, y, tone(hr, .7 - (x - 20) * .1, x, y, .2));
+  // Nurse cap: white trapezoid flaring upward, crease, folded cuff with a black band.
+  for (let y = 3; y <= 11; y++) {
+    const hw = 8 + (11 - y) * .42;
+    for (let x = Math.ceil(24 - hw); x < 24 + hw; x++) {
+      const u = (x + .5 - 24) / hw;
+      let k = u < .2 ? 3 : u < .7 ? 2 : 1;
+      if (y === 3) k = Math.min(3, k + 1);
+      if (y === 11) k = 1;
+      if (y === 9) { fig.put(x, y, hex('#24201c')); continue; }
+      if (x === 24 && y < 9) k = 2;
+      fig.put(x, y, cap[k]);
+    }
+  }
+  // Round white collar opening in a small V.
+  for (const [cx, lit] of [[19.5, true], [28.5, false]]) for (let y = 35; y <= 41; y++) for (let x = Math.floor(cx - 5); x <= cx + 5; x++) {
+    const d = Math.hypot((x + .5 - cx) / 4.6, (y + .5 - 37.6) / 2.8);
+    if (d > 1 || y < 36) continue;
+    fig.put(x, y, col[d > .78 && y > 37 ? 1 : lit ? (x < cx ? 3 : 2) : (x < cx ? 2 : 1)]);
+  }
+  for (let y = 36; y <= 39; y++) for (let x = 24 - (39 - y) * .5; x <= 23 + (39 - y) * .5; x++) fig.put(Math.round(x), y, sk[y > 37 ? 0 : 1]);
+  // Warm rim light from the window on the left edges of hair, face and shoulders.
+  const rim = fig.clone();
+  for (let y = 4; y < 48; y++) for (let x = 1; x < 47; x++) {
+    const p = rim.get(x, y);
+    if (!p || rim.get(x - 1, y)) continue;
+    for (const R of [hr, sk, t, st]) { const k = R.indexOf(p); if (k >= 0) { fig.put(x, y, R[Math.min(3, k + 2)]); break; } }
+  }
+  fig.outline(K);
+  c.blit(fig, 0, 0);
+  for (let i = 0; i < 48; i++) { c.put(i, 0, K); c.put(i, 47, K); c.put(0, i, K); c.put(47, i, K); }
+  for (let i = 1; i < 47; i++) { c.put(i, 1, bg[2]); c.put(1, i, bg[2]); }
+  return c;
+}
 
 function portraitClothes(f, P) {
   const t = P.top, sk = P.skin;

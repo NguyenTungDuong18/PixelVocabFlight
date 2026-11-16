@@ -249,9 +249,28 @@ function fence(v) {
 }
 
 // ---------------------------------------------------------------- preview
+// ---------------------------------------------------------------- wood floor (dormitory, interiors)
+// Pine boards running east-west, 4 px wide (period divides 16), butt joints with nail pairs inside the
+// tile; variants: plain, knot, patch worn pale by feet, scuffed. Lamp-lit warm brown.
+const FLOOR = ['#3a2413', '#553621', '#6f4a2c', '#86603a', '#9c774b'].map(h => hex(h));
+function floorWood(v) {
+  const c = tile((x, y) => {
+    const b = y >> 2, vy = y & 3;
+    if (vy === 3) return FLOOR[0];                                   // gap between boards
+    const streak = hash(x >> 2, b + v * 7, 500) < .3, n = hash(x, y, 510 + v);
+    return vy === 0 ? FLOOR[streak ? 3 : 4] : n < .1 ? FLOOR[2] : streak ? FLOOR[2] : FLOOR[3];
+  });
+  const joint = (x, b) => { for (let k = 0; k < 3; k++) c.put(x, b * 4 + k, FLOOR[1]); c.put(x - 2, b * 4 + 1, FLOOR[0]); c.put(x + 2, b * 4 + 1, FLOOR[0]); };
+  joint([5, 11, 8, 4][v], [0, 2, 1, 3][v]); joint([12, 3, 13, 10][v], [2, 0, 3, 1][v]);
+  if (v === 1) for (const [x, y, k] of [[7, 5, 0], [8, 5, 1], [6, 5, 2], [9, 5, 2], [7, 6, 1], [8, 6, 0], [7, 4, 2], [8, 4, 2]]) c.put(x, y, FLOOR[k]);                      // knot
+  if (v === 2) for (let y = 4; y < 11; y++) for (let x = 4; x < 12; x++) if ((y & 3) !== 3 && dither(x, y, .8 - Math.hypot(x - 7.5, y - 7) / 5)) c.put(x, y, FLOOR[4]);   // worn pale
+  if (v === 3) { for (let x = 3; x < 9; x++) c.put(x, 9 + (x > 6 ? 1 : 0), FLOOR[1]); c.put(11, 13, FLOOR[1]); c.put(12, 13, FLOOR[1]); }                                // scuffs
+  return c;
+}
+
 const KINDS = {
   tile_grass: [4, grass], tile_dirt: [4, dirt], tile_concrete: [4, concrete], tile_asphalt: [4, asphalt],
-  tile_sand: [2, sand], tile_runway: [5, runway], tile_water: [4, water], tile_fence: [7, fence]
+  tile_sand: [2, sand], tile_runway: [5, runway], tile_water: [4, water], tile_fence: [7, fence], tile_floor_wood: [4, floorWood]
 };
 function buildAll() { const o = {}; for (const [n, [k, f]] of Object.entries(KINDS)) o[n] = Array.from({ length: k }, (_, i) => f(i)); return o; }
 
@@ -325,4 +344,4 @@ function build(add) {
   writePreviews(PREVIEW, all).catch(e => { console.error('ground preview failed', e); process.exitCode = 1; });
 }
 
-module.exports = { build, writePreviews, grass, dirt, concrete, asphalt, runway, sand, water, fence, FENCE_GROUND_ROW: FB };
+module.exports = { build, writePreviews, grass, dirt, concrete, asphalt, runway, sand, water, fence, floorWood, FENCE_GROUND_ROW: FB };

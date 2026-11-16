@@ -37,8 +37,8 @@ namespace PixelVocabFlight
             var size = PixelSprites.Size(DustSprite, 1);
             var anchor = AnchorOf(DustSprite, size, new Vector2(size.x / 2, size.y - 1));
             var rect = puff.Image.rectTransform;
-            rect.sizeDelta = size * Scale;
-            rect.anchoredPosition = new Vector2(Snap(x * TileSize - anchor.x * Scale), -Snap(y * TileSize - anchor.y * Scale));
+            rect.sizeDelta = size * scale;
+            rect.anchoredPosition = new Vector2(Snap(x * tileSize - anchor.x * scale), -Snap(y * tileSize - anchor.y * scale));
             DustPuffs++;
         }
 

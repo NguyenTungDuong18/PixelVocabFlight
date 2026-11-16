@@ -1,0 +1,1257 @@
+fileFormatVersion: 2
+guid: bee361b03a6c88640976d0a715ed222d
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 3509574869470478796
+    second: fx_rain_shadow_5_0
+  - first:
+      213: 2689330972237518546
+    second: fx_rain_shadow_5_1
+  - first:
+      213: -4519501569873752135
+    second: fx_rain_shadow_5_2
+  - first:
+      213: -7000685105907782417
+    second: fx_rain_shadow_5_3
+  - first:
+      213: -496820969697421480
+    second: fx_rain_shadow_5_4
+  - first:
+      213: 2653444662043507524
+    second: fx_rain_shadow_5_5
+  - first:
+      213: 5050422133065386267
+    second: fx_rain_shadow_5_6
+  - first:
+      213: 8409318646042583712
+    second: fx_rain_shadow_5_7
+  - first:
+      213: -1413252073711065222
+    second: fx_rain_shadow_5_8
+  - first:
+      213: 9064568105997018365
+    second: fx_rain_shadow_5_9
+  - first:
+      213: -3394104241487294004
+    second: fx_rain_shadow_5_10
+  - first:
+      213: 4741283787059908403
+    second: fx_rain_shadow_5_11
+  - first:
+      213: 7203385306036600564
+    second: fx_rain_shadow_5_12
+  - first:
+      213: 5955259763721492552
+    second: fx_rain_shadow_5_13
+  - first:
+      213: 2766474288696211727
+    second: fx_rain_shadow_5_14
+  - first:
+      213: -5851272523415851259
+    second: fx_rain_shadow_5_15
+  - first:
+      213: -3591114959752915612
+    second: fx_rain_shadow_5_16
+  - first:
+      213: 5058184178311765542
+    second: fx_rain_shadow_5_17
+  - first:
+      213: 2736274067989784884
+    second: fx_rain_shadow_5_18
+  - first:
+      213: 961659787007098373
+    second: fx_rain_shadow_5_19
+  - first:
+      213: -2420551933682390391
+    second: fx_rain_shadow_5_20
+  - first:
+      213: -4770992498214600813
+    second: fx_rain_shadow_5_21
+  - first:
+      213: 3853074437125655230
+    second: fx_rain_shadow_5_22
+  - first:
+      213: 6594967797192503213
+    second: fx_rain_shadow_5_23
+  - first:
+      213: 4068947108623196783
+    second: fx_rain_shadow_5_24
+  - first:
+      213: -2734983292532070884
+    second: fx_rain_shadow_5_25
+  - first:
+      213: 2576355961444846104
+    second: fx_rain_shadow_5_26
+  - first:
+      213: -6919490776448107874
+    second: fx_rain_shadow_5_27
+  - first:
+      213: 8908645452755360628
+    second: fx_rain_shadow_5_28
+  - first:
+      213: -3791997885089396654
+    second: fx_rain_shadow_5_29
+  - first:
+      213: 1134538832978108013
+    second: fx_rain_shadow_5_30
+  - first:
+      213: 8245819514191978369
+    second: fx_rain_shadow_5_31
+  - first:
+      213: 588621301776770855
+    second: fx_rain_shadow_5_32
+  - first:
+      213: 9131295793722585607
+    second: fx_rain_shadow_5_33
+  - first:
+      213: -1009678999954342976
+    second: fx_rain_shadow_5_34
+  - first:
+      213: -3855780354972112174
+    second: fx_rain_shadow_5_35
+  - first:
+      213: 3195372718561471097
+    second: fx_rain_shadow_5_36
+  - first:
+      213: -720779676480858719
+    second: fx_rain_shadow_5_37
+  - first:
+      213: -4136802669979877474
+    second: fx_rain_shadow_5_38
+  - first:
+      213: 444870430358518614
+    second: fx_rain_shadow_5_39
+  - first:
+      213: -150286141421588189
+    second: fx_rain_shadow_5_40
+  - first:
+      213: 1310902657863903902
+    second: fx_rain_shadow_5_41
+  - first:
+      213: -3341461427701804555
+    second: fx_rain_shadow_5_42
+  - first:
+      213: -2350842695111758389
+    second: fx_rain_shadow_5_43
+  - first:
+      213: -1558506196088356248
+    second: fx_rain_shadow_5_44
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 1
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 16
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationMethod: 0
+  spriteTessellationDetail: -1
+  spriteGeometrySubdivision: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: fx_rain_shadow_5_0
+      rect:
+        serializedVersion: 2
+        x: 87
+        y: 142
+        width: 71
+        height: 123
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cc10d6fcfb384b030800000000000000
+      internalID: 3509574869470478796
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_rain_shadow_5_1
+      rect:
+        serializedVersion: 2
+        x: 122
+        y: 254
+        width: 11
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2d65ca3454c625520800000000000000
+      internalID: 2689330972237518546
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_rain_shadow_5_2
+      rect:
+        serializedVersion: 2
+        x: 150
+        y: 244
+        width: 23
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9bfcadd74418741c0800000000000000
+      internalID: -4519501569873752135
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_rain_shadow_5_3
+      rect:
+        serializedVersion: 2
+        x: 159
+        y: 215
+        width: 44
+        height: 55
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fecaff5ccf198de90800000000000000
+      internalID: -7000685105907782417
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_rain_shadow_5_4
+      rect:
+        serializedVersion: 2
+        x: 192
+        y: 215
+        width: 35
+        height: 55
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8575838d5ffea19f0800000000000000
+      internalID: -496820969697421480
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_rain_shadow_5_5
+      rect:
+        serializedVersion: 2
+        x: 227
+        y: 164
+        width: 83
+        height: 106
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 44b72409cdde2d420800000000000000
+      internalID: 2653444662043507524
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_rain_shadow_5_6
+      rect:
+        serializedVersion: 2
+        x: 251
+        y: 263
+        width: 18
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b190227fb24b61640800000000000000
+      internalID: 5050422133065386267
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_rain_shadow_5_7
+      rect:
+        serializedVersion: 2
+        x: 302
+        y: 151
+        width: 73
+        height: 112
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0a2ef6c01c6e3b470800000000000000
+      internalID: 8409318646042583712
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_rain_shadow_5_8
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 133
+        width: 102
+        height: 127
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a772e580abe136ce0800000000000000
+      internalID: -1413252073711065222
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_rain_shadow_5_9
+      rect:
+        serializedVersion: 2
+        x: 65
+        y: 224
+        width: 22
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: df4a9409aa0dbcd70800000000000000
+      internalID: 9064568105997018365
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_rain_shadow_5_10
+      rect:
+        serializedVersion: 2
+        x: 234
+        y: 245
+        width: 7
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cc1d083dc28b5e0d0800000000000000
+      internalID: -3394104241487294004
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_rain_shadow_5_11
+      rect:
+        serializedVersion: 2
+        x: 196
+        y: 209
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 33f4603eb7c6cc140800000000000000
+      internalID: 4741283787059908403
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_rain_shadow_5_12
+      rect:
+        serializedVersion: 2
+        x: 221
+        y: 201
+        width: 12
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4fe749a45c097f360800000000000000
+      internalID: 7203385306036600564
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_rain_shadow_5_13
+      rect:
+        serializedVersion: 2
+        x: 235
+        y: 183
+        width: 14
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 848dbc9e33555a250800000000000000
+      internalID: 5955259763721492552
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_rain_shadow_5_14
+      rect:
+        serializedVersion: 2
+        x: 158
+        y: 115
+        width: 84
+        height: 91
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f093df945bd746620800000000000000
+      internalID: 2766474288696211727
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_rain_shadow_5_15
+      rect:
+        serializedVersion: 2
+        x: 175
+        y: 183
+        width: 31
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 50f6bcd24aa1ccea0800000000000000
+      internalID: -5851272523415851259
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_rain_shadow_5_16
+      rect:
+        serializedVersion: 2
+        x: 372
+        y: 173
+        width: 9
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 465165c78fbc92ec0800000000000000
+      internalID: -3591114959752915612
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_rain_shadow_5_17
+      rect:
+        serializedVersion: 2
+        x: 247
+        y: 134
+        width: 33
+        height: 40
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 62e16c4f5b7423640800000000000000
+      internalID: 5058184178311765542
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_rain_shadow_5_18
+      rect:
+        serializedVersion: 2
+        x: 281
+        y: 153
+        width: 12
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 439e4a674c239f520800000000000000
+      internalID: 2736274067989784884
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_rain_shadow_5_19
+      rect:
+        serializedVersion: 2
+        x: 285
+        y: 148
+        width: 7
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 50ef55f2b70885d00800000000000000
+      internalID: 961659787007098373
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_rain_shadow_5_20
+      rect:
+        serializedVersion: 2
+        x: 303
+        y: 152
+        width: 9
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 98ae97847d8786ed0800000000000000
+      internalID: -2420551933682390391
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_rain_shadow_5_21
+      rect:
+        serializedVersion: 2
+        x: 379
+        y: 135
+        width: 19
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 39f7dd5c9970acdb0800000000000000
+      internalID: -4770992498214600813
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_rain_shadow_5_22
+      rect:
+        serializedVersion: 2
+        x: 156
+        y: 123
+        width: 12
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: eba430e39ced87530800000000000000
+      internalID: 3853074437125655230
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_rain_shadow_5_23
+      rect:
+        serializedVersion: 2
+        x: 341
+        y: 145
+        width: 24
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dafacc81548068b50800000000000000
+      internalID: 6594967797192503213
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_rain_shadow_5_24
+      rect:
+        serializedVersion: 2
+        x: 22
+        y: 78
+        width: 81
+        height: 52
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f62a65b46ddc77830800000000000000
+      internalID: 4068947108623196783
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_rain_shadow_5_25
+      rect:
+        serializedVersion: 2
+        x: 104
+        y: 76
+        width: 38
+        height: 36
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c166ffd9f236b0ad0800000000000000
+      internalID: -2734983292532070884
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_rain_shadow_5_26
+      rect:
+        serializedVersion: 2
+        x: 107
+        y: 106
+        width: 44
+        height: 28
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 81a41e8c81e01c320800000000000000
+      internalID: 2576355961444846104
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_rain_shadow_5_27
+      rect:
+        serializedVersion: 2
+        x: 191
+        y: 96
+        width: 15
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e9af733ccc709ff90800000000000000
+      internalID: -6919490776448107874
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_rain_shadow_5_28
+      rect:
+        serializedVersion: 2
+        x: 201
+        y: 101
+        width: 20
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 47bd169d6ddd1ab70800000000000000
+      internalID: 8908645452755360628
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_rain_shadow_5_29
+      rect:
+        serializedVersion: 2
+        x: 221
+        y: 97
+        width: 11
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 258c63ea30e106bc0800000000000000
+      internalID: -3791997885089396654
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_rain_shadow_5_30
+      rect:
+        serializedVersion: 2
+        x: 244
+        y: 102
+        width: 19
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d6edb8bbe01bebf00800000000000000
+      internalID: 1134538832978108013
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_rain_shadow_5_31
+      rect:
+        serializedVersion: 2
+        x: 278
+        y: 98
+        width: 45
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 18f9561f8290f6270800000000000000
+      internalID: 8245819514191978369
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_rain_shadow_5_32
+      rect:
+        serializedVersion: 2
+        x: 384
+        y: 108
+        width: 6
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 727e1af84f33b2800800000000000000
+      internalID: 588621301776770855
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_rain_shadow_5_33
+      rect:
+        serializedVersion: 2
+        x: 397
+        y: 104
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7027adb0521e8be70800000000000000
+      internalID: 9131295793722585607
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_rain_shadow_5_34
+      rect:
+        serializedVersion: 2
+        x: 32
+        y: 67
+        width: 17
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0cbbc8e8c46ecf1f0800000000000000
+      internalID: -1009678999954342976
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_rain_shadow_5_35
+      rect:
+        serializedVersion: 2
+        x: 38
+        y: 73
+        width: 20
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2da25f922348d7ac0800000000000000
+      internalID: -3855780354972112174
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_rain_shadow_5_36
+      rect:
+        serializedVersion: 2
+        x: 49
+        y: 12
+        width: 70
+        height: 78
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 97aa4d6ce8e385c20800000000000000
+      internalID: 3195372718561471097
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_rain_shadow_5_37
+      rect:
+        serializedVersion: 2
+        x: 118
+        y: 19
+        width: 110
+        height: 61
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1a5990ef3b64ff5f0800000000000000
+      internalID: -720779676480858719
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_rain_shadow_5_38
+      rect:
+        serializedVersion: 2
+        x: 162
+        y: 73
+        width: 25
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e9f36fda3ef1796c0800000000000000
+      internalID: -4136802669979877474
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_rain_shadow_5_39
+      rect:
+        serializedVersion: 2
+        x: 193
+        y: 74
+        width: 38
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 65b3894ac4f7c2600800000000000000
+      internalID: 444870430358518614
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_rain_shadow_5_40
+      rect:
+        serializedVersion: 2
+        x: 282
+        y: 79
+        width: 38
+        height: 28
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 321f6e5fc831aedf0800000000000000
+      internalID: -150286141421588189
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_rain_shadow_5_41
+      rect:
+        serializedVersion: 2
+        x: 394
+        y: 69
+        width: 9
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e9ae7199503413210800000000000000
+      internalID: 1310902657863903902
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_rain_shadow_5_42
+      rect:
+        serializedVersion: 2
+        x: 402
+        y: 70
+        width: 14
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5f11a2b098eb0a1d0800000000000000
+      internalID: -3341461427701804555
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_rain_shadow_5_43
+      rect:
+        serializedVersion: 2
+        x: 424
+        y: 63
+        width: 12
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bcdaa0b2601206fd0800000000000000
+      internalID: -2350842695111758389
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_rain_shadow_5_44
+      rect:
+        serializedVersion: 2
+        x: 391
+        y: 40
+        width: 53
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 86288e93fd21f5ae0800000000000000
+      internalID: -1558506196088356248
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable: {}
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

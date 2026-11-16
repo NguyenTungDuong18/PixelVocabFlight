@@ -17,11 +17,16 @@ Con của layout `FlightView`, nằm dưới overlay và curtain.
 - **Camera:** bám người chơi, kẹp trong map, snap 3 px. Canvas lồng + RectMask2D.
 - **HUD:** bảng nhiệm vụ trên trái, bảng phi công trên phải; nhãn khu vực, Hint 4,2 giây, prompt `[E] …`, `fx_quest_marker`; dải phím, thẻ tiêu đề.
 - Thiếu sprite thì bỏ qua và `Debug.LogWarning`.
+- **Ba lớp vật (`Placement.Layer`):** `Floor` (thảm) vào `floorLayer`, nằm dưới bóng nhân vật và mọi vật Object; `Wall` (đồ treo tường, cửa sổ) vào lớp y-sort nhưng khóa sort = khóa của Object nó chồng lên (`WallKey`, tường sau) với `Order = 1`, nên vẽ ngay sau tường sau và trước mọi nhân vật; `Object` y-sort như cũ. Hook test: `IsFloorItem(id)`, `PlacementDrawIndex`. Chế độ story dùng `tileSize = 64`, `scale = 4`, tham chiếu 1920×1080 (field, không phải const; căn cứ giữ 48/3/1440×900); lời nhắc `[E]` cỡ thiết kế 28 trên bảng cao 72.
+- **Dùng cho truyện (0.16):** `BaseView.Story.cs` + tham số. `new BaseView(parent, canvas, story: true)`: nền ngoài map đen, ẩn HUD căn cứ (`Animate` thoát sau lời nhắc), không cảnh báo thiếu hàng rào. `Build(world, playerCharacter)` dựng map bất kỳ (người chơi theo `Act0Content.PlayerCharacter = "pilot_young"`; map nhỏ hơn màn thì camera canh giữa). `Reset()` bỏ map đã dựng để `Build` lại map khác. `Ground.WoodFloor` → `tile_floor_wood`, `Ground.Void` không sprite, đen. Lời nhắc `InteractKind.Story` tìm vật theo tag `story:<id>` (`map.FindTag`). NPC đang `Walking` dùng chu kỳ đi. Hook diễn xuất: `SetPose(actorId, sprite)` (người chơi là `"pilot"`), `ClearPoses`, `HideActor`, `HoldPlacement(id, frame)` (giữ model nhiều khung ở một khung, vd. cửa sổ mái), test: `IsBuilt`, `MissingNames`, `PlacementSpriteName`, `ActorVisible`.
 
 ## `DialogueView`
 
-- **Hộp:** `ui_panel` tại (40,668), 1360×208.
-- **Người nói:** chân dung `portrait_<cid>` 144 px (mấp máy miệng khi chữ chạy), tên viết hoa kèm vai trò.
-- **Chữ:** 48 ký tự/giây; phần chưa hiện vẫn chiếm chỗ (trong suốt) nên không nhảy dòng.
-- **Lựa chọn:** bảng trên phải, chỉ hiện khi chữ hiện hết. Keycap 1–n; `mission.accept:N` kèm `card_<env>`. Dòng đang chọn dùng `ui_card_selected` + `ui_pointer`; rê chuột đổi dòng, bấm gọi `FlightGame.ChooseDialogue`.
+Có sprite `ui_dialog_*` thì dùng bố cục mới dưới đây; thiếu (chưa forge) thì về bố cục cũ (`ui_panel`, `ui_ink`, `ui_card*`, keycap, `ui_pointer`, chữ Cream). `UiKit.Pick(mới, cũ)` chọn sprite.
+
+- **Hộp:** `ui_dialog_box` (giấy kem, khung gỗ, scale 3) tại (40,668), 1360×208. Chữ thoại màu `UiKit.Ink`, tại (206,40) 1088×144, cỡ 32, tràn thì 16.
+- **Người nói:** khung `ui_dialog_portrait` 168×168 tại (20,20) scale 3; chân dung `portrait_<cid>` 144 px tại (32,32) (mấp máy miệng khi chữ chạy). Tên trên bảng `ui_dialog_name` (olive, chữ Cream cỡ 16) cao 48, vắt qua mép trên hộp (200,−30), rộng theo chữ + 60.
+- **Chữ:** 48 ký tự/giây; phần chưa hiện vẫn chiếm chỗ (trong suốt) nên không nhảy dòng. Hiện hết và không có lựa chọn thì mũi tên `ui_dialog_next` 30×30 nhún ở (1306,156).
+- **Lựa chọn:** hàng phiếu `ui_dialog_choice` / `_selected` (scale 2, cao 48) nằm trên hộp, chỉ hiện khi chữ hiện hết. Nhãn "N." ở x=28, chữ từ x=64 (có `card_<env>` của `mission.accept:N` thì chữ từ x=146). Rê chuột đổi dòng, bấm gọi `FlightGame.ChooseDialogue`. Hook smoke: `NextArrowVisible`, `NamePlateVisible`, `BoxSpriteName`, `BodyFontSize`.
+- **Hộp trơn (truyện):** `Show(speaker, character, text, choices, plainBox: true)` dùng `ui_dialog_plain` (thiếu thì `ui_dialog_box`), ẩn ô tên và khung chân dung, chữ bắt đầu từ x=60. `Plain` là hook test. `StoryView` có `DialogueView` riêng; nút chọn gọi `FlightGame.ChooseDialogue` (chuyển sang `ChooseStoryDialogue` khi `Mode.Story`).
 - **Âm thanh:** `FlightAudio.Blip(pitch)` khi chữ chạy (giáo sư 0,8), `Footstep(running)` khi đi.

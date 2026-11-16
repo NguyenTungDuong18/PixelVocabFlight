@@ -3,7 +3,8 @@ using UnityEngine;
 
 namespace PixelVocabFlight
 {
-    public sealed class FlightAudio : MonoBehaviour
+    // Story sounds (rain, radio, frogs...) are in FlightAudio.Story.cs and FlightAudio.StoryClips.cs.
+    public sealed partial class FlightAudio : MonoBehaviour
     {
         private AudioSource voice;
         private AudioSource effects;
@@ -39,6 +40,7 @@ namespace PixelVocabFlight
             boost = Tone("Rocket boost", 220, 900, .45f);
             blip = Tone("Dialogue blip", 880, 760, .035f);
             footstep = Thud("Footstep", .06f);
+            InitializeStory();
         }
 
         public float Say(VocabularyEntry entry)
@@ -82,12 +84,13 @@ namespace PixelVocabFlight
         }
         public void Footstep(bool running) { FootstepCount++; effects.PlayOneShot(footstep, running ? .5f : .32f); }
         public void Pause(bool paused) { if (paused) { voice.Pause(); effects.Pause(); } else { voice.UnPause(); effects.UnPause(); } }
-        public void Stop() { voice.Stop(); effects.Stop(); }
+        public void Stop() { voice.Stop(); effects.Stop(); StopStory(); }
 
         public void ToggleMute()
         {
             Muted = !Muted;
             voice.mute = effects.mute = Muted;
+            MuteStory(Muted);
         }
 
         // Radial engine start: irregular coughs that settle into a steady, rising drone ("tu tu").

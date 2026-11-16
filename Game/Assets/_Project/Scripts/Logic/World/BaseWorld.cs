@@ -5,15 +5,18 @@ namespace PixelVocabFlight
 {
     // DialogueOpened: NpcId + Text = dialogue graph id. BoardAircraft: Text = placement id.
     // Hint: Text = message. ZoneEntered: Text = zone label.
-    public enum WorldEventKind { DialogueOpened, BoardAircraft, Hint, ZoneEntered }
+    // StoryInteract: EntityId (= NpcId = Text) is the id after "story:" in the placement tag, sent when E is pressed near it.
+    // NpcArrived: NpcId finished its NpcWalkTo route.
+    public enum WorldEventKind { DialogueOpened, BoardAircraft, Hint, ZoneEntered, StoryInteract, NpcArrived }
 
     public sealed class WorldEvent
     {
         public WorldEventKind Kind;
         public string NpcId, Text;
+        public string EntityId => NpcId;
     }
 
-    public enum InteractKind { None, Npc, Aircraft }
+    public enum InteractKind { None, Npc, Aircraft, Story }
 
     // Live NPC state; Def stays immutable map data.
     public sealed class NpcState
@@ -23,6 +26,9 @@ namespace PixelVocabFlight
         public float Y { get; internal set; }
         public Facing Facing { get; internal set; }
         public bool Talking { get; internal set; }
+        // True while a NpcWalkTo route is running.
+        public bool Walking => Route.Count > 0;
+        internal readonly List<(float x, float y, float speed)> Route = new List<(float x, float y, float speed)>();
 
         public NpcState(NpcDef def)
         {
@@ -71,6 +77,10 @@ namespace PixelVocabFlight
         public string CurrentZone { get; private set; }
         // Shown when the pilot tries to board without orders.
         public string NoOrdersHint { get; set; } = BaseContent.NoOrdersHint;
+        // Story mode: the pilot cannot walk or interact while true (cutscene beats).
+        public bool LockPlayer { get; set; }
+        // Story mode: which "story:<id>" placements can be used right now; null means all of them.
+        public Func<string, bool> StoryActive { get; set; }
 
         public NpcState Npc(string id)
         {
@@ -87,8 +97,9 @@ namespace PixelVocabFlight
             if (float.IsNaN(inputY) || float.IsInfinity(inputY)) inputY = 0;
             inputX = Math.Max(-1f, Math.Min(1f, inputX));
             inputY = Math.Max(-1f, Math.Min(1f, inputY));
+            MoveNpcs(dt);
             float length = (float)Math.Sqrt(inputX * inputX + inputY * inputY);
-            if (InDialogue || length < DeadZone)
+            if (InDialogue || LockPlayer || length < DeadZone)
             {
                 Moving = Running = false;
                 RefreshNearest();
@@ -126,9 +137,48 @@ namespace PixelVocabFlight
             return false;
         }
 
+        // Queues a straight walk (no pathfinding, no collision) for an NPC; several calls make a route that is
+        // followed leg by leg. Speed in tiles per second. NpcArrived is sent when the last leg ends.
+        public bool NpcWalkTo(string npcId, float x, float y, float speed)
+        {
+            var npc = Npc(npcId);
+            if (npc == null || !(speed > 0) || float.IsNaN(x) || float.IsNaN(y) || float.IsInfinity(x) || float.IsInfinity(y)) return false;
+            if (x < 0 || y < 0 || x > Map.Width || y > Map.Height) return false;
+            npc.Route.Add((x, y, speed));
+            return true;
+        }
+
+        private void MoveNpcs(float dt)
+        {
+            foreach (var n in npcs)
+            {
+                float budget = dt;
+                while (n.Route.Count > 0 && budget > 0)
+                {
+                    var leg = n.Route[0];
+                    float dx = leg.x - n.X, dy = leg.y - n.Y;
+                    float d = (float)Math.Sqrt(dx * dx + dy * dy);
+                    float reach = leg.speed * budget;
+                    if (d > 1e-4f) n.Facing = Facings.Toward(dx, dy);
+                    if (d <= reach)
+                    {
+                        n.X = leg.x; n.Y = leg.y;
+                        budget -= leg.speed > 0 ? d / leg.speed : budget;
+                        n.Route.RemoveAt(0);
+                        if (n.Route.Count == 0) Emit(WorldEventKind.NpcArrived, n.Def.Id, n.Def.Id);
+                    }
+                    else
+                    {
+                        n.X += dx / d * reach; n.Y += dy / d * reach;
+                        budget = 0;
+                    }
+                }
+            }
+        }
+
         public void Interact()
         {
-            if (InDialogue) return;
+            if (InDialogue || LockPlayer) return;
             RefreshNearest();
             if (NearestKind == InteractKind.Npc)
             {
@@ -143,6 +193,10 @@ namespace PixelVocabFlight
             {
                 if (Missions.Active != null) Emit(WorldEventKind.BoardAircraft, null, NearestId);
                 else Emit(WorldEventKind.Hint, null, NoOrdersHint);
+            }
+            else if (NearestKind == InteractKind.Story)
+            {
+                Emit(WorldEventKind.StoryInteract, NearestId, NearestId);
             }
             RefreshNearest();
         }
@@ -237,24 +291,37 @@ namespace PixelVocabFlight
             float best = InteractRange;
             foreach (var n in npcs)
             {
+                if (n.Def.Dialogue == null) continue;   // story-only NPCs (no graph) cannot be talked to
                 float dx = n.X - PlayerX, dy = n.Y - PlayerY;
                 float d = (float)Math.Sqrt(dx * dx + dy * dy);
                 if (d <= best) { best = d; NearestKind = InteractKind.Npc; NearestId = n.Def.Id; }
             }
             foreach (var p in Map.Placements)
             {
-                if (p.Tag != MapDef.PlayerAircraftTag) continue;
+                bool aircraft = p.Tag == MapDef.PlayerAircraftTag;
+                string storyId = StoryIdOf(p);
+                if (!aircraft && storyId == null) continue;
+                if (storyId != null && StoryActive != null && !StoryActive(storyId)) continue;
                 float d = DistanceToFootprint(p, PlayerX, PlayerY);
                 if (d < best || (d <= best && NearestKind == InteractKind.None))
                 {
-                    best = d; NearestKind = InteractKind.Aircraft; NearestId = p.Id;
+                    best = d;
+                    NearestKind = aircraft ? InteractKind.Aircraft : InteractKind.Story;
+                    NearestId = aircraft ? p.Id : storyId;
                 }
             }
         }
 
+        public const string StoryTagPrefix = "story:";
+
+        // Id after "story:" in the placement tag, or null when the placement is not a story object.
+        public static string StoryIdOf(Placement p) =>
+            p.Tag != null && p.Tag.Length > StoryTagPrefix.Length && p.Tag.StartsWith(StoryTagPrefix, StringComparison.Ordinal) ? p.Tag.Substring(StoryTagPrefix.Length) : null;
+
         // Prompt for an interaction target; null for none.
         public string PromptFor(InteractKind kind, string id)
         {
+            if (kind == InteractKind.Story) { var s = Map.FindTag(StoryTagPrefix + id); return s == null ? null : "[E] Xem " + s.DisplayName; }
             if (kind == InteractKind.Npc) { var n = Npc(id); return n == null ? null : "[E] Nói chuyện với " + n.Def.Name; }
             if (kind != InteractKind.Aircraft) return null;
             var p = Map.Find(id);

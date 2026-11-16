@@ -48,7 +48,7 @@ namespace PixelVocabFlight
             B("bld_hangar", "Nhà chứa máy bay", 10, 8),
             B("bld_barracks", "Doanh trại", 8, 4),
             B("bld_mess_hall", "Nhà ăn", 7, 5, frames: 4),
-            B("bld_medical", "Trạm y tế", 6, 5),
+            B("bld_medical", "Trạm y tế", 6, 5, frames: 4),
             B("bld_academy", "Trường huấn luyện ngoại ngữ", 7, 5),
             B("bld_workshop", "Xưởng sửa chữa", 7, 5),
             B("bld_warehouse", "Kho quân nhu", 7, 5),
@@ -86,6 +86,23 @@ namespace PixelVocabFlight
             A("air_fighter", "SKYLARK MK.I", 4, 4),
             A("air_transport", "Máy bay vận tải", 6, 5),
             A("air_bomber_enemy", "Máy bay ném bom địch", 6, 5),
+            // Act 0, M1 dormitory room (DormRoomMap). Window: 2 frames (closed, open); desk: oil-lamp flame loop.
+            B("bld_dorm_wall", "Tường phòng nội trú", 12, 1),
+            B("bld_dorm_wall_side", "Tường bên phòng nội trú", 1, 8),
+            P("prop_dorm_window", "Cửa sổ mái", 2, 1, solid: false, frames: 2),
+            P("prop_dorm_bed_jonas", "Giường của Jonas", 2, 3),
+            P("prop_dorm_bed_daan", "Giường của Daan", 2, 3),
+            P("prop_dorm_desk", "Bàn học chung", 3, 2, frames: 4),
+            P("prop_dorm_chair", "Ghế gỗ", 1, 1),
+            P("prop_dorm_trunk", "Rương học viên", 2, 1),
+            P("prop_dorm_rug", "Thảm cũ", 3, 2, solid: false),
+            P("prop_wall_mailmap", "Bản đồ tuyến thư", 2, 1, solid: false),
+            P("prop_photo_floris", "Ảnh chú Floris", 1, 1, solid: false),
+            P("prop_handkerchief_nail", "Khăn tay", 1, 1, solid: false),
+            P("prop_sketchbook_floris", "Sổ vẽ của chú Floris", 1, 1, solid: false),
+            P("prop_poster_airline", "Áp phích hãng bay", 2, 1, solid: false),
+            P("prop_notebook_english", "Sổ tay tiếng Anh", 1, 1),
+            P("prop_letter_daan_mother", "Thư của mẹ Daan", 1, 1, solid: false),
         };
         private static readonly Dictionary<string, ModelDef> byId = Index();
 

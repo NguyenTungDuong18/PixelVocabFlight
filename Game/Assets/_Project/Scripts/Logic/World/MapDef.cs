@@ -3,7 +3,14 @@ using System.Collections.Generic;
 
 namespace PixelVocabFlight
 {
-    public enum Ground { Grass, Dirt, Concrete, Asphalt, Sand, Runway, Water }
+    // WoodFloor: indoor boards (tile_floor_wood). Void: solid black outside an interior room (no sprite).
+    public enum Ground { Grass, Dirt, Concrete, Asphalt, Sand, Runway, Water, WoodFloor, Void }
+
+    // Draw layer of a placement.
+    //   Object: y-sorted with the characters; solid as its ModelDef says (default).
+    //   Floor : drawn right on the ground, always below every character and Object; never blocks.
+    //   Wall  : hangs on a wall face, always drawn after every character; never blocks; may overlap the wall's footprint.
+    public enum PlacementLayer { Object, Floor, Wall }
 
     // One model instance on a map. The footprint's top-left tile is (X, Y); Label null means ModelDef.Name.
     public sealed class Placement
@@ -12,6 +19,7 @@ namespace PixelVocabFlight
         public Facing Facing;
         public int X, Y;
         public string Tag;
+        public PlacementLayer Layer;   // default Object
 
         public ModelDef Def => WorldModels.Get(Model);
         public string DisplayName => Label ?? Def.Name;
@@ -131,7 +139,7 @@ namespace PixelVocabFlight
             return null;
         }
 
-        // Static blocking: water, fence tiles and solid model footprints. Outside the map is solid.
+        // Static blocking: water, void, fence tiles and solid model footprints. Outside the map is solid.
         public bool SolidTile(int x, int y)
         {
             if (!InBounds(x, y)) return true;
@@ -174,8 +182,8 @@ namespace PixelVocabFlight
             return p;
         }
 
-        public Placement Add(string id, string model, Facing facing, int x, int y, string label = null, string tag = null) =>
-            Add(new Placement { Id = id, Model = model, Facing = facing, X = x, Y = y, Label = label, Tag = tag });
+        public Placement Add(string id, string model, Facing facing, int x, int y, string label = null, string tag = null, PlacementLayer layer = PlacementLayer.Object) =>
+            Add(new Placement { Id = id, Model = model, Facing = facing, X = x, Y = y, Label = label, Tag = tag, Layer = layer });
 
         // Adds the placement only if its footprint is inside the map and touches nothing; used for scattered decoration.
         public bool AddIfFree(string id, string model, Facing facing, int x, int y)
@@ -191,7 +199,7 @@ namespace PixelVocabFlight
             if (x < 0 || y < 0 || x + w > Width || y + h > Height) return false;
             for (int j = y; j < y + h; j++)
                 for (int i = x; i < x + w; i++)
-                    if (PlacementAt(i, j) != null || FenceVariant(i, j) >= 0 || GroundAt(i, j) == Ground.Water) return false;
+                    if (PlacementAt(i, j) != null || FenceVariant(i, j) >= 0 || GroundAt(i, j) == Ground.Water || GroundAt(i, j) == Ground.Void) return false;
             return true;
         }
 
@@ -207,10 +215,10 @@ namespace PixelVocabFlight
         private void BuildSolid()
         {
             var grid = new bool[Width * Height];
-            for (int i = 0; i < grid.Length; i++) grid[i] = ground[i] == Ground.Water || fence[i] >= 0;
+            for (int i = 0; i < grid.Length; i++) grid[i] = ground[i] == Ground.Water || ground[i] == Ground.Void || fence[i] >= 0;
             foreach (var p in placements)
             {
-                if (!WorldModels.Get(p.Model).Solid) continue;
+                if (p.Layer != PlacementLayer.Object || !WorldModels.Get(p.Model).Solid) continue;
                 var f = FootprintOf(p);
                 for (int y = f.y; y < f.y + f.h; y++)
                     for (int x = f.x; x < f.x + f.w; x++)

@@ -1,8 +1,10 @@
 # WORDWING (PixelVocabFlight): hướng dẫn cho Claude Code
 
-Game bắn máy bay pixel art 1944 để học từ vựng Oxford 5000. Viết bằng Unity 6000.6.7f1 (URP 2D, Input System, uGUI dựng bằng code). Phiên bản hiện tại: **0.15.0**. Màn chính là căn cứ đi lại được (WASD, NPC, hội thoại, nhiệm vụ); chế độ bay là một nhiệm vụ nhận từ Giáo sư Whitmore.
+Game pixel art 1944 theo cốt truyện. Gõ từ tiếng Anh (Oxford 5000) để bắn máy bay chỉ còn là một mini game; mỗi màn bay trong truyện có cơ chế riêng (`<vault>/story/Màn bay - Luật chơi.md`, chưa code). Viết bằng Unity 6000.6.7f1 (URP 2D, Input System, uGUI dựng bằng code). Phiên bản hiện tại: **0.15.0**. Màn chính là căn cứ đi lại được (WASD, NPC, hội thoại, nhiệm vụ); chế độ bay là một nhiệm vụ nhận từ Giáo sư Whitmore.
 
-**Đọc mục lục `Docs/00-Codebase-Map.md` trước, rồi chỉ mở đúng file `Docs/map/<mảng>/<chủ đề>.md` cần dùng (đừng đọc cả thư mục).** Các file đó mô tả từng file, hằng số, luồng dữ liệu, pipeline art và các bẫy, nên không cần đọc lại toàn bộ `src`. Chỉ mở file nguồn cần sửa.
+Kịch bản, bản đồ và định hướng mỹ thuật (đang ở dạng khung chờ người dùng duyệt) nằm trong `Docs/design/`: `story.md` (mục lục; tư liệu ở `research/`; **kịch bản chi tiết từng chương nằm ngoài repo, trong Obsidian vault `C:\Users\Admin\Documents\Obsidian Vault\story\`**, đọc và sửa ở đó), `world-map.md` (+ `world-map.svg`), `art-direction.md`.
+
+**Người dùng yêu cầu sửa một thứ cụ thể thì mở `Docs/map/overview/where-to-edit.md` trước** (bảng "muốn sửa gì → file nào"), rồi chỉ mở đúng file đó. **Đọc mục lục `Docs/00-Codebase-Map.md` trước, rồi chỉ mở đúng file `Docs/map/<mảng>/<chủ đề>.md` cần dùng (đừng đọc cả thư mục).** Các file đó mô tả từng file, hằng số, luồng dữ liệu, pipeline art và các bẫy, nên không cần đọc lại toàn bộ `src`. Chỉ mở file nguồn cần sửa.
 
 ## Quy tắc
 
@@ -11,7 +13,9 @@ Game bắn máy bay pixel art 1944 để học từ vựng Oxford 5000. Viết b
 - `Game/Assets/_Project/Scripts/Logic/**` là C# thuần (assembly `Wordwing.Logic`, cấm `UnityEngine`; RulesChecks tự biên dịch cả thư mục): luật bay ở `Logic/Flight/`, căn cứ ở `Logic/World/`, từ vựng ở `Logic/Vocabulary/`. `Scripts/Unity/**` (view, MonoBehaviour) chỉ đọc state và nhận `FlightEvent`/`WorldEvent` qua `PopEvent()`. Đổi luật bay thì cập nhật `Tools/RulesChecks/Combat/`; đổi căn cứ thì `Tools/RulesChecks/World/`.
 - Class lớn được chia `partial` trong thư mục cùng tên (vd. `Unity/Flight/FlightView/FlightView.Cockpit.cs`); module PixelForge lớn chia thư mục con (`world/`, `characters/`, `units/`, `ui/`, `terrain/`). Thêm phần mới thì tạo file con theo cùng quy ước, đừng nhồi vào file chính (`Docs/map/overview/folders.md`).
 - File mới đặt theo `Docs/map/overview/folders.md`; sprite tự vào thư mục con theo tiền tố tên (`Docs/map/art/sprite-folders.md`).
-- **Không sửa tay** sprite trong `Game/Assets/_Project/Art/Resources/Pixel`. Sửa file `Tools/PixelForge/*.cjs` rồi chạy `node Tools/PixelForge/forge.cjs`.
+- **Không sửa tay** sprite trong `Game/Assets/_Project/Art/Resources/Pixel`. Sửa file `Tools/PixelForge/*.cjs` rồi chạy `node Tools/PixelForge/forge.cjs`. Sprite có file vẽ tay `SourceAssets/Aseprite/**/<tên>.ase` thì forge dùng file đó thay bản code: sửa code của sprite ấy không có tác dụng (`Docs/map/art/add-sprites.md`).
+- **Chất lượng hình:** mọi model, nhân vật, chân dung, hiệu ứng, khung UI, glyph chữ khi tạo mới hoặc sửa phải đạt `Docs/map/art/quality-bar.md` (chuẩn pixelfx và khu y tế) và luật đa dạng, mức sàn trong `Docs/design/art-direction.md`, qua checklist kèm ảnh trước/sau rồi mới báo xong.
+- **Model tham khảo:** được lấy model 3D trên Hugging Face làm mẫu; chỉ đưa lưới vào pipeline (Blender) khi giấy phép cho phép (CC0/CC-BY/MIT/Apache-2.0), lưu kèm `LICENSE.md` và ghi nguồn vào `Docs/history` (`Docs/map/art/quality-bar.md` mục 1).
 - Giữ đồng bộ hằng số giữa JS và C# (xem `Docs/map/ops/sync-constants.md`):
   - `COCKPIT` (`ui/cockpit.cjs`) ↔ `FlightView`
   - Tọa độ đường và sông (`terrain/common.cjs` + ô từng vùng) ↔ `Wildlife.cs`
@@ -25,16 +29,17 @@ Game bắn máy bay pixel art 1944 để học từ vựng Oxford 5000. Viết b
 
 ## Đội agent
 
-Khi người dùng muốn sửa hoặc thêm tính năng, dùng skill `wordwing-team` (`.claude/skills/wordwing-team/SKILL.md`). Skill này chia việc cho các agent `ww-rules`, `ww-view`, `ww-pixel`, `ww-vocab`, `ww-verify` (`.claude/agents/`). Việc nhỏ trong một mảng thì tự làm trực tiếp.
+Khi người dùng muốn sửa hoặc thêm tính năng, dùng skill `wordwing-team` (`.claude/skills/wordwing-team/SKILL.md`). Skill này chia việc cho các agent `ww-rules`, `ww-view`, `ww-pixel`, `ww-vocab`, `ww-verify`, `ww-research` (tra tư liệu trên mạng cho model và chuyển động) (`.claude/agents/`). `ww-pixel` chạy Opus high (cố định), các agent còn lại chạy Sonnet high. Việc nhỏ trong một mảng thì tự làm trực tiếp.
 
 ## Lệnh (chạy từ thư mục gốc dự án)
 
 ```text
 node Tools/PixelForge/forge.cjs                       # sinh lại sprite + manifest + preview
+node Tools/PixelForge/cinema/film.cjs                 # dựng lại phim mở màn (intro + nền menu) → Art/Resources/Cinema/title_intro.bytes; chạy sau khi sửa cinema/*.cjs
 dotnet build Tools/UnityCompileChecks                 # biên dịch mọi .cs; yêu cầu 0 lỗi, 0 cảnh báo
-cd Tools/RulesChecks && dotnet run                    # test logic thuần (47.121 + 13 + 1.238 manifest checks)
+cd Tools/RulesChecks && dotnet run                    # test logic thuần (49.857 + 13 + 16.588 + 2.720 story + 1.576 manifest checks)
 powershell -File Tools/Build-Windows.ps1              # khoảng 10 phút → Builds/Windows/Wordwing.exe
-powershell -File Tools/Test-Windows.ps1 -OutputFolder <tên>   # smoke 113 checks + ảnh trong Tools/Smoke/<tên>
+powershell -File Tools/Test-Windows.ps1 -OutputFolder <tên>   # smoke 344 checks + ảnh trong Tools/Smoke/<tên>
 ```
 
 - Xóa hoặc dùng thư mục smoke mới trước mỗi lần chạy, vì thư mục này không tự dọn.

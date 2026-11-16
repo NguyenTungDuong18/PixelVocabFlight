@@ -576,47 +576,44 @@ still('prop_rock_l', [2, 2], 26, g => { rocks([[13, 14, 11, 9, 17], [24, 20, 6, 
 // ---------------- Kept ids (placed on the map already) ----------------
 // prop_tree_palm / prop_tree_jungle / prop_bush are defined above with the same footprint.
 
-// ---------------- Falling-leaf effects (48×64, 12 frames, seamless loop) ----------------
-// Each leaf falls the full height over two loops; it is drawn twice half a fall apart, so the
-// set of leaves at frame 12 equals frame 0. Leaves drift right with the wind and tumble.
-const LEAF_SHAPES = {
-  wide: ['.LL.', 'LMMD', '.MD.'], tilt: ['..L', '.MD', 'D..'], edge: ['L', 'D'],
-  petal: ['LM', '.M'], petalTilt: ['L', 'M'], dot: ['M']
+// ---------------- Falling-leaf effects (48x64, 12 frames, seamless loop) ----------------
+// Each leaf falls the full height over two loops; it is drawn twice half a fall apart, so the set of leaves at
+// frame 12 equals frame 0. Leaves drift right with the wind, sway, spin in the plane and tumble (the blade
+// narrows to its edge and shows its paler underside); a pointed blade with a midrib, lit top-left rim, and a
+// soft sheen of light when the face turns fully to the sun (pixelfx Painter).
+const LEAF_KIND = {
+  green: { n: 3, ramps: [[LF, 5], [LF, 4], [YG, 4]], s: 301, L: 6.4, W: 1.9 },
+  autumn: { n: 4, ramps: [[AU, 4], [AU, 3], [AU, 5], [WD, 3]], s: 302, L: 6, W: 2 },
+  palm: { n: 2, ramps: [[YG, 4], [YG, 3]], s: 303, L: 9, W: 1, palm: true },
+  petals: { n: 6, ramps: [[PK, 4], [PK, 3], [CR, 3]], s: 304, L: 3.2, W: 1.5 }
 };
 function fallFrames(kind) {
-  const W = 48, H = 64, N = 12;
-  const cfg = {
-    green: { n: 3, ramps: [[LF, 6], [LF, 5], [YG, 5]], s: 301 },
-    autumn: { n: 4, ramps: [[AU, 5], [AU, 4], [AU, 3], [WD, 3]], s: 302 },
-    palm: { n: 2, ramps: [[YG, 4], [YG, 3]], s: 303, palm: true },
-    petals: { n: 6, ramps: [[PK, 4], [PK, 3], [CR, 3]], s: 304, petal: true }
-  }[kind];
-  const frames = [];
-  for (let f = 0; f < N; f++) {
-    const c = new Canvas(W, H);
+  const W = 48, H = 64, N = 12, cfg = LEAF_KIND[kind], P = require('../pfx.cjs'), num = c => P.core.rgb(c[0], c[1], c[2]);
+  return Array.from({ length: N }, (_, f) => P.paint(W, H, p => {
     for (let k = 0; k < cfg.n; k++) {
-      const s = cfg.s, x0 = 1 + (k + hash(k, 1, s) * .8) / cfg.n * 28, p = ([0, 3, 1, 5, 2, 4].filter(v => v < cfg.n)[k] + hash(k, 2, s) * .7) / cfg.n / 2, spins = 2 + ix(hash(k, 3, s) * 2), sway = 2 + hash(k, 4, s) * 3;
-      const [R, i] = cfg.ramps[k % cfg.ramps.length];
+      const s = cfg.s, x0 = 1 + (k + hash(k, 1, s) * .8) / cfg.n * 28, ph = ([0, 3, 1, 5, 2, 4].filter(v => v < cfg.n)[k] + hash(k, 2, s) * .7) / cfg.n / 2;
+      const spins = 2 + ix(hash(k, 3, s) * 2), sway = 2 + hash(k, 4, s) * 3, [R, i] = cfg.ramps[k % cfg.ramps.length];
       for (const half of [0, .5]) {
-        const t = (p + half + f / (N * 2)) % 1, y = -8 + t * (H + 16), x = x0 + t * 14 + Math.sin(t * TAU * 2 + k * 2) * sway;
-        const th = t * TAU * spins + p * TAU, cs = Math.cos(th), flip = Math.sin(th) < 0;
-        const L = cl(R, cs < 0 ? i - 1 : i), M = cl(R, (cs < 0 ? i - 1 : i) - 1), D = cl(R, i - 2);
-        if (cfg.palm) {
-          const len = 2 + Math.abs(cs) * 5, ang = .55 + .45 * Math.sin(th * .5);
-          for (let u = 0; u <= len; u++) { const px = x + Math.cos(ang) * u * (flip ? -1 : 1), py = y + Math.sin(ang) * u; c.put(px, py, u === 0 ? D : L); if (u % 2 && Math.abs(cs) > .4) c.put(px, py + 1, M); }
-          continue;
-        }
-        const shape = cfg.petal ? (Math.abs(cs) > .5 ? LEAF_SHAPES.petal : Math.abs(cs) > .2 ? LEAF_SHAPES.petalTilt : LEAF_SHAPES.dot)
-          : (Math.abs(cs) > .55 ? LEAF_SHAPES.wide : Math.abs(cs) > .18 ? LEAF_SHAPES.tilt : LEAF_SHAPES.edge);
-        shape.forEach((row, r) => [...row].forEach((ch, q) => {
-          const col = ch === 'L' ? L : ch === 'M' ? M : ch === 'D' ? D : null;
-          if (col) c.put(Math.round(x) + (flip ? row.length - 1 - q : q), Math.round(y) + r, col);
-        }));
+        const t = (ph + half + f / (N * 2)) % 1, y = -8 + t * (H + 16), x = x0 + t * 14 + Math.sin(t * TAU * 2 + k * 2) * sway;
+        const th = t * TAU * spins + ph * TAU, cs = Math.cos(th), ang = (cfg.palm ? .7 : 0) + Math.sin(t * TAU * 2 + k) * .9 + k;
+        const ca = Math.cos(ang), sa = Math.sin(ang), L = cfg.L / 2, w = cfg.W * Math.max(.28, Math.abs(cs));
+        const face = cs >= 0, lit = num(cl(R, face ? i : i - 1)), mid = num(cl(R, (face ? i : i - 1) - 1)), dark = num(cl(R, i - 2)), rim = num(cl(R, i + 1));
+        const inside = (px, py) => { const u = (px - x) * ca + (py - y) * sa, v = -(px - x) * sa + (py - y) * ca; return Math.abs(u) <= L && Math.abs(v) <= w * Math.pow(Math.max(0, 1 - (u / L) ** 2), .6) + .15; };
+        p.shade(x - L - 2, y - L - 2, x + L + 2, y + L + 2, (px, py, o) => {
+          if (!inside(px, py)) return;
+          const u = (px - x) * ca + (py - y) * sa, v = -(px - x) * sa + (py - y) * ca;
+          // two-tone blade (folded along the midrib), shaded lower-right rim, a sunlit top-left tip
+          let c = v * (face ? 1 : -1) < 0 ? lit : mid;
+          if (Math.abs(v) < .4 && Math.abs(cs) > .5 && Math.abs(u) < L * .7 && cfg.L > 5.5) c = mid;
+          if (!inside(px + 1, py) && !inside(px, py + 1)) c = dark;
+          else if (!inside(px - 1, py) && !inside(px, py - 1) && Math.abs(cs) > .7) c = rim;
+          if (cfg.palm && Math.abs(v) > .3 && (Math.floor(u + 20) & 1)) c = mid;
+          o.c = c;
+        });
+        if (cs > .93) { p.light(x - .5, y - .5, num(cl(R, i + 2)), .5); p.glow(x, y, 3, num(cl(R, i + 2)), .12); }
       }
     }
-    frames.push(c);
-  }
-  return frames;
+  }));
 }
 
 // Non-model sprites (fx_*) of this module: called from world.cjs build(add).

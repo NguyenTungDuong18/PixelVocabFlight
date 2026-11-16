@@ -17,21 +17,22 @@ namespace PixelVocabFlight
             if (state.NearestKind == InteractKind.Npc && state.Npc(state.NearestId) != null)
             {
                 var npc = state.Npc(state.NearestId);
-                ax = npc.X * TileSize; ay = npc.Y * TileSize - 100;
+                ax = npc.X * tileSize; ay = npc.Y * tileSize - 100 * scale / 3;
             }
             else
             {
-                var p = map.Find(state.NearestId);
+                // Story objects are found by their "story:<id>" tag (the placement id can differ, e.g. the desk).
+                var p = state.NearestKind == InteractKind.Story ? map.FindTag(BaseWorld.StoryTagPrefix + state.NearestId) : map.Find(state.NearestId);
                 if (p == null) { promptPlate.gameObject.SetActive(false); return; }
                 var f = map.FootprintOf(p);
-                ax = (f.x + f.w / 2f) * TileSize;
-                ay = placementImages.TryGetValue(p.Id, out var image) && image ? -image.rectTransform.anchoredPosition.y + 18 : f.y * TileSize - 24;
+                ax = (f.x + f.w / 2f) * tileSize;
+                ay = placementImages.TryGetValue(p.Id, out var image) && image ? -image.rectTransform.anchoredPosition.y + 18 : f.y * tileSize - 24;
             }
             promptLabel.text = text;
-            float width = Mathf.Ceil(MeasureWidth(promptLabel, text)) + 36;
-            promptPlate.sizeDelta = new Vector2(width, 36);
-            promptLabel.rectTransform.sizeDelta = new Vector2(width, 36);
-            float left = Mathf.Clamp(ax - width / 2, 6, mapWidth - width - 6), top = Mathf.Clamp(ay - 44, 6, mapHeight - 48);
+            float width = Mathf.Ceil(MeasureWidth(promptLabel, text)) + promptHeight;
+            promptPlate.sizeDelta = new Vector2(width, promptHeight);
+            promptLabel.rectTransform.sizeDelta = new Vector2(width, promptHeight);
+            float left = Mathf.Clamp(ax - width / 2, 6, mapWidth - width - 6), top = Mathf.Clamp(ay - promptHeight - 8, 6, mapHeight - promptHeight - 12);
             promptPlate.anchoredPosition = new Vector2(Snap(left), -Snap(top));
         }
 

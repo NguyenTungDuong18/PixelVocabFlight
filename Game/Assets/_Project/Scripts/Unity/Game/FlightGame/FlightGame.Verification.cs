@@ -36,6 +36,8 @@ namespace PixelVocabFlight
             yield return SmokeRocket();
             yield return SmokeCarrier();
             yield return SmokeResults();
+            yield return SmokeStory();
+            yield return SmokeMenu();    // intro, main menu, save slots, segment list, settings, pause (FlightGame.Smoke.Menu.cs)   // Act 0 (FlightGame.Smoke.Story*.cs): runs last, the old stages above start from the airbase
             Check(smokeCaptured,"rendered-screenshots");
             File.WriteAllText(Path.Combine(smokeOutput,"smoke-report.json"),"{\n  \"version\": \"0.15.0\",\n  \"checks\": ["+string.Join(",",smokeChecks.Select(c=>"\""+c+"\""))+"]\n}");
             Application.Quit(smokeChecks.Any(c=>c.EndsWith(":FAIL"))?1:0);

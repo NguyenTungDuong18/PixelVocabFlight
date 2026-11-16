@@ -6,16 +6,27 @@ Code: thư mục `Scripts/Unity/Game/FlightGame/`:
 - `FlightGame.Smoke.Base.cs`: `SmokeBase` (title, đi/chạy, va chạm, y-sort, SKYLARK chưa có lệnh), `SmokeProfessor` (hội thoại, màn từ vựng, nhận nhiệm vụ).
 - `FlightGame.Smoke.Sortie.cs`: `SmokeTakeOff` (khu xe, sân bay, cất cánh, intro), `SmokeCockpit` (lái/gõ, trả lời, roll, pause, khiên băng).
 - `FlightGame.Smoke.Combat.cs`: `SmokeEnemyAircraft`, `SmokeRocket`, `SmokeCarrier`.
-- `FlightGame.Smoke.Helpers.cs`: state chung (`smokeChecks`, `smokeOutput`, `smokeCaptured`, `smokeMouse`), `Check`, `SmokeCapture`, `SmokeFixture`, `SmokeHeal`, `SmokeAdvanceSafe`, `SmokeClearOtherHazards`, `SmokeWatchdog`, `SmokeType`, `SmokeKey`.
+- `FlightGame.Smoke.Story.cs` + `FlightGame.Smoke.StoryBeats.cs`: `SmokeStory` (Hồi 0), xem mục "Story" bên dưới. `FlightGame.Smoke.Menu.cs`: `SmokeMenu` (chạy cuối cùng), mục "Menu".
+- `FlightGame.Smoke.Helpers.cs`: state chung (`smokeChecks`, `smokeOutput`, `smokeCaptured`, `smokeMouse`, `smokeDeadline`), `Check`, `SmokeCapture`, `SmokeFixture`, `SmokeHeal`, `SmokeAdvanceSafe`, `SmokeClearOtherHazards`, `SmokeWatchdog`, `SmokeUntil(điều kiện, giây)` (poll, kết quả ở `smokeOk`), `SmokeType`, `SmokeKey`.
 
 Thêm check: đặt vào giai đoạn tương ứng; mảng mới thì viết coroutine `SmokeX()` trong file `FlightGame.Smoke.X.cs` và gọi nó trong `SmokeTest()`. Mỗi giai đoạn tự lấy lại biến nó cần (`world.Map`, `world.Npc(...)`), không dựa vào biến cục bộ của giai đoạn khác. Lệnh chạy: `ops/build-test.md`. Bẫy khi viết check: `ops/traps.md`.
 
 - Coroutine `SmokeTest()` chạy khi có `--smoke-test`, đi qua toàn bộ luồng game, ghi `smoke-report.json` (`version`, `checks[]` dạng `"mô tả:PASS"`) và ảnh chụp vào `--smoke-output`.
-- **Helper:** `SmokeFixture(env)` (trận cố định), `SmokeHeal()`, `SmokeAdvanceSafe(sec)`, `SmokeClearOtherHazards(missileId)`, `SmokeWatchdog` (hết **120 giây** ghi `watchdog-failure.txt` và thoát mã lỗi).
-- **0.15: 113 check.**
+- **Helper:** `SmokeFixture(env)` (trận cố định), `SmokeHeal()`, `SmokeAdvanceSafe(sec)`, `SmokeClearOtherHazards(missileId)`, `SmokeWatchdog` (hết **120 giây** cộng phần giai đoạn xin thêm qua `smokeDeadline`, ghi `watchdog-failure.txt` và thoát mã lỗi; `SmokeStory` xin thêm 100 giây).
+- **0.15: 113 check** (các giai đoạn trên, luồng cũ) **+ các check Story** (giai đoạn cuối; số check đổi theo kịch bản, đếm bằng `smoke-report.json`).
   - Căn cứ: thẻ tiêu đề, nền ghép từ ô readable (mode phải là "cpu"), giữ D đi sang đông, Shift chạy, nhà chặn đường, y-sort trước/sau công trình, bước chân khớp khung contact, sprite chạy, bụi.
   - Tương tác: prompt và hint ở máy bay khi chưa có lệnh, hội thoại giáo sư (chữ chạy, chân dung, lựa chọn, Esc), màn chọn từ → XONG, chuột/S/phím số chọn lựa chọn, nhận nhiệm vụ Sa mạc, lên máy bay → cất cánh → trận đúng chiến trường → kết quả → về căn cứ.
   - Phát âm: `direct-shot-pronounces-word`, `blast-multikill-does-not-pronounce-words`.
+
+## Story (`SmokeStory`)
+
+`EnterStory()`, `storySpeed = 5`, rồi đi hết `Act0Content.Script` (24 khung: 7 cảnh mở + 16 M1 Phần 1 + End) bằng lệnh giả (phím qua bàn phím ảo, `PlacePlayer` cạnh vật bằng `SmokeStandNear`). Mỗi khung: `story-<mã>-entered` (đúng thứ tự, chờ `view.Story.Current` và hết fade), check theo loại (vẽ đúng nền + lớp, giữ khóa, lời nhắc `[E] Xem…`, cận cảnh hotspot, hộp trơn cho lời dẫn, tư thế ngồi/tay, Daan đi tới cửa sổ rồi cửa sổ mở, con trỏ vista, thẻ End), thứ tự âm thanh (`StoryLoopOn`: mưa/radio, radio tắt, mưa tắt, ếch/đồng hồ, ếch nhỏ, ếch tắt/ù lên…). Sprite chưa forge: `story-sprites-missing:N` luôn PASS, danh sách ghi vào log và `story-missing-sprites.txt`; các check "vẽ đúng" bỏ qua sprite không có trong manifest. Cuối cùng chạy lại tới P1.10 (nhảy nhanh) để chọn nhánh thứ hai (`pride` −1, câu "Cậu tin hộ tớ đi.").
+
+Ảnh: `story-<mã khung>.png` cho cả 24 khung (`story-open.P1.01`…`story-open.P1.07`, `story-m1.P1.01`…`story-m1.P1.16`, `story-end`) và `story-m1.P1.13-dialogue.png`.
+
+## Menu (`SmokeMenu`)
+
+`storySpeed = 5`, save và settings trong `<smoke output>/story-profile`. Intro (phim `Cinema/title_intro`, chạy thời gian thực `storySpeed = 1`, mọi check đọc dữ liệu của chính file phim nên thiếu file thì FAIL rõ ràng): `menu-intro-starts-on-the-title-film`; phim nạp được 480×270, `LoopStart > 0`, `FrameCount > LoopStart`, không thiếu sprite; có ≥ 6 cảnh và cue `Title`, `BarsOff`; `LogoScaleAt` ×6/×6/×5/×5/×4; khung tiến theo thời gian, letterbox bật, logo ẩn; mỗi cảnh n = 1..ShotCount chụp ở GIỮA cảnh (`menu-intro-shot-n-reached-at-its-middle`); sau cue `Title` logo alpha 1 ×4 và `engines` đã tắt; letterbox thu hết và `Explosions >= 3` khớp `introBooms` trước khi hết intro; hết intro vào menu đúng đầu đoạn lặp có logo; `Finish()` đưa về `LoopStart` (không phát lại cue); đoạn lặp chạy và quay vòng về `LoopStart`; phím bất kỳ bỏ qua tới đoạn lặp. Khoảng 22 check cho phần intro (trước đây 8). Menu chính đủ mục (không có Tiếp tục khi chưa có save), W/S. Cài đặt: ba thanh âm lượng bước 5 (áp vào audio và ghi `settings.json`), độ phân giải, toàn màn hình. Chơi mới vào ô 2 → file `story-save-2.json` ngay ở đầu đoạn; Esc → bảng tạm dừng (story đứng yên, cài đặt trong tạm dừng); nhảy `m1.P1.01` + cờ `pride` → lưu đoạn 0.2; về màn hình chính → có Tiếp tục → vào đúng đoạn và cờ. Tải hồ sơ, hỏi ghi đè, D tới nút XÓA, xóa ô, file save hỏng coi như trống. Chọn đoạn: từng đoạn vào đúng khung đầu ở chế độ thử, không đụng save. Ảnh: `menu-intro-shot-1` … `menu-intro-shot-<ShotCount>` (giữa mỗi cảnh), `menu-intro-loop` (2 giây vào đoạn lặp, không hàng menu che), `menu-main`, `menu-settings`, `menu-slots-empty`, `menu-pause`, `menu-main-with-continue`, `menu-slots-filled`, `menu-segments`, `menu-trial-m1_roof`. Check `story-keeps-16-9-with-black-bars` (Story) kiểm hình 16:9 trong cửa sổ 1280×800; `story-wall-item-…`, `story-row-under-the-wall-items-is-walkable`, `story-rug-is-a-floor-item-…` kiểm ba lớp vật.
 
 ## Ảnh chụp theo thứ tự
 

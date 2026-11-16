@@ -44,7 +44,7 @@ namespace PixelVocabFlight
                 // Four separate tags; each pops out of the rocket body and grows to full size.
                 var button = UiKit.Button(missile.Choices[i].word, field, 0, 0, ChoiceWidth, ChoiceHeight, "cream", UiKit.Ink, () => game.ChooseMissileAnswer(id, choice));
                 var rect = (RectTransform)button.transform; rect.pivot = new Vector2(.5f, .5f);
-                var word = button.GetComponentInChildren<Text>();
+                var word = UiKit.English(button.GetComponentInChildren<Text>());
                 word.rectTransform.anchoredPosition = new Vector2(38, 1); word.rectTransform.sizeDelta = new Vector2(ChoiceWidth - 44, ChoiceHeight);
                 UiKit.Fit(word, 10, 17);
                 var key = UiKit.Framed("Key", rect, 6, 7, 26, 26, "ui_keycap", 2);

@@ -3,10 +3,10 @@ using System.Text.Json;
 
 internal static partial class WorldChecks
 {
-    private static float Dist(float ax, float ay, float bx, float by) => (float)Math.Sqrt((ax - bx) * (ax - bx) + (ay - by) * (ay - by));
+    internal static float Dist(float ax, float ay, float bx, float by) => (float)Math.Sqrt((ax - bx) * (ax - bx) + (ay - by) * (ay - by));
 
     // Static collision only (tiles, water, fence), for NPC standing spots.
-    private static bool StaticBlocked(MapDef map, float x, float y)
+    internal static bool StaticBlocked(MapDef map, float x, float y)
     {
         for (int ty = (int)Math.Floor(y - BaseWorld.BodyHalfDepth); ty <= (int)Math.Floor(y + BaseWorld.BodyHalfDepth - 1e-4f); ty++)
             for (int tx = (int)Math.Floor(x - BaseWorld.BodyHalfWidth); tx <= (int)Math.Floor(x + BaseWorld.BodyHalfWidth - 1e-4f); tx++)
@@ -47,7 +47,7 @@ internal static partial class WorldChecks
         return parent;
     }
 
-    private static bool[,] Reachable(BaseWorld world, float fromX, float fromY)
+    internal static bool[,] Reachable(BaseWorld world, float fromX, float fromY)
     {
         var parent = Parents(world, fromX, fromY);
         var reach = new bool[world.Map.Width, world.Map.Height];
@@ -55,7 +55,7 @@ internal static partial class WorldChecks
         return reach;
     }
 
-    private static (int x, int y)? Goal(BaseWorld world, bool[,] reach, Func<float, float, bool> goal)
+    internal static (int x, int y)? Goal(BaseWorld world, bool[,] reach, Func<float, float, bool> goal)
     {
         for (int y = 0; y < world.Map.Height; y++)
             for (int x = 0; x < world.Map.Width; x++)
@@ -64,7 +64,7 @@ internal static partial class WorldChecks
     }
 
     // Steers the pilot with Tick() along the BFS path from its tile to the nearest goal tile.
-    private static bool Walk(BaseWorld world, Func<float, float, bool> goal)
+    internal static bool Walk(BaseWorld world, Func<float, float, bool> goal)
     {
         float startX = world.PlayerX, startY = world.PlayerY;
         var parent = Parents(world, startX, startY);

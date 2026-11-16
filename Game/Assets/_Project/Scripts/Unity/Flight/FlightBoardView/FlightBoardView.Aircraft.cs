@@ -44,7 +44,7 @@ namespace PixelVocabFlight
                     var labels = UiKit.Rect("Labels", root, 0, 0, 146, 88);
                     var group = labels.gameObject.AddComponent<CanvasGroup>(); group.blocksRaycasts = false;
                     var plate = UiKit.Framed("English word", labels, 0, 76, 146, 28, "ui_plate", 2);
-                    UiKit.Fit(UiKit.Label(enemy.Entry.word, plate.transform, 4, -1, 138, 28, 19, UiKit.Cream, true, TextAnchor.MiddleCenter), 10, 19);
+                    UiKit.Fit(UiKit.English(UiKit.Label(enemy.Entry.word, plate.transform, 4, -1, 138, 28, 19, UiKit.Cream, true, TextAnchor.MiddleCenter)), 10, 19);
                     UiKit.Box("Lock track", labels, 13, 106, 120, 6, UiKit.Hex("1A1612"));
                     var fill = UiKit.Box("Lock progress", labels, 14, 107, 0, 4, UiKit.Coral);
                     var threat = UiKit.Label("", labels, -20, 112, 186, 16, 12, UiKit.Coral, true, TextAnchor.MiddleCenter);

@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 400" width="1536" height="1200" font-family="Segoe UI, Arial, sans-serif">
+  <!-- Coordinates are map tiles (512 x 384); the bottom 16 units are the legend strip. -->
+  <rect width="512" height="400" fill="#7fa35a"/>
+  <!-- Sea, dunes, sea wall -->
+  <rect x="0" y="0" width="512" height="18" fill="#3d6f8f"/>
+  <rect x="0" y="18" width="512" height="10" fill="#d8c48f"/>
+  <line x1="0" y1="28" x2="512" y2="28" stroke="#8b8577" stroke-width="1.2"/>
+  <text x="6" y="11" font-size="7" fill="#e8f0f4">BIỂN BẮC</text>
+  <circle cx="490" cy="14" r="3" fill="#f0ede4" stroke="#b3202a" stroke-width="1"/>
+  <!-- Woods -->
+  <path d="M410 110 L512 105 L512 330 L470 328 L420 300 Z" fill="#4f7a3c"/>
+  <path d="M122 60 L136 58 L138 280 L124 282 Z" fill="#4f7a3c"/>
+  <!-- Farm strips SW -->
+  <g fill="#b9a95e" opacity=".8">
+    <rect x="12" y="310" width="30" height="62"/><rect x="46" y="310" width="20" height="62" fill="#a3b86a"/>
+    <rect x="70" y="310" width="26" height="62"/><rect x="100" y="310" width="24" height="30" fill="#c9b878"/>
+  </g>
+  <!-- Canal from village to the sea -->
+  <path d="M62 300 L62 150 L58 90 L66 28" fill="none" stroke="#4f86a8" stroke-width="4"/>
+  <!-- Roads -->
+  <g fill="none" stroke="#c9b48a" stroke-width="3" stroke-linecap="round">
+    <path d="M0 350 L130 348 L160 345 L340 342 L512 340"/>
+    <path d="M90 300 L90 345"/><path d="M160 345 L160 300"/>
+    <path d="M60 140 L60 70"/><path d="M380 342 L380 372"/><path d="M455 342 L455 330"/>
+  </g>
+  <!-- Railway along the south edge -->
+  <line x1="0" y1="381" x2="512" y2="381" stroke="#5b4636" stroke-width="2.5"/>
+  <line x1="0" y1="381" x2="512" y2="381" stroke="#d8d0bc" stroke-width="1" stroke-dasharray="1.5 2.5"/>
+  <!-- Flying field: grass, perimeter track, runways, dispersal pans -->
+  <rect x="140" y="40" width="270" height="232" rx="28" fill="#93b86a"/>
+  <rect x="150" y="50" width="250" height="212" rx="24" fill="none" stroke="#9a968c" stroke-width="3"/>
+  <g stroke="#8a8a82" stroke-width="7" stroke-linecap="butt">
+    <line x1="165" y1="185" x2="395" y2="185"/>
+    <line x1="175" y1="250" x2="285" y2="58"/>
+    <line x1="255" y1="58" x2="385" y2="250"/>
+  </g>
+  <g stroke="#f0ede4" stroke-width=".6" stroke-dasharray="4 4">
+    <line x1="168" y1="185" x2="392" y2="185"/><line x1="177" y1="246" x2="283" y2="62"/><line x1="257" y1="62" x2="383" y2="246"/>
+  </g>
+  <g fill="#9a968c">
+    <circle cx="150" cy="80" r="4"/><circle cx="150" cy="120" r="4"/><circle cx="150" cy="200" r="4"/><circle cx="150" cy="235" r="4"/>
+    <circle cx="200" cy="50" r="4"/><circle cx="250" cy="50" r="4"/><circle cx="300" cy="50" r="4"/><circle cx="350" cy="50" r="4"/>
+    <circle cx="400" cy="85" r="4"/><circle cx="400" cy="130" r="4"/><circle cx="400" cy="205" r="4"/><circle cx="400" cy="240" r="4"/>
+  </g>
+  <!-- AA gun pits around the field -->
+  <g fill="#6b5a3a"><circle cx="138" cy="60" r="2.5"/><circle cx="412" cy="60" r="2.5"/><circle cx="138" cy="262" r="2.5"/><circle cx="412" cy="268" r="2.5"/><circle cx="275" cy="36" r="2.5"/></g>
+  <!-- Zones -->
+  <g stroke-width="1" font-size="7" font-weight="600">
+    <g><rect x="200" y="275" width="132" height="56" fill="#c7a26c" fill-opacity=".85" stroke="#5b4636"/><text x="204" y="284">3 · Khu kỹ thuật</text>
+      <text x="204" y="293" font-size="5" font-weight="400">hangar T2 ×2, Bellman, xưởng sửa chữa,</text><text x="204" y="300" font-size="5" font-weight="400">kho vũ khí, kho dù, phòng ảnh, bãi xe</text></g>
+    <g><rect x="336" y="278" width="34" height="30" fill="#b86b3c" fill-opacity=".85" stroke="#5b4636"/><text x="338" y="287" font-size="5.5">4 · Kho xăng</text></g>
+    <g><rect x="230" y="256" width="42" height="16" fill="#e6dcc2" stroke="#5b4636"/><text x="234" y="266" font-size="5">2b · Đài chỉ huy</text></g>
+    <g><rect x="128" y="285" width="68" height="56" fill="#9aa7b8" fill-opacity=".9" stroke="#3e4a5a"/><text x="131" y="294">5 · Cổng &amp; chỉ huy</text>
+      <text x="131" y="303" font-size="5" font-weight="400">cổng chính, trạm gác, HQ,</text><text x="131" y="310" font-size="5" font-weight="400">khối điều hành, họp phi vụ,</text><text x="131" y="317" font-size="5" font-weight="400">trạm cứu hỏa</text></g>
+    <g><rect x="336" y="314" width="86" height="24" fill="#d9a35b" fill-opacity=".9" stroke="#5b4636"/><text x="339" y="323">6 · Khu sinh hoạt chung</text>
+      <text x="339" y="331" font-size="5" font-weight="400">3 nhà ăn, căng-tin, rạp, nhà nguyện</text></g>
+    <g><rect x="428" y="342" width="56" height="30" fill="#f0ede4" stroke="#b3202a"/><text x="431" y="352" fill="#b3202a">7 · Khu y tế</text>
+      <text x="431" y="360" font-size="5" font-weight="400">trạm, 2 bệnh viện</text></g>
+    <g><rect x="264" y="348" width="70" height="26" fill="#c9d7a6" stroke="#4a5a3a"/><text x="267" y="358">8 · Trường ngoại ngữ</text>
+      <text x="267" y="366" font-size="5" font-weight="400">lớp học, thư viện (Whitmore)</text></g>
+    <g fill="#e8d9b0" stroke="#5b4636">
+      <rect x="430" y="130" width="62" height="36"/><rect x="436" y="186" width="62" height="36"/><rect x="430" y="244" width="62" height="36"/>
+    </g>
+    <text x="433" y="140">9 · Khu ở A</text><text x="439" y="196">9 · Khu ở B</text><text x="433" y="254">9 · Khu ở C</text>
+    <text x="433" y="148" font-size="5" font-weight="400">Nissen (phi công)</text><text x="439" y="204" font-size="5" font-weight="400">Laing hut (thợ máy)</text><text x="433" y="262" font-size="5" font-weight="400">doanh trại nữ</text>
+    <g><rect x="424" y="38" width="78" height="62" fill="#8f8260" fill-opacity=".9" stroke="#3e3424"/><text x="427" y="48" fill="#f0ede4">10 · Kho bom</text>
+      <text x="427" y="56" font-size="5" font-weight="400" fill="#f0ede4">ụ đất, kho kíp nổ, xa khu ở</text></g>
+    <g><rect x="12" y="32" width="70" height="26" fill="#a9b3a0" stroke="#3e4a3f"/><text x="15" y="42">11 · Radar &amp; pháo đài</text>
+      <text x="15" y="50" font-size="5" font-weight="400">radar, lô cốt, đèn pha</text></g>
+    <g><rect x="72" y="64" width="46" height="76" fill="#b5a3c9" fill-opacity=".9" stroke="#4a3e5a"/><text x="75" y="74" font-size="6">12 · Dinh thự</text>
+      <text x="75" y="82" font-size="4.5" font-weight="400">nhà ăn sĩ quan,</text><text x="75" y="88" font-size="4.5" font-weight="400">vườn, chuồng ngựa</text></g>
+    <g><rect x="10" y="150" width="110" height="146" fill="#d98c6a" fill-opacity=".85" stroke="#6a3424"/><text x="14" y="160">13 · Làng Brandhaven</text>
+      <text x="14" y="169" font-size="5" font-weight="400">quảng trường, nhà thờ, tòa thị chính,</text>
+      <text x="14" y="176" font-size="5" font-weight="400">quán cà phê, lò bánh, chợ, cầu kênh,</text><text x="14" y="183" font-size="5" font-weight="400">cối xay gió, bến kênh</text></g>
+    <g><rect x="72" y="250" width="44" height="42" fill="#7a6a5a" fill-opacity=".8" stroke="#3e3424"/><text x="74" y="260" font-size="5.5" fill="#f0ede4">13b · Khu bị bom</text></g>
+    <text x="14" y="306" font-size="6.5">14 · Trang trại &amp; vườn cây</text>
+    <g><rect x="184" y="364" width="76" height="14" fill="#9a8f7a" stroke="#3e3424"/><text x="187" y="373" font-size="5.5" fill="#f0ede4">15 · Ga xe lửa &amp; kho tiếp tế</text></g>
+    
+    <text x="440" y="300" font-size="6" fill="#e8f0d8">16 · Rừng</text>
+  </g>
+  <text x="236" y="150" font-size="9" font-weight="700" fill="#3e4a2a">2 · SÂN BAY</text>
+  <text x="222" y="160" font-size="5" fill="#3e4a2a">3 đường băng kiểu chữ A, đường lăn vòng,</text>
+  <text x="222" y="167" font-size="5" fill="#3e4a2a">bãi đỗ tản (vòng tròn), ô tín hiệu, ống gió</text>
+  <text x="478" y="9" font-size="5" fill="#f0ede4">1 · Hải đăng</text>
+  <!-- Start point -->
+  <circle cx="160" cy="345" r="3.5" fill="#f2b65a" stroke="#3e3424" stroke-width="1"/>
+  <text x="166" y="355" font-size="5.5" font-weight="700">Điểm xuất phát (cổng chính)</text>
+  <!-- Legend -->
+  <rect x="0" y="384" width="512" height="16" fill="#2a2f22"/>
+  <text x="6" y="395" font-size="6" fill="#e8e0c8">Brandhaven, 512 × 384 ô (ô 16 px). Thước: 50 ô ≈ 200 m trong game (cách điệu). Đường băng xám, đường đất vàng nhạt, đường sắt nâu, kênh xanh. Chấm nâu = ụ pháo phòng không.</text>
+</svg>

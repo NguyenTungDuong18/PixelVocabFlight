@@ -1,0 +1,138 @@
+'use strict';
+// Builds the two pixel TrueType fonts used by the game (independent of forge.cjs):
+//   WordwingVi.ttf  - main UI / dialogue / Vietnamese meanings (proportional)
+//   WordwingEn.ttf  - English vocabulary words (monospaced typewriter)
+// Usage: node Tools/PixelForge/fonts.cjs
+// Fails if any character used by C# strings or the vocabulary JSON has no glyph.
+// em = 16 font pixels x 64 units: text is pixel-sharp at fontSize 16, 32, 48...
+const fs = require('fs');
+const path = require('path');
+const { Canvas, hex, sharp } = require('./lib.cjs');
+const { writeTTF, readTTF, rasterize } = require('./fonts/ttf.cjs');
+const { parse, compose, spacingMark, baseCharset, ALIAS } = require('./fonts/compose.cjs');
+const VI = require('./fonts/vi.cjs');
+const EN = require('./fonts/en.cjs');
+
+const ROOT = path.join(__dirname, '..', '..');
+const PROJECT = path.join(ROOT, 'Game', 'Assets', '_Project');
+const OUT = path.join(PROJECT, 'Art', 'Resources', 'Fonts');
+const PREVIEW = path.join(ROOT, 'SourceAssets', 'PixelArt', 'Pixel1944', 'preview-fonts.png');
+const UNIT = 64;
+
+// ---------- characters actually used by the game ----------
+function usedCharacters() {
+  const used = new Map();
+  const note = (s, src) => { for (const ch of s) if (!used.has(ch)) used.set(ch, src); };
+  const walk = d => fs.readdirSync(d, { withFileTypes: true }).flatMap(e => e.isDirectory() ? walk(path.join(d, e.name)) : [path.join(d, e.name)]);
+  for (const f of walk(path.join(PROJECT, 'Scripts')).filter(f => f.endsWith('.cs'))) {
+    const t = fs.readFileSync(f, 'utf8');
+    const unescape = s => s.replace(/\\u([0-9a-fA-F]{4})/g, (_, h) => String.fromCharCode(parseInt(h, 16))).replace(/\\(.)/g, '$1');
+    for (const m of t.matchAll(/"((?:[^"\\\n]|\\.)*)"|'((?:[^'\\\n]|\\.))'/g)) note(unescape(m[1] ?? m[2]), path.relative(ROOT, f));
+  }
+  const vocab = path.join(PROJECT, 'Data', 'Vocabulary', 'Resources');
+  for (const f of fs.readdirSync(vocab).filter(f => f.endsWith('.json'))) {
+    const walkJson = v => typeof v === 'string' ? note(v, f) : v && typeof v === 'object' ? Object.values(v).forEach(walkJson) : 0;
+    walkJson(JSON.parse(fs.readFileSync(path.join(vocab, f), 'utf8')));
+  }
+  return used;
+}
+// Characters no pixel font should draw: control codes, CJK slips in imported glosses, emoji.
+const skipped = ch => { const c = ch.codePointAt(0); return c < 0x20 || (c >= 0x7f && c < 0xa0) || (c >= 0x2e80 && c <= 0x9fff) || (c >= 0xf900 && c <= 0xfaff) || c >= 0x1f000 || (c >= 0x2600 && c <= 0x27bf && c !== 0x2605 && c !== 0x2713) || c === 0xfe0f || c === 0x200d; };
+
+// ---------- glyph table for one font ----------
+function buildGlyphs(spec, fallback) {
+  const src = parse(spec), table = new Map();
+  const get = ch => {
+    if (table.has(ch)) return table.get(ch);
+    let g = compose(spec, src, ch);
+    if (!g && ALIAS[ch] !== undefined) g = get(ALIAS[ch]);
+    if (!g && ch === ' ') g = { w: spec.space, px: new Set() };
+    if (!g) g = ({ '´': () => spacingMark(spec, '́', 0), '¨': () => spacingMark(spec, '̈', 0), '¯': () => spacingMark(spec, '̄', 0), '¸': () => spacingMark(spec, '̧', spec.cap) })[ch]?.() || null;
+    if (!g && fallback) { const f = fallback(ch); if (f) g = { ...f, borrowed: true }; }
+    table.set(ch, g);
+    return g;
+  };
+  return { get, src };
+}
+function toBitmap(spec, g, adv) {
+  const P = [...g.px].map(k => k.split(',').map(Number));
+  // Monospace: centre the ink in the cell.
+  const dx = spec.mono && g.w < spec.mono ? Math.floor((spec.mono - spec.gap - g.w) / 2) : 0;
+  if (!P.length) return { adv, bitmap: null };
+  const r0 = Math.min(...P.map(p => p[1])), r1 = Math.max(...P.map(p => p[1])), w = Math.max(...P.map(p => p[0])) + 1 + dx;
+  const rows = Array.from({ length: r1 - r0 + 1 }, () => Array(w).fill('.'));
+  for (const [x, y] of P) rows[y - r0][x + dx] = '#';
+  return { adv, bitmap: { w, top: spec.cap - r0, rows: rows.map(r => r.join('')) } };
+}
+
+function buildFont(spec, need, fallback) {
+  const { get } = buildGlyphs(spec, fallback);
+  const missing = [...need].filter(ch => !get(ch));
+  const cps = [...need].filter(ch => get(ch)).map(ch => ch.codePointAt(0)).sort((a, b) => a - b);
+  const notdef = { w: 6, px: new Set() };
+  for (let y = 0; y < spec.cap; y++) for (let x = 0; x < 6; x++) if (x === 0 || x === 5 || y === 0 || y === spec.cap - 1) notdef.px.add(x + ',' + y);
+  const adv = g => spec.mono ? Math.max(spec.mono, g.w + spec.gap) : g.w + spec.gap;
+  const glyphs = [{ cp: null, ...toBitmap(spec, notdef, adv(notdef)) }, ...cps.map(cp => { const g = get(String.fromCodePoint(cp)); return { cp, ...toBitmap(spec, g, adv(g)) }; })];
+  const font = writeTTF(glyphs, {
+    unit: UNIT, ascent: spec.ascent, descent: spec.descent, lineGap: spec.lineGap, capHeight: spec.cap, xHeight: spec.xHeight, mono: !!spec.mono && glyphs.every(g => g.adv === spec.mono),
+    names: { family: spec.name, version: '1.000', copyright: 'WORDWING pixel font, generated by Tools/PixelForge/fonts.cjs', license: 'Part of WORDWING' }
+  });
+  return { font, missing, count: glyphs.length, borrowed: cps.filter(cp => get(String.fromCodePoint(cp)).borrowed).length, get };
+}
+
+// ---------- preview drawn from the written TTF files ----------
+async function preview(fonts) {
+  const ink = hex('#191d18'), paper = hex('#f2e7c9'), dark = hex('#30392f'), cream = hex('#f2e7c9');
+  const blocks = [];
+  const sample = {
+    WordwingVi: 'Giáo sư Whitmore: Phi công trẻ, hãy cất cánh! Ừ, ở đây ngày xưa có những chiến đấu cơ…\nĐẠI ÚY HẰNG · KỸ SƯ LƯƠNG — “Đường băng số 3 đã sẵn sàng.” Nhiệm vụ: bắn hạ 12 máy bay → 450 điểm.\nTiếng Việt: ấ ầ ẩ ẫ ậ ắ ằ ẳ ẵ ặ ế ề ể ễ ệ ố ồ ổ ỗ ộ ớ ờ ở ỡ ợ ứ ừ ử ữ ự ý ỳ ỷ ỹ ỵ đ ĩ ũ\nẤ Ầ Ẩ Ẫ Ậ Ắ Ằ Ẳ Ẵ Ặ Ế Ề Ể Ễ Ệ Ố Ồ Ổ Ỗ Ộ Ớ Ờ Ở Ỡ Ợ Ứ Ừ Ử Ữ Ự Ý Ỳ Ỷ Ỹ Ỵ Đ Ĩ Ũ',
+    WordwingEn: 'SQUADRON 1944 - type the word: aircraft, runway, courage, quickly!\nThe quick brown fox jumps over the lazy dog. 0123456789 (it\'s "ready")\nabcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ café naïve'
+  };
+  for (const [name, { file, need }] of Object.entries(fonts)) {
+    const f = readTTF(fs.readFileSync(file));
+    const chars = [...need].sort((a, b) => a.codePointAt(0) - b.codePointAt(0)).join('');
+    const title = rasterize(f, name + '  (' + f.numGlyphs + ' glyph, cỡ 16 = 1 px font)', 32, cream, Canvas);
+    const table = rasterize(f, chars, 32, ink, Canvas, 1360);
+    const s1 = rasterize(f, sample[name], 32, ink, Canvas, 1360), s2 = rasterize(f, sample[name], 16, ink, Canvas, 1360);
+    blocks.push([title, dark], [table, paper], [s1, paper], [s2, paper]);
+  }
+  const W = 1400, H = blocks.reduce((s, [c]) => s + c.h + 16, 0);
+  const out = new Canvas(W, H).fill(() => hex('#30392f'));
+  let y = 0;
+  for (const [c, bg] of blocks) { out.rect(0, y, W, c.h + 16, bg); out.blit(c, 20, y + 8); y += c.h + 16; }
+  await out.png(PREVIEW);
+}
+
+async function main() {
+  const used = usedCharacters();
+  const need = baseCharset(), dropped = [];
+  for (const [ch, src] of used) if (skipped(ch)) dropped.push(ch); else need.add(ch);
+  const vi = buildFont(VI, need, null);
+  // EN borrows the glyphs it does not draw (rare symbols) from Vi, moved onto its own baseline.
+  const shift = EN.cap - VI.cap;
+  const en = buildFont(EN, need, ch => { const g = vi.get(ch); return g && { w: g.w, px: new Set([...g.px].map(k => { const [x, y] = k.split(',').map(Number); return x + ',' + (y + shift); })) }; });
+  for (const [spec, r] of [[VI, vi], [EN, en]]) {
+    console.log(spec.name + ': ' + r.count + ' glyph' + (r.borrowed ? ' (' + r.borrowed + ' muon tu WordwingVi)' : '') + ', ' + r.font.length + ' byte');
+    if (r.missing.length) {
+      for (const ch of r.missing) console.error('  THIEU ' + JSON.stringify(ch) + ' U+' + ch.codePointAt(0).toString(16).toUpperCase().padStart(4, '0') + (used.has(ch) ? ' (' + used.get(ch) + ')' : ''));
+      process.exitCode = 1;
+    }
+  }
+  console.log('Bo qua (khong ve): ' + (dropped.length ? dropped.map(ch => 'U+' + ch.codePointAt(0).toString(16).toUpperCase() + ' ' + JSON.stringify(ch) + ' (' + used.get(ch) + ')').join(', ') : 'khong co'));
+  if (process.exitCode) throw new Error('Font thieu ky tu, xem danh sach tren.');
+  fs.mkdirSync(OUT, { recursive: true });
+  const files = {};
+  for (const [spec, r] of [[VI, vi], [EN, en]]) {
+    const file = path.join(OUT, spec.name + '.ttf');
+    fs.writeFileSync(file, r.font);
+    // Self-check: the file parses back, checksums hold and every needed char is mapped.
+    const f = readTTF(r.font);
+    const unmapped = [...need].filter(ch => !f.cmap.has(ch.codePointAt(0)));
+    if (unmapped.length) throw new Error(spec.name + ': cmap thieu ' + unmapped.join(''));
+    files[spec.name] = { file, need };
+  }
+  await preview(files);
+  console.log('Da ghi ' + Object.values(files).map(f => path.relative(ROOT, f.file)).join(', ') + ' va ' + path.relative(ROOT, PREVIEW));
+}
+
+main().catch(e => { console.error(e.message); process.exit(1); });

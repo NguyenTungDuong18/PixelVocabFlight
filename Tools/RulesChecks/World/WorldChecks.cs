@@ -9,7 +9,7 @@ internal static partial class WorldChecks
     {
         ("bld_control_tower", 5, 5, true, "Tháp chỉ huy", 1), ("bld_hq", 8, 5, true, "Sở chỉ huy", 1),
         ("bld_hangar", 10, 8, true, "Nhà chứa máy bay", 1), ("bld_barracks", 8, 4, true, "Doanh trại", 1),
-        ("bld_mess_hall", 7, 5, true, "Nhà ăn", 4), ("bld_medical", 6, 5, true, "Trạm y tế", 1),
+        ("bld_mess_hall", 7, 5, true, "Nhà ăn", 4), ("bld_medical", 6, 5, true, "Trạm y tế", 4),
         ("bld_academy", 7, 5, true, "Trường huấn luyện ngoại ngữ", 1), ("bld_workshop", 7, 5, true, "Xưởng sửa chữa", 1),
         ("bld_warehouse", 7, 5, true, "Kho quân nhu", 1), ("bld_fuel_depot", 5, 4, true, "Kho nhiên liệu", 1),
         ("bld_ammo_bunker", 5, 4, true, "Kho đạn", 1), ("bld_radar", 3, 3, true, "Trạm radar", 8),

@@ -8,12 +8,13 @@ const { R, M } = require('./palette.cjs');
 
 // ---------------------------------------------------------------- rig parameters
 // Fields (all optional except skin/hair/top/pants/shoes):
-//   hairStyle: tousled | receding | bun | crop | ponytail (+ hairTie colour)   hat: helmet | cap | kepi | nurse
-//   topStyle: jacket | suit | field | coverall | dress | officer
-//   held: book | wrench | bigwrench | rifle                          skirt, goggles, glasses, mustache, scarf,
-//   collar (ramp), belt (ramp), tie (ramp), shirt (ramp), medals, armband, grease, lips,
+//   hairStyle: tousled | receding | bun | crop | ponytail (+ hairTie colour)   hat: helmet | cap | kepi | nurse | beanie
+//   topStyle: jacket | suit | field | coverall | dress | officer | cadet | jumper
+//   held: book | wrench | bigwrench | rifle | medbag (+ bag ramp)   skirt, goggles, glasses, mustache, scarf,
+//   collar (ramp), stripe (ramp: pin stripes over the top), belt (ramp), tie (ramp), shirt (ramp), medals, armband, grease, lips,
 //   freckles, rolled (sleeves), toolbelt (ramp), goggleLens (ramp)
-//   portrait: { bg: [dark, mid, light], iris, age, female }
+//   portrait: { bg: [dark, mid, light], iris, age, female, soft (dithered face light + catchlights), glow,
+//     youth (Act 0 soft portrait, portraits_youth.cjs: + scar, smirk) }
 const CHARACTERS = {
   pilot: {
     skin: M.skinFair, hair: M.hairChestnut, hairStyle: 'tousled', eye: hex('#24140a'), brows: true,
@@ -39,11 +40,13 @@ const CHARACTERS = {
     hat: 'cap', hatCol: M.capBlue, held: 'wrench', grease: true,
     portrait: { bg: R('#1a1d1f', '#2b3134', '#40494d'), iris: hex('#2e2014'), age: 35, stubble: true }
   },
+  // Nurse Lan (26): brown hair in a bun under a white cap, cream seersucker dress with brown pin
+  // stripes, white collar, short sleeves, brown shoes, khaki first-aid bag with a red cross in her right hand.
   medic: {
-    skin: M.skinFair, hair: M.hairDark, hairStyle: 'bun', eye: hex('#1c1210'), brows: true, lips: hex('#b0534a'),
-    top: M.nurse, topStyle: 'dress', skirt: true, pants: M.stocking, shoes: M.shirt,
-    hat: 'nurse', hatCol: M.nurse, armband: true,
-    portrait: { bg: R('#1a2224', '#2a3a3d', '#3f5658'), iris: hex('#3d5a3a'), age: 26, female: true }
+    skin: M.skinFair, hair: M.hairBrown, hairStyle: 'bun', eye: hex('#1c1210'), brows: true, lips: hex('#b0534a'),
+    top: M.seersucker, topStyle: 'dress', stripe: M.seerStripe, collar: M.nurse, rolled: true, skirt: true,
+    pants: M.stocking, shoes: M.brownLeather, hat: 'nurse', hatCol: M.nurse, held: 'medbag', bag: M.medBag,
+    portrait: { bg: R('#24160e', '#3d2819', '#5c3f27'), glow: hex('#8a5f36'), iris: hex('#8a5a34'), age: 26, female: true, soft: true }
   },
   officer: {
     skin: M.skinTan, hair: M.hairGreying, hairStyle: 'crop', eye: hex('#1a120c'), brows: true,
@@ -51,6 +54,22 @@ const CHARACTERS = {
     pants: M.pinks, shoes: M.brownLeather, hat: 'kepi', hatCol: M.odJacket, band: M.brownLeather, brim: M.blackLeather,
     medals: true, mustache: false,
     portrait: { bg: R('#24140f', '#3a2219', '#553428'), iris: hex('#2a1c10'), age: 48, thinMustache: true }
+  },
+  // Jonas Hartveld at 18, May 1940 (Act 0): thin, straw hair not yet cut the RAF way, small scar on the
+  // chin (portrait only), blue-grey cadet tunic of the Brandhaven flying school, no leather jacket yet.
+  // Has chr_pilot_young_sit_s and chr_pilot_young_hands_s (cycles.cjs).
+  pilot_young: {
+    skin: M.skinFair, hair: M.hairStraw, hairStyle: 'tousled', eye: hex('#22303c'), brows: true,
+    top: M.cadet, topStyle: 'cadet', shirt: M.shirt, belt: M.brownLeather, pants: M.cadetTrouser, shoes: M.boot,
+    portrait: { bg: R('#20140c', '#382414', '#57391f'), glow: hex('#8a5f36'), iris: hex('#5b87a6'), age: 18, youth: true, scar: true, smirk: true }
+  },
+  // Daan Verhoef, 18: slow and careful. Wine wool cap pulled low, thick oatmeal jumper his mother knitted,
+  // corduroys, the red English notebook always in his hand. Has chr_daan_sit_s.
+  daan: {
+    skin: M.skinWarm, hair: M.hairDark, hairStyle: 'crop', eye: hex('#22160e'), brows: true,
+    top: M.knit, topStyle: 'jumper', pants: M.cord, shoes: M.brownLeather,
+    hat: 'beanie', hatCol: M.capWine, band: M.capWineCuff, brim: M.capWine, held: 'book',
+    portrait: { bg: R('#1d150f', '#33251a', '#4f3a28'), glow: hex('#8a5f36'), iris: hex('#6a4a2a'), age: 18, youth: true }
   },
   // Young genius engineer (~19): golden ponytail, welding goggles up on the forehead, freckles and an
   // oil smudge, petrol-teal coveralls with rolled sleeves, tool belt, big wrench. Has a work cycle.

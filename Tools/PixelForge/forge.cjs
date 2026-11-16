@@ -10,6 +10,7 @@ const { Canvas, PAL, hex } = require('./lib.cjs');
 const U = require('./units.cjs');
 const T = require('./terrain.cjs');
 const RW = require('./runway.cjs');
+const PFX = require('./pfx.cjs'); // vendored pixelfx (MIT): fx_fire_*, fx_bird, fx_poof… and the Painter our effects use
 // Optional modules: a missing file is skipped, any other error is fatal.
 function optional(file) {
   try { return require(file); } catch (e) { if (e.code !== 'MODULE_NOT_FOUND' || !String(e.message).includes(file.slice(2))) throw e; return null; }
@@ -18,6 +19,8 @@ const UI = optional('./ui.cjs');
 const C = optional('./characters.cjs');
 const G = optional('./ground.cjs');
 const W = require('./world.cjs');
+const ASE = require('./aseprite.cjs');
+const S = require('./story.cjs'); // Act 0 cut-ins, vista and overlays (480x300)
 
 const ROOT = path.resolve(__dirname, '../..');
 const OUT = path.join(ROOT, 'Game/Assets/_Project/Art/Resources/Pixel');
@@ -29,22 +32,79 @@ const groups = new Map();
 const models = []; // sprites with a footprint (world models), previewed on their own sheets
 
 // Output sub-folder, picked from the sprite name so a new sprite lands in the right place by naming alone:
-// world models -> World/<Buildings|Props|Vehicles|Aircraft>/<model id>/, characters -> Characters/<who>/,
-// wildlife -> Wildlife/<animal>/, flight aircraft -> Aircraft/<Fighter|Bomber>/, UI -> UI/<Cockpit|Icons|Widgets>/.
+// world models -> World/<Buildings|Props|Vehicles|Aircraft>/<theme>/<model id>/, characters -> Characters/<who>/,
+// wildlife -> Wildlife/<animal>/, portraits -> Portraits/<who>/, flight aircraft -> Aircraft/Fighter or Bomber/<livery>/,
+// the other groups -> <Group>/<theme>/ from SPRITE_THEME (UI/Icons, Effects/Combat, Ground/Paved…).
 // The loader never cares: the manifest stores each sprite's full path.
 const MODEL_CATEGORY = { bld: 'Buildings', prop: 'Props', veh: 'Vehicles', air: 'Aircraft' };
+// Theme sub-folder per category: first regex matching the model id wins, so order matters
+// (factory canteen before mess, workbench before street bench). A model matching nothing is a forge error.
+const MODEL_THEME = {
+  Buildings: [
+    ['Factory', /^bld_factory_/], ['Hangars', /^bld_hangar/], ['Hospital', /^bld_medical/],
+    ['Barracks', /^bld_(barracks|ablutions|tent$)/], ['Mess', /^bld_(mess|canteen)/],
+    ['Command', /^bld_(hq|officers_club|academy|post_office)/],
+    ['Airfield', /^bld_(control_tower|tower_|terminal|ops_block|fire_station|met_office)/],
+    ['Fuel', /^bld_(fuel_depot|tank_)/], ['Storage', /^bld_(store_|shed_|warehouse|depot_)/],
+    ['Defense', /^bld_(ammo_bunker|bunker_|aa_emplacement|pillbox|revetment|watchtower|guardhouse)/],
+    ['Village', /^bld_(cottage|chapel|garage)/], ['Dorm', /^bld_dorm_/], ['Utility', /^bld_(radar|radio_hut|water_tower|workshop)$/],
+  ],
+  Props: [
+    ['Dorm', /^prop_(dorm_|wall_mailmap|photo_floris|handkerchief_nail|sketchbook_floris|poster_airline|notebook_english|letter_daan_mother)/],
+    ['Factory', /^prop_(jig_|gantry)/], ['Airfield', /^prop_(airfield_|windsock)/],
+    ['Lab', /^prop_(drafting_table|blackboard|invention_)/],
+    ['Workshop', /^prop_(bench_work|tool_|cart_tools|engine_|prop_stand|hoist_|welder|compressor|generator|ladder_|jack_|lathe|drill_|anvil|forge_|rack_)/],
+    ['Trees', /^prop_tree_/], ['Plants', /^prop_(bush|plant_)/], ['RocksLogs', /^prop_(rock_|stump_|log_)/],
+    ['Drums', /^prop_(drum_|barrels|jerrycans|can_)/], ['Ordnance', /^prop_(ammo_|bomb_)/],
+    ['Supplies', /^prop_(crate|cargo_|pallet|tarp|mailbags|tire_)/],
+    ['Defense', /^prop_(sandbag|barbed_wire|fence_|gate_barrier|searchlight)/],
+    ['Street', /^prop_(sign|lamp_post|bench$|flagpole)/],
+  ],
+  Vehicles: [['Transport', /^veh_(jeep|truck|fuel_truck|motorcycle)$/], ['Armor', /^veh_(tank|aa_gun|artillery)$/]],
+  Aircraft: [
+    ['Fighters', /^air_(fighter|brawler|lancer|seagull|raider)/], ['Bombers', /^air_(bomber|fortress|striker|trident)/],
+    ['Transport', /^air_(transport|flyingboat|glider|liaison|biplane)/], ['Wrecks', /^air_(repair|wreck)/],
+  ],
+};
 function folderFor(group, name, isModel) {
   if (isModel) {
     const id = name.replace(/_[senw]$/, ''), category = MODEL_CATEGORY[id.split('_')[0]];
     if (!category) throw new Error('World model ' + name + ' needs a prefix: ' + Object.keys(MODEL_CATEGORY).join('_, ') + '_');
-    return `World/${category}/${id}`;
+    const theme = MODEL_THEME[category].find(([, re]) => re.test(id));
+    if (!theme) throw new Error('World model ' + id + ' matches no theme in MODEL_THEME.' + category);
+    return `World/${category}/${theme[0]}/${id}`;
   }
-  if (group === 'Characters') { const who = /^chr_([a-z]+)_/.exec(name); return 'Characters/' + (who ? who[1] : 'Shared'); }
+  if (group === 'Characters') { const who = /^chr_(pilot_young|[a-z]+)_/.exec(name); return 'Characters/' + (who ? who[1] : 'Shared'); }
   if (group === 'Wildlife') return 'Wildlife/' + name.replace(/^actor_/, '').replace(/_blur$/, '');
-  if (group === 'Aircraft') return 'Aircraft/' + (name.startsWith('fighter') ? 'Fighter' : 'Bomber');
-  if (group === 'UI') return 'UI/' + (name.startsWith('icon_') ? 'Icons' : /^(cockpit|gauge|ui_lamp|ui_lever)/.test(name) ? 'Cockpit' : 'Widgets');
-  return group;
+  if (group === 'Portraits') return 'Portraits/' + name.replace(/^portrait_/, '');
+  if (group === 'Supplies') return 'Supplies/' + name.replace(/^supply_/, '');
+  if (group === 'Aircraft') {
+    if (name.startsWith('fighter')) return 'Aircraft/Fighter';
+    const livery = /^bomber_(jungle|desert|ice|ocean)/.exec(name);
+    return 'Aircraft/Bomber/' + (livery ? livery[1] : 'Shared');
+  }
+  const theme = (SPRITE_THEME[group] || []).find(([, re]) => re.test(name));
+  if (SPRITE_THEME[group] && !theme) throw new Error('Sprite ' + name + ' matches no theme in SPRITE_THEME.' + group);
+  return theme ? group + '/' + theme[0] : group;
 }
+// Theme sub-folder for the flat groups, same first-match rule as MODEL_THEME.
+// Ground tiles must keep "/Ground/" in their path: SelectedArtImporter makes them readable by it.
+const SPRITE_THEME = {
+  Effects: [
+    ['Nature', /^fx_(leaves_|petals|bird|butterfly)/], ['Story', /^fx_(rain_shadow|village_lights|bomber_stream_night)$/],
+    ['Base', /^fx_(quest_marker|dust|fire_|poof|spark_arc|tesla)/], ['Combat', /^fx_/],
+  ],
+  Ground: [['Natural', /^tile_(grass|dirt|sand|water)$/], ['Paved', /^tile_(concrete|asphalt|runway)$/], ['Fence', /^tile_fence$/], ['Interior', /^tile_floor_/]],
+  Naval: [['Carrier', /^carrier/]],
+  Story: [['Opening', /^cut_open_/], ['M1', /^(cut|vista)_m1_/]],
+  Terrain: [['Jungle', /^terrain_jungle/], ['Desert', /^terrain_desert/], ['Ice', /^terrain_ice/]],
+  Title: [['Logo', /^logo$/], ['Cards', /^card_/], ['Runway', /^title_runway_/], ['Intro', /^title_intro_/], ['Airbase', /^title_/]],
+  Weapons: [['Rocket', /^rocket/], ['Guns', /^(tracer|enemy_tracer|muzzle_flash)$/]],
+  UI: [
+    ['Icons', /^icon_/], ['Cockpit', /^(cockpit|gauge|ui_lamp|ui_lever)/], ['Buttons', /^ui_button_/],
+    ['Cells', /^ui_cell_/], ['Input', /^ui_(input|scanline)/], ['Dialog', /^ui_dialog_/], ['Menu', /^ui_(slider|save_slot|menu_)/], ['Panels', /^ui_(panel|ink|plate|keycap|card|pointer)/],
+  ],
+};
 
 // anchor: [ax, ay] px from the sprite's top-left; foot: [fw, fh] tiles in the sprite's own facing.
 // Both are written for every entry (0 when absent) so Unity's JsonUtility can read them.
@@ -91,12 +151,12 @@ function buildUnits() {
   add('Supplies', 'supply_fuel', U.supplyFrames('fuel'), { fps: 6 });
   add('Supplies', 'supply_metal', U.supplyFrames('metal'), { fps: 6 });
   add('Supplies', 'supply_roll', U.supplyFrames('roll'), { fps: 6 });
-  add('Effects', 'fx_explosion', U.explosionFrames(), { fps: 14, loop: false });
+  add('Effects', 'fx_explosion', U.explosionFrames(), { fps: 12, loop: false });
   add('Effects', 'fx_spark', U.sparkFrames(), { fps: 18, loop: false });
   add('Effects', 'fx_smoke', U.smokeFrames(), { fps: 10, loop: false });
   add('Effects', 'fx_shockwave', U.shockwaveFrames(), { fps: 12, loop: false });
-  add('Effects', 'fx_ice_shield', U.iceShieldFrames(), { fps: 6 });
-  add('Effects', 'fx_splash', U.splashFrames(), { fps: 8, loop: false });
+  add('Effects', 'fx_ice_shield', U.iceShieldFrames(), { fps: 8 });
+  add('Effects', 'fx_splash', U.splashFrames(), { fps: 10, loop: false });
 }
 
 // Contact sheet: one row per animation, frames scaled 4x over a checkerboard.
@@ -161,14 +221,37 @@ async function writeWorldPreviews() {
   }
 }
 
+// Hand-drawn SourceAssets/Aseprite/**/<name>.ase files replace the code-drawn frames (see aseprite.cjs).
+// Frame size must match so anchors and footprints stay valid; frame count and fps come from the file.
+async function applyHandDrawn() {
+  const hand = ASE.overrides();
+  for (const items of groups.values()) for (const it of items) {
+    const file = hand.get(it.name);
+    if (!file) continue;
+    hand.delete(it.name);
+    const { frames, fps } = await ASE.readAse(file);
+    const entry = manifest.find(m => m.name === it.name);
+    if (frames[0].w !== entry.width || frames[0].h !== entry.height)
+      throw new Error(`${path.relative(ROOT, file)} is ${frames[0].w}x${frames[0].h}, code sprite ${it.name} is ${entry.width}x${entry.height}`);
+    it.frames = frames; entry.frames = frames.length; entry.fps = fps;
+    const model = models.find(m => m.name === it.name);
+    if (model) model.frames = frames;
+    console.log(`hand-drawn: ${it.name} (${frames.length} frames, ${fps} fps)`);
+  }
+  for (const [name, file] of hand) console.warn(`WARNING: ${path.relative(ROOT, file)} matches no sprite named ${name}; ignored`);
+}
+
 async function main() {
   buildUnits();
+  PFX.build(add);
   if (UI) UI.build(add);
   T.build(add);
   RW.build(add);
   if (C) C.build(add);
   if (G) G.build(add);
   W.build(add);
+  S.build(add);
+  await applyHandDrawn();
   // Replace PNGs but keep Unity .meta files of frames that still exist (stable GUIDs);
   // frames that are no longer generated lose both their PNG and their .meta.
   const expected = new Set();

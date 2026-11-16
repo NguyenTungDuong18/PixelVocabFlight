@@ -167,14 +167,32 @@ function torsoDetailsFront(c, P, o, back, ch = 0) {
       } else { hl(c, 9, 14, y0, t[1]); hl(c, 9, 10, y0 + 4, t[1]); }
       hl(c, 7, 16, y1, t[1]);
       break;
-    case 'dress':
+    case 'dress': {
+      // White round collar opening in a small V at the throat; self-fabric belt at the waist.
+      const cl = P.collar || t, belt = (P.stripe || t)[0];
       if (!back) {
-        hl(c, 9, 10, y0, P.top[3]); hl(c, 13, 14, y0, P.top[3]); c.put(11, y0, P.skin[1]); c.put(12, y0, P.skin[1]);
-        c.put(12, y0 + 2, ST[3]); c.put(12, y0 + 4, ST[3]);
-        // Small red-cross pin on the chest.
-        c.put(14, y0 + 2, RD[3]); c.put(14, y0 + 3, RD[3]); c.put(13, y0 + 2, RD[3]); c.put(15, y0 + 2, RD[3]); c.put(14, y0 + 1, RD[3]);
-      } else { hl(c, 9, 14, y0, t[3]); hl(c, 10, 13, y1 - 1, t[3]); c.put(11, y1, t[1]); c.put(12, y1, t[1]); }
-      hl(c, 7, 16, y1 - 1, t[1]);
+        hl(c, 8, 10, y0, cl[3]); hl(c, 13, 15, y0, cl[2]); c.put(11, y0, P.skin[1]); c.put(12, y0, P.skin[0]);
+        hl(c, 9, 10, y0 + 1, cl[2]); hl(c, 13, 14, y0 + 1, cl[1]); c.put(11, y0 + 1, P.skin[0]);
+        c.put(11, y0 + 2, t[1]);
+      } else { hl(c, 8, 15, y0, cl[2]); hl(c, 9, 14, y0 + 1, cl[1]); }
+      hl(c, 7, 16, y1 - 1, belt); if (!back) c.put(12, y1 - 1, (P.stripe || t)[3]);
+      break;
+    }
+    case 'cadet':
+      // Flying-school tunic: open shirt collar, buttoned front, two breast pockets, leather belt.
+      if (!back) {
+        hl(c, 9, 10, y0, P.shirt[3]); hl(c, 13, 14, y0, P.shirt[2]); c.put(11, y0, P.skin[1]); c.put(12, y0, P.skin[0]);
+        c.put(10, y0 + 1, P.shirt[2]); c.put(13, y0 + 1, P.shirt[1]);
+        vl(c, 12, y0 + 2, y1 - 1, t[0]);
+        hl(c, 8, 10, y0 + 3, t[1]); hl(c, 14, 15, y0 + 3, t[0]);
+      } else { hl(c, 9, 14, y0, P.shirt[2]); vl(c, 12, y1 - 2, y1 - 1, t[1]); }
+      hl(c, 7, 16, y1, P.belt[2]); c.put(7, y1, P.belt[1]); c.put(16, y1, P.belt[1]); if (!back) { c.put(11, y1, GD[3]); c.put(12, y1, GD[1]); }
+      break;
+    case 'jumper':
+      // Thick hand-knitted jumper: roll neck, two cable lines, ribbed hem.
+      hl(c, 9, 14, y0, t[3]); if (!back) { hl(c, 10, 13, y0 + 1, t[1]); vl(c, 10, y0 + 3, y1 - 2, t[1]); vl(c, 13, y0 + 3, y1 - 2, t[1]); vl(c, 11, y0 + 3, y1 - 2, t[3]); }
+      else vl(c, 12, y0 + 2, y1 - 2, t[1]);
+      for (let x = 7; x <= 16; x++) { c.put(x, y1 - 1, (x & 1) ? t[1] : t[2]); c.put(x, y1, (x & 1) ? t[0] : t[1]); }
       break;
     case 'officer':
       if (!back) {
@@ -236,8 +254,19 @@ function torsoDetailsSide(c, P, o, ch = 0) {
       c.put(13, y0, t[3]); vl(c, 15, y0 + 1, y1, t[0]); hl(c, 13, 14, y0 + 2, t[0]); hl(c, 9, 15, y1, t[1]);
       if (P.grease) c.put(11, y0 + 5, t[0]);
       break;
-    case 'dress':
-      hl(c, 12, 14, y0, t[3]); c.put(15, y0 + 2, ST[3]); c.put(14, y0 + 2, RD[3]); hl(c, 9, 15, y1 - 1, t[1]);
+    case 'dress': {
+      const cl = P.collar || t;
+      hl(c, 11, 14, y0, cl[3]); c.put(14, y0 + 1, cl[2]); c.put(10, y0, cl[1]);
+      hl(c, 9, 15, y1 - 1, (P.stripe || t)[0]);
+      break;
+    }
+    case 'cadet':
+      hl(c, 12, 14, y0, P.shirt[3]); c.put(14, y0 + 1, P.shirt[2]); vl(c, 15, y0 + 2, y1 - 1, t[0]); hl(c, 12, 13, y0 + 3, t[1]);
+      hl(c, 9, 15, y1, P.belt[2]); c.put(15, y1, GD[3]);
+      break;
+    case 'jumper':
+      hl(c, 10, 14, y0, t[3]); c.put(14, y0 + 1, t[1]);
+      for (let x = 9; x <= 15; x++) { c.put(x, y1 - 1, (x & 1) ? t[1] : t[2]); c.put(x, y1, (x & 1) ? t[0] : t[1]); }
       break;
     case 'officer':
       hl(c, 13, 14, y0, P.shirt[3]); vl(c, 15, y0, y0 + 3, P.tie[0]); vl(c, 13, y0 + 1, y0 + 3, t[0]);
@@ -276,6 +305,25 @@ function toolbeltSide(c, P, y1) {
   hl(c, 9, 15, y1, b[2]); c.put(15, y1, GD[3]);
   hl(c, 9, 10, y1 + 1, b[3]); hl(c, 9, 10, y1 + 2, b[1]);
   c.put(14, y1 + 1, RD[3]); c.put(14, y1 + 2, ST[3]);
+}
+
+// Pin stripes (seersucker): every third screen column of top-coloured pixels takes the stripe ramp at
+// the same shade index, so folds and light carry through. Runs on the assembled figure, before the outline.
+function applyStripes(c, P) {
+  if (!P.stripe) return;
+  for (let y = 0; y < FH; y++) for (let x = 0; x < FW; x += 3) { const k = P.top.indexOf(c.get(x, y)); if (k >= 0) c.put(x, y, P.stripe[k]); }
+}
+// First-aid bag hanging from the fist at hand (2x2 at hand.x, hand.y): 6x5 khaki canvas, lit left edge
+// and flap, white patch with a red cross, shaded bottom. The fist stays in front of the handle row.
+function drawMedBag(c, P, hand) {
+  const b = P.bag, x0 = hand.x - 2, y0 = hand.y + 1;
+  for (let y = 0; y < 5; y++) for (let x = 0; x < 6; x++) {
+    const px = x0 + x, py = y0 + y;
+    if (y === 0 && (px === hand.x || px === hand.x + 1)) continue;
+    let col = b[y === 0 ? 3 : x === 0 ? 3 : x === 5 || y === 4 ? 1 : 2];
+    if (y >= 1 && y <= 3 && x >= 2 && x <= 4) col = (x === 3 || y === 2) ? RD[3] : CR[3];
+    c.put(px, py, col);
+  }
 }
 
 // High ponytail. Root at the crown; it sways with the walk phase, streams back on the run.
@@ -473,5 +521,6 @@ function bentArm(c, P, sx, sy, au, ua, af, fa, near, armband) {
 
 module.exports = {
   hl, vl, drawHead, drawNeck, drawLegsFront, drawLegsSide, drawTorsoFront, drawTorsoSide,
-  drawScarf, drawArmFront, frontArm, drawGestureArm, drawArmSide, drawArmSideBent, bentArm, drawPonytail, linePoints
+  drawScarf, drawArmFront, frontArm, drawGestureArm, drawArmSide, drawArmSideBent, bentArm, drawPonytail, linePoints,
+  applyStripes, drawMedBag
 };

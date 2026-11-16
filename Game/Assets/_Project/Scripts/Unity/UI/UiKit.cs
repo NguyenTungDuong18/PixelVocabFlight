@@ -26,12 +26,14 @@ namespace PixelVocabFlight
             return color;
         }
 
+        // Main (Vietnamese) font: WordwingVi, then VT323, then an OS font.
         public static Font Font
         {
             get
             {
                 if (font) return font;
-                font = Resources.Load<Font>("Fonts/VT323-Regular");
+                font = Resources.Load<Font>("Fonts/WordwingVi");
+                if (!font) font = Resources.Load<Font>("Fonts/VT323-Regular");
                 PixelFontLoaded = font;
                 if (!font) font = Font.CreateDynamicFontFromOSFont(new[] { "Arial", "Segoe UI", "Liberation Sans" }, 24);
                 if (!font) font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
@@ -39,17 +41,76 @@ namespace PixelVocabFlight
             }
         }
 
+        // English words (enemy plates, typing box, vocabulary list): WordwingEn, else the main font.
+        public static Font EnglishFont
+        {
+            get
+            {
+                if (!englishFont) englishFont = Resources.Load<Font>("Fonts/WordwingEn");
+                return englishFont ? englishFont : Font;
+            }
+        }
+        private static Font englishFont;
+
+        public static Text English(Text text) { text.font = EnglishFont; return text; }
+
+        // The new sprite when the forge produced it, else the old one.
+        public static string Pick(string preferred, string fallback) => PixelSprites.Has(preferred) ? preferred : fallback;
+
         // Vietnamese digit grouping (5.981), the same as BaseContent.Variables in dialogue text.
         private static readonly System.Globalization.NumberFormatInfo VietnameseNumbers =
             new System.Globalization.NumberFormatInfo { NumberGroupSeparator = ".", NumberDecimalSeparator = "," };
         public static string Number(int value) => value.ToString("N0", VietnameseNumbers);
 
-        public static int Px(int designSize) => Mathf.RoundToInt(designSize * FontScale);
+        // Wordwing fonts have a 16 px em and are only crisp at multiples of 16 (16, 32, 48...).
+        public static bool Wordwing => Font && Font.name.StartsWith("Wordwing");
+        public const int WordwingStep = 16;
+
+        // Design sizes 9-15 -> 16, 16-27 -> 32, 28-39 -> 48 ... (the +.25 biases the rounding upwards). Other fonts: size x 1.3.
+        public static int Px(int designSize) => Wordwing
+            ? WordwingStep * Mathf.Max(1, Mathf.RoundToInt(designSize * FontScale / WordwingStep + .25f))
+            : Mathf.RoundToInt(designSize * FontScale);
         public static void Size(Text text, int designSize) => text.fontSize = Px(designSize);
+        // Next smaller size for shrink-to-fit loops (whole 16 steps for Wordwing, 2 px otherwise).
+        public static int StepDown(int size) => Wordwing ? size - WordwingStep : size - 2;
+
         public static Text Fit(Text text, int minimum, int maximum)
         {
-            text.resizeTextForBestFit = true; text.resizeTextMinSize = Px(minimum); text.resizeTextMaxSize = Px(maximum);
+            if (!Wordwing) { text.resizeTextForBestFit = true; text.resizeTextMinSize = Px(minimum); text.resizeTextMaxSize = Px(maximum); return text; }
+            // Wordwing: no Unity best-fit (it makes odd sizes); try the largest step, then 16-px steps down to the minimum.
+            text.resizeTextForBestFit = false;
+            var fit = text.gameObject.GetComponent<DiscreteFit>() ?? text.gameObject.AddComponent<DiscreteFit>();
+            fit.Setup(text, Px(minimum), Px(maximum));
             return text;
+        }
+
+        // Re-picks the largest size that fits whenever the text or the box changes.
+        private sealed class DiscreteFit : MonoBehaviour
+        {
+            private Text text;
+            private int minimum, maximum;
+            private string lastText;
+            private Vector2 lastSize;
+
+            public void Setup(Text target, int min, int max) { text = target; minimum = min; maximum = max; Apply(); }
+            private void LateUpdate()
+            {
+                if (text && (text.text != lastText || text.rectTransform.rect.size != lastSize)) Apply();
+            }
+
+            private void Apply()
+            {
+                lastText = text.text; lastSize = text.rectTransform.rect.size;
+                int size = maximum;
+                for (; size > minimum; size -= WordwingStep)
+                {
+                    text.fontSize = size;
+                    // Wrapping text only has to fit in height (long words break by character and add lines).
+                    bool wide = text.horizontalOverflow == HorizontalWrapMode.Wrap || text.preferredWidth <= lastSize.x + 1;
+                    if (wide && text.preferredHeight <= lastSize.y + 1) break;
+                }
+                text.fontSize = Mathf.Max(size, minimum);
+            }
         }
 
         public static RectTransform Rect(string name, Transform parent, float x, float y, float width, float height)

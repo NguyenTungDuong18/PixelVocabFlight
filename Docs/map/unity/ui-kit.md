@@ -5,7 +5,8 @@ Code: `Scripts/Unity/UI/UiKit.cs`, `Scripts/Unity/UI/VocabularySetupView.cs` (91
 ## `UiKit`: dựng UI bằng code
 
 - **Bảng màu:** `Ink, Panel, Line, Muted, Cream, Mint, Orange, Coral`, `Hex("RRGGBB")`.
-- **Font:** `Font` (VT323, static, tự kiểm tra `if (font)`), `FontScale = 1.3`, `Px(size)`, `Fit(text, min, max)`.
+- **Font:** `Font` nạp `Fonts/WordwingVi` (font pixel tự sinh, `node Tools/PixelForge/fonts.cjs`), thiếu thì VT323, rồi font OS (static, tự kiểm tra `if (font)`). `EnglishFont` = `Fonts/WordwingEn` (kiểu máy chữ đơn cách) cho mọi chỗ hiện hoặc gõ từ tiếng Anh, gán bằng `English(text)`: plate trên máy bay địch, ô gõ cockpit, thẻ đáp án tên lửa, cột từ ở màn chọn từ vựng. `FontScale = 1.3`.
+- **Cỡ chữ:** font Wordwing (em 16 px) chỉ sắc ở bội của 16. Khi `Wordwing` true: `Px(design)` = `16 × max(1, round(design·1.3/16 + 0.25))` (9–15 → 16, 16–27 → 32, 28–39 → 48); `Fit(text, min, max)` dùng component `DiscreteFit` (thử từ `Px(max)` giảm từng 16, không dùng Best Fit); `StepDown(size)` cho ô gõ. Font khác giữ cỡ lẻ và Best Fit như cũ. Importer: `SelectedArtImporter.ConfigureFont` đặt `Fonts/Wordwing*.ttf` sang `HintedRaster`.
 - **Builder** (tọa độ pixel tham chiếu, gốc ở góc trên trái của parent):
   - Khung, nền: `Rect(name, parent, x, y, w, h)`, `Box(...)`, `Slice(...)` (9-slice), `Framed(...)`.
   - Hình: `Sprite(...)`, `Icon(...)`. Chữ: `Label(text, parent, x, y, w, h, size, color, bold, anchor)`.

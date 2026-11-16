@@ -79,8 +79,9 @@ const HAIR = {
   bun: {
     s: ['..............', '....dhhhhd....', '...dhHhhHhd...', '..dhhhhhhhhd..', '..hhhh..hhhh..',
       '..hhd....dhh..', '..h........h..', '..h........h..', '..d........d..', '..d........d..'],
-    n: ['..............', '....dhhhhd....', '...dhhHHhhd...', '..dhhhhhhhhd..', '..hhhhhhhhhh..', '..hhhhhhhhhh..',
-      '..hhhdDDdhhh..', '..hhdhHhhdhh..', '..hhdhhhhdhh..', '..dhhdDDdhhd..', '...dhhhhhhd...'],
+    // Bun seen from behind: a lit coil (top-left sheen, shadow under it) rather than a ring.
+    n: ['..............', '....dhhhhd....', '...dhhHHhhd...', '..dhhhhhhhhd..', '..hhhhhhhhhh..', '..hhhhdhhhhh..',
+      '..hhhdHHHhhh..', '..hhdHHhhdhh..', '..hhdHhhddhh..', '..dhhdddDhhd..', '...dhhhhhhd...'],
     e: ['..............', '....dhhhhd....', '...dhhHhhhd...', '..dhhhhhhhhd..', '.ddhhhhhhhd...',
       'dhdhhhhh.hd...', 'dHhdhhhd......', 'dhhdhhd.......', '.ddhhd........', '...dhd........']
   },
@@ -127,10 +128,17 @@ const HAT = {
     n: ['..............', '...kcCCCcck...', 'kcCCcccccccckK', '.kcccccccccck.', '..BBBBBBBBBB..'],
     e: ['..............', '....kcCCck....', '.kcCCccccxcck.', '..kccccccccck.', '...BBBBBBBBB..', '.........bgbbb']
   },
+  // Knitted wool cap pulled down to the brows, turned-up ribbed cuff (B/b alternate along it).
+  beanie: {
+    s: ['..............', '.....kcCck....', '...kcCCccck...', '..kcCCcccckk..', '..cCccccccck..', '.kBBBBBBBBBBk.', '.kbBbBbBbBbBk.'],
+    n: ['..............', '.....kcCck....', '...kcCCccck...', '..kcCCcccckk..', '..cCccccccck..', '.kBBBBBBBBBBk.', '.kbBbBbBbBbBk.'],
+    e: ['..............', '.....kcCCck...', '...kcCCcccck..', '..kcCcccccckk.', '..cCcccccccck.', '..kBBBBBBBBBBk', '..kbBbBbBbBbBk']
+  },
+  // White nurse cap: a small trapezoid flaring upward, perched on the crown above the bun.
   nurse: {
-    s: ['..............', '..............', '....wwxxww....', '...wwxxxxwk...', '...kwwxxwwk...'],
-    n: ['..............', '..............', '....wwwwww....', '...wwwwwwwk...', '...kwwwwwwk...'],
-    e: ['..............', '..............', '.....wwxww....', '....wwxxxwk...', '....kwwxwwk...']
+    s: ['..............', '...kwwwwwwck..', '....wwwwwwc...', '....kccccck...'],
+    n: ['..............', '...kwwwwwwck..', '....wwwwwwc...', '....kccccck...'],
+    e: ['..............', '....kwwwwck...', '.....wwwwc....', '.....kccck....']
   }
 };
 for (const [k, v] of Object.entries(HAT)) for (const d of 'sne') checkMask('hat ' + k + d, v[d]);

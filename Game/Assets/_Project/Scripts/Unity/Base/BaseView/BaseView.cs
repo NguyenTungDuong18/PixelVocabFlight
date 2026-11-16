@@ -11,20 +11,22 @@ namespace PixelVocabFlight
     // Only reads BaseWorld / MissionLog state; FlightGame owns input and applies the rules.
     public sealed partial class BaseView
     {
-        // 1 tile = 16 art px; everything on the base is drawn 3x, so 1 tile = 48 reference px.
+        // 1 tile = 16 art px. The airbase is drawn 3x on a 1440x900 canvas (1 tile = 48 px); the story (story mode) 4x on 1920x1080 (64 px).
         public const float TileSize = 48, Scale = 3;
         public const int TilePixels = 16;
-        private const float SnapStep = 3, CameraLift = 36;
+        private float tileSize = TileSize, scale = Scale, cameraLift = 36;
+        private Vector2 reference = new Vector2(1440, 900);
         private const float ZoneSeconds = 2.6f, HintSeconds = 4.2f, TitleFadeSeconds = .45f;
-        private static readonly string[] GroundSprites = { "tile_grass", "tile_dirt", "tile_concrete", "tile_asphalt", "tile_sand", "tile_runway", "tile_water" };
+        // Indexed by the Ground enum; Void (last) has no sprite and is drawn black.
+        private static readonly string[] GroundSprites = { "tile_grass", "tile_dirt", "tile_concrete", "tile_asphalt", "tile_sand", "tile_runway", "tile_water", "tile_floor_wood", null };
         // Flat stand-ins when a ground tile is missing (art not forged yet).
         private static readonly Color32[] GroundColors =
         {
             new Color32(78, 107, 52, 255), new Color32(122, 94, 60, 255), new Color32(138, 138, 128, 255), new Color32(62, 64, 64, 255),
-            new Color32(200, 176, 122, 255), new Color32(90, 90, 85, 255), new Color32(61, 110, 136, 255)
+            new Color32(200, 176, 122, 255), new Color32(90, 90, 85, 255), new Color32(61, 110, 136, 255), new Color32(112, 80, 50, 255), new Color32(0, 0, 0, 255)
         };
 
-        private sealed class Sortable { public RectTransform Rect; public float Key, X; }
+        private sealed class Sortable { public RectTransform Rect; public float Key, X; public int Order; }
         private sealed class Animated { public Image Image; public string Sprite; public float Phase; }
         private sealed class Actor
         {
@@ -44,7 +46,8 @@ namespace PixelVocabFlight
         // Fallback cycle length when a character has no walk/run sprite (footsteps still keep time).
         private const float FallbackWalkCycle = .5f, FallbackRunCycle = .4f;
 
-        private readonly RectTransform canvasRect, root, viewport, world, shadowLayer, sortLayer, topLayer, hud;
+        private readonly RectTransform canvasRect, root, viewport, world, floorLayer, shadowLayer, sortLayer, topLayer, hud;
+        private readonly float promptHeight;
         private readonly RectTransform promptPlate, keyStrip, titleCard;
         private readonly Text promptLabel, objectiveTitle, objectiveText, objectiveDetail, pilotStats, zoneLabel, hintLabel, titlePress;
         private readonly CanvasGroup zoneGroup, hintGroup, titleGroup, objectiveGroup, pilotGroup;
@@ -65,6 +68,8 @@ namespace PixelVocabFlight
         private readonly Dictionary<string, bool> ready = new Dictionary<string, bool>();
         private readonly List<Puff> dust = new List<Puff>();
         private Actor player;
+        // Story mode (StoryView): no airbase HUD, black surround; see BaseView.Story.cs.
+        private readonly bool storyMode;
 
         public RectTransform Root => root;
         // Footstep contacts of the pilot (walk/run frames 0 and frames/2); FlightGame plays a step on each increase.
@@ -95,34 +100,38 @@ namespace PixelVocabFlight
         public int PlacementDrawIndex(string id) => placementImages.TryGetValue(id, out var image) && image ? image.transform.GetSiblingIndex() : -1;
         public int PlayerDrawIndex => player != null ? player.Body.transform.GetSiblingIndex() : -1;
 
-        public BaseView(Transform parent, RectTransform canvasRect)
+        public BaseView(Transform parent, RectTransform canvasRect, bool story = false)
         {
             this.canvasRect = canvasRect;
-            root = UiKit.Rect("Base", parent, 0, 0, 1440, 900);
+            storyMode = story;
+            if (story) { reference = new Vector2(StoryLayout.Width, StoryLayout.Height); tileSize = StoryLayout.TileSize; scale = StoryLayout.Scale; cameraLift = 48; }
+            root = UiKit.Rect("Base", parent, 0, 0, reference.x, reference.y);
             // The world lives in its own nested canvas so camera movement does not rebuild the HUD.
-            viewport = UiKit.Rect("Base viewport", root, 0, 0, 1440, 900);
+            viewport = UiKit.Rect("Base viewport", root, 0, 0, reference.x, reference.y);
             viewport.gameObject.AddComponent<Canvas>();
             viewport.gameObject.AddComponent<RectMask2D>();
-            var backdrop = UiKit.Box("Base backdrop", viewport, 0, 0, 1440, 900, UiKit.Ink).rectTransform;
+            var backdrop = UiKit.Box("Base backdrop", viewport, 0, 0, reference.x, reference.y, story ? Color.black : UiKit.Ink).rectTransform;
             backdrop.anchorMin = Vector2.zero; backdrop.anchorMax = Vector2.one; backdrop.offsetMin = backdrop.offsetMax = Vector2.zero;
             world = UiKit.Rect("Base world", viewport, 0, 0, 100, 100);
             var groundObject = new GameObject("Ground", typeof(RectTransform), typeof(RawImage));
             var groundRect = groundObject.GetComponent<RectTransform>(); groundRect.SetParent(world, false);
             groundRect.anchorMin = groundRect.anchorMax = groundRect.pivot = new Vector2(0, 1); groundRect.anchoredPosition = Vector2.zero;
             ground = groundObject.GetComponent<RawImage>(); ground.raycastTarget = false; ground.color = UiKit.Ink;
+            floorLayer = UiKit.Rect("Floor items", world, 0, 0, 0, 0);
             shadowLayer = UiKit.Rect("Shadows", world, 0, 0, 0, 0);
             sortLayer = UiKit.Rect("Y-sorted", world, 0, 0, 0, 0);
             topLayer = UiKit.Rect("World labels", world, 0, 0, 0, 0);
 
             questMarker = UiKit.Box("Quest marker", topLayer, 0, 0, 24, 48, Color.white); questMarker.enabled = false;
-            var plate = UiKit.Framed("Prompt", topLayer, 0, 0, 200, 36, "ui_plate", 2);
+            promptHeight = story ? 72 : 36;
+            var plate = UiKit.Framed("Prompt", topLayer, 0, 0, 200, promptHeight, "ui_plate", story ? 4 : 2);
             promptPlate = plate.rectTransform;
-            promptLabel = UiKit.Label("", plate.transform, 0, -1, 200, 36, 13, UiKit.Cream, true, TextAnchor.MiddleCenter);
+            promptLabel = UiKit.Label("", plate.transform, 0, -1, 200, promptHeight, story ? 28 : 13, UiKit.Cream, true, TextAnchor.MiddleCenter);
             promptLabel.horizontalOverflow = HorizontalWrapMode.Overflow;
             promptPlate.gameObject.SetActive(false);
 
             // ---- HUD (fixed on screen) ----
-            hud = UiKit.Rect("Base HUD", root, 0, 0, 1440, 900);
+            hud = UiKit.Rect("Base HUD", root, 0, 0, reference.x, reference.y);
             var objective = UiKit.Framed("Objective", hud, 20, 18, 480, 112, "ui_panel");
             objectiveGroup = objective.gameObject.AddComponent<CanvasGroup>();
             UiKit.Icon("icon_radio", objective.transform, 26, 16, 26);
@@ -168,6 +177,7 @@ namespace PixelVocabFlight
             titlePress = UiKit.Label("Nhấn phím bất kỳ để bắt đầu", titleBody, 0, 590, 1440, 44, 22, UiKit.Cream, true, TextAnchor.MiddleCenter);
             UiKit.Label("PHIÊN BẢN 0.15  ·  PIXEL SQUADRON", titleBody, 0, 840, 1440, 28, 11, UiKit.Muted, true, TextAnchor.MiddleCenter);
             titleCard.gameObject.SetActive(false);
+            if (story) hud.gameObject.SetActive(false);
             root.gameObject.SetActive(false);
         }
 
@@ -182,20 +192,21 @@ namespace PixelVocabFlight
             foreach (var npc in state.Npcs)
             {
                 var actor = actors.Find(a => a.Id == npc.Def.Id);
-                if (actor != null) UpdateActor(actor, npc.X, npc.Y, npc.Facing, false, false, npc.Talking, delta);
+                if (actor != null) UpdateActor(actor, npc.X, npc.Y, npc.Facing, npc.Walking, false, npc.Talking, delta);
             }
             SortActors();
             UpdateCamera(state.PlayerX, state.PlayerY);
             UpdatePrompt(state, dialogueOpen);
+            if (storyMode) return;
             var professor = state.Npc("professor");
             bool marker = professor != null && state.Missions.Active == null && !professor.Talking && Ready("fx_quest_marker");
             questMarker.enabled = marker;
             if (marker)
             {
                 questMarker.sprite = PixelSprites.At("fx_quest_marker", time);
-                var size = PixelSprites.Size("fx_quest_marker", Scale);
+                var size = PixelSprites.Size("fx_quest_marker", scale);
                 questMarker.rectTransform.sizeDelta = size;
-                questMarker.rectTransform.anchoredPosition = new Vector2(Snap(professor.X * TileSize - size.x / 2), -Snap(professor.Y * TileSize - 96 - size.y - 6));
+                questMarker.rectTransform.anchoredPosition = new Vector2(Snap(professor.X * tileSize - size.x / 2), -Snap(professor.Y * tileSize - 96 - size.y - 6));
             }
             var log = state.Missions;
             objectiveTitle.text = log.Active != null ? "NHIỆM VỤ  ·  " + log.Active.Title.ToUpperInvariant() : "NHIỆM VỤ";
@@ -217,18 +228,19 @@ namespace PixelVocabFlight
             }
         }
 
-        private static float Snap(float value) => Mathf.Round(value / SnapStep) * SnapStep;
+        private float Snap(float value) => Mathf.Round(value / scale) * scale;
 
         public void SnapCamera(BaseWorld state) { if (built) Animate(0, state, false); }
 
         private void UpdateCamera(float x, float y)
         {
-            var size = canvasRect ? canvasRect.rect.size : new Vector2(1440, 900);
-            if (size.x < 1 || size.y < 1) size = new Vector2(1440, 900);
-            // The viewport covers the whole visible canvas (CanvasScaler Expand can show more than 1440x900).
-            viewport.anchoredPosition = new Vector2(-(size.x - 1440) / 2, (size.y - 900) / 2);
+            // Airbase: the viewport covers the whole visible canvas (CanvasScaler Expand can show more than the reference size).
+            // Story: exactly the 16:9 reference area, the black bars of other aspect ratios stay empty.
+            var size = canvasRect && !storyMode ? canvasRect.rect.size : reference;
+            if (size.x < 1 || size.y < 1) size = reference;
+            viewport.anchoredPosition = new Vector2(-(size.x - reference.x) / 2, (size.y - reference.y) / 2);
             viewport.sizeDelta = size;
-            float cx = x * TileSize - size.x / 2, cy = y * TileSize - CameraLift - size.y / 2;
+            float cx = x * tileSize - size.x / 2, cy = y * tileSize - cameraLift - size.y / 2;
             cx = mapWidth <= size.x ? (mapWidth - size.x) / 2 : Mathf.Clamp(cx, 0, mapWidth - size.x);
             cy = mapHeight <= size.y ? (mapHeight - size.y) / 2 : Mathf.Clamp(cy, 0, mapHeight - size.y);
             cx = Snap(cx); cy = Snap(cy);

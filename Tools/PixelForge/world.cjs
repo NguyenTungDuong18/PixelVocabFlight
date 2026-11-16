@@ -7,7 +7,7 @@
 const { renderModel } = require('./voxel.cjs');
 const { MODELS } = require('./world/common.cjs');
 // Order = manifest order. Each module only requires common.cjs (never another model module).
-const MODULES = ['buildings', 'quarters', 'installations', 'storage', 'factory', 'airfield', 'props', 'clutter', 'workshop', 'nature', 'vehicles', 'aircraft', 'fleet'];
+const MODULES = ['buildings', 'quarters', 'installations', 'storage', 'factory', 'airfield', 'props', 'clutter', 'workshop', 'nature', 'vehicles', 'aircraft', 'fleet', 'dorm'];
 // spec.module tags each model with its file so forge writes one preview sheet per module.
 const mods = MODULES.map(n => { const before = MODELS.length, m = require('./world/' + n + '.cjs'); for (const spec of MODELS.slice(before)) spec.module = n; return m; });
 

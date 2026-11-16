@@ -39,9 +39,9 @@ namespace PixelVocabFlight.Editor
             PlayerSettings.companyName = "PixelVocabFlight";
             PlayerSettings.productName = "Wordwing";
             PlayerSettings.bundleVersion = "0.1.0";
-            PlayerSettings.defaultScreenWidth = 1280;
-            PlayerSettings.defaultScreenHeight = 800;
-            PlayerSettings.fullScreenMode = FullScreenMode.Windowed;
+            PlayerSettings.defaultScreenWidth = 1920;
+            PlayerSettings.defaultScreenHeight = 1080;
+            PlayerSettings.fullScreenMode = FullScreenMode.FullScreenWindow;   // Full HD full screen by default (GameSettings can change it at run time)
             PlayerSettings.resizableWindow = true;
             PlayerSettings.runInBackground = false;
             PlayerSettings.SetScriptingBackend(NamedBuildTarget.Standalone, ScriptingImplementation.Mono2x);
@@ -79,6 +79,11 @@ namespace PixelVocabFlight.Editor
             const string manifest = SelectedArtImporter.PixelFolder + "pixel-manifest.json";
             if (!File.Exists(manifest)) throw new InvalidOperationException("Missing " + manifest + ". Run: node Tools/PixelForge/forge.cjs");
             if (!File.Exists("Assets/_Project/Art/Resources/Fonts/VT323-Regular.ttf")) throw new InvalidOperationException("Missing pixel font VT323-Regular.ttf");
+            foreach (string guid in AssetDatabase.FindAssets("t:Font", new[] { SelectedArtImporter.FontFolder.TrimEnd('/') }))
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                if (AssetImporter.GetAtPath(path) is TrueTypeFontImporter font) { SelectedArtImporter.ConfigureFont(font, path); font.SaveAndReimport(); }
+            }
             int count = 0;
             foreach (string guid in AssetDatabase.FindAssets("t:Texture2D", new[] { SelectedArtImporter.PixelFolder.TrimEnd('/') }))
             {

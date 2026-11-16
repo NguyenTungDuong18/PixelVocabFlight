@@ -7,7 +7,7 @@ const { CR, GD, ST, RD, WD, FI } = PAL;
 const { FW, FH } = require('./palette.cjs');
 const {
   vl, drawHead, drawNeck, drawLegsFront, drawLegsSide, drawTorsoFront, drawTorsoSide, drawScarf,
-  drawArmFront, frontArm, drawGestureArm, drawArmSide, drawArmSideBent, bentArm, drawPonytail
+  drawArmFront, frontArm, drawGestureArm, drawArmSide, drawArmSideBent, bentArm, drawPonytail, applyStripes, drawMedBag
 } = require('./body.cjs');
 
 // ---------------------------------------------------------------- held items
@@ -75,6 +75,8 @@ function renderFront(P, pose, back) {
   const armShape = i => {
     if (i === itemSide && P.held === 'rifle') return run ? { dy: -1 } : { dy: 0 };   // hand on the sling
     if (i === itemSide && P.held === 'book' && run) return { dy: -2, dx: 1 };        // book hugged to the chest
+    // Bag arm: weighed down 1 px, only a slight sway when walking, held up tight on the run.
+    if (i === itemSide && P.held === 'medbag') return run ? { dy: -1 } : { dy: 1 + Math.round((pose.arms[i] || 0) * .5) };
     return frontArm(pose.arms[i], run);
   };
   const arms = [armShape(0), armShape(1)];
@@ -104,6 +106,8 @@ function renderFront(P, pose, back) {
   } else if (!back && P.held === 'bigwrench') drawBigWrench(c, hands[0].x, hands[0].y, 0);
   if (!back && P.held === 'book') drawBook(c, hands[0], 's');
   if (!back && P.held === 'wrench') drawWrench(c, hands[0]);
+  applyStripes(c, P);
+  if (P.held === 'medbag' && hands[itemSide]) drawMedBag(c, P, hands[itemSide]);
   c.outline(K);
   if (tip && work.spark) drawSpark(c, tip.x, tip.y, work.spark);
   return c;
@@ -117,6 +121,7 @@ function renderSide(P, pose) {
   let near = pose.arms, tip = null;
   if (P.held === 'rifle') near = run ? .2 : 0;          // hand stays on the sling
   if (P.held === 'book' && run) near = .55;             // book hugged to the chest
+  if (P.held === 'medbag') near = run ? .25 : pose.arms * .3;   // bag swings only slightly
   const arm = (t, s, isNear) => run ? drawArmSideBent(t, P, s, o, ch, isNear, isNear && P.armband)
     : drawArmSide(t, P, s, o, ch, isNear, isNear && P.armband);
   layer(t => {
@@ -140,7 +145,9 @@ function renderSide(P, pose) {
     if (P.held === 'book') drawBook(t, hand, 'e');
     if (P.held === 'wrench') drawWrench(t, hand);
     if (P.held === 'bigwrench') drawBigWrench(t, hand.x, hand.y, run ? 2.5 : near * .35);
+    if (P.held === 'medbag') drawMedBag(t, P, hand);
   });
+  applyStripes(c, P);
   c.outline(K);
   if (tip && pose.work.spark) drawSpark(c, tip.x, tip.y, pose.work.spark);
   return c;

@@ -20,6 +20,13 @@ Không đổi gameplay hay số phiên bản (vẫn 0.15.0). Toàn bộ model vo
   - `world.cjs` nạp module theo mảng `MODULES` và gọi `extra(add)` cho các sprite không phải model.
   - Forge ghi `preview-world-<module>.png` cho từng module.
   - Thêm `Tools/PixelForge/preview-models.cjs` để xem một module mà không chạy forge, nên nhiều agent sửa song song được.
+- **Thư mục sprite chia theo chủ đề** (`folderFor` trong `forge.cjs`, chi tiết: `Docs/map/art/sprite-folders.md`):
+  - Model: `World/<loại>/<chủ đề>/<id>/` theo bảng `MODEL_THEME`, ví dụ `Buildings/Hospital`, `Buildings/Factory`, `Props/Trees`, `Aircraft/Bombers`.
+  - Nhóm khác chia theo `SPRITE_THEME`, ví dụ `Effects/Combat|Base|Nature`, `Ground/Natural|Paved|Fence`, `Terrain/<vùng>`, `UI/Buttons|Cells|Input|Panels`.
+  - Ngoài ra: `Aircraft/Bomber/<livery>/`, `Portraits/<nhân vật>/`, `Supplies/<loại>/`.
+  - Code C# không đổi vì manifest lưu đường dẫn. Đã build lại và chạy smoke 113/113 (`Tools/Smoke/folders`).
+- **Xem trong Unity:** `SelectedArtImporter` đổi Texture Type sang Sprite (16 PPU) để kéo thả vào scene và cửa sổ Animation; game vẫn tự tạo Sprite từ manifest. Smoke 113/113 (`Tools/Smoke/sprite-type`).
+- **Vẽ tay bằng LibreSprite 1.3** (`Tools/PixelForge/aseprite.cjs`): `export` lấy bản code ra `SourceAssets/Aseprite/**/<tên>.ase`, forge dùng file `.ase` thay bản code. Đã thử khứ hồi khớp từng pixel và giữ fps (nhân vật, model, hiệu ứng), và thử một lần sửa tay đi hết tới manifest. Quy trình: `Docs/map/art/add-sprites.md`.
 
 ## Tham khảo
 

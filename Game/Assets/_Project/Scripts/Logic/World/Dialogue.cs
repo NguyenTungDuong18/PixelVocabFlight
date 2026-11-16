@@ -62,7 +62,7 @@ namespace PixelVocabFlight
 
         // Null (no action) is valid.
         public static bool IsValid(string action) =>
-            action == null || action == End || action == VocabOpen || action == MissionCancel || TryParseAccept(action, out _, out _);
+            action == null || action == End || action == VocabOpen || action == MissionCancel || TryParseAccept(action, out _, out _) || StoryFlags.IsAction(action);
     }
 
     public static class DialogueConditions
@@ -92,6 +92,7 @@ namespace PixelVocabFlight
             condition = condition.Trim();
             if (condition.StartsWith("!", StringComparison.Ordinal)) return IsKnown(condition.Substring(1));
             if (condition == "mission.active" || condition.StartsWith("mission.active:", StringComparison.Ordinal)) return true;
+            if (condition.StartsWith(StoryFlags.ConditionPrefix, StringComparison.Ordinal)) return StoryFlags.IsCondition(condition);
             return TryParseComparison(condition, out string variable, out _, out _) && Array.IndexOf(variables, variable) >= 0;
         }
     }

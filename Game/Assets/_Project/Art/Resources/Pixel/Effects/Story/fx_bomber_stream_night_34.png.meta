@@ -1,0 +1,1332 @@
+fileFormatVersion: 2
+guid: 2ab78403c2061554dbd1a844a51d4873
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 42035897393373081
+    second: fx_bomber_stream_night_34_0
+  - first:
+      213: 3891644016109007643
+    second: fx_bomber_stream_night_34_1
+  - first:
+      213: 220742986178724087
+    second: fx_bomber_stream_night_34_2
+  - first:
+      213: -5679096457099484133
+    second: fx_bomber_stream_night_34_3
+  - first:
+      213: -1614067369255834343
+    second: fx_bomber_stream_night_34_4
+  - first:
+      213: -3378289902601662735
+    second: fx_bomber_stream_night_34_5
+  - first:
+      213: -5782534989749619652
+    second: fx_bomber_stream_night_34_6
+  - first:
+      213: -2275770072855528230
+    second: fx_bomber_stream_night_34_7
+  - first:
+      213: 1801215082553583147
+    second: fx_bomber_stream_night_34_8
+  - first:
+      213: -4638977470864113247
+    second: fx_bomber_stream_night_34_9
+  - first:
+      213: 7020746680672265520
+    second: fx_bomber_stream_night_34_10
+  - first:
+      213: -6989860165151663794
+    second: fx_bomber_stream_night_34_11
+  - first:
+      213: 881214898440790808
+    second: fx_bomber_stream_night_34_12
+  - first:
+      213: -2359681708583925777
+    second: fx_bomber_stream_night_34_13
+  - first:
+      213: -6761569091502008162
+    second: fx_bomber_stream_night_34_14
+  - first:
+      213: -8292483402509903269
+    second: fx_bomber_stream_night_34_15
+  - first:
+      213: 5367811648609739184
+    second: fx_bomber_stream_night_34_16
+  - first:
+      213: 7692394048001225452
+    second: fx_bomber_stream_night_34_17
+  - first:
+      213: -5503086644830241877
+    second: fx_bomber_stream_night_34_18
+  - first:
+      213: -723562389291367825
+    second: fx_bomber_stream_night_34_19
+  - first:
+      213: 9051041470410916068
+    second: fx_bomber_stream_night_34_20
+  - first:
+      213: 803178062277595711
+    second: fx_bomber_stream_night_34_21
+  - first:
+      213: -8312186586543346980
+    second: fx_bomber_stream_night_34_22
+  - first:
+      213: 1944696967863928957
+    second: fx_bomber_stream_night_34_23
+  - first:
+      213: -3348888313404861508
+    second: fx_bomber_stream_night_34_24
+  - first:
+      213: 3894699620444779500
+    second: fx_bomber_stream_night_34_25
+  - first:
+      213: 5636642844308727763
+    second: fx_bomber_stream_night_34_26
+  - first:
+      213: 689629375962365595
+    second: fx_bomber_stream_night_34_27
+  - first:
+      213: -8230779003569439253
+    second: fx_bomber_stream_night_34_28
+  - first:
+      213: 1381180184029088491
+    second: fx_bomber_stream_night_34_29
+  - first:
+      213: -1017233391025902633
+    second: fx_bomber_stream_night_34_30
+  - first:
+      213: 8324196417671226608
+    second: fx_bomber_stream_night_34_31
+  - first:
+      213: -4268584317523880351
+    second: fx_bomber_stream_night_34_32
+  - first:
+      213: 1115344138235461649
+    second: fx_bomber_stream_night_34_33
+  - first:
+      213: 7286690128220080678
+    second: fx_bomber_stream_night_34_34
+  - first:
+      213: -7287814539845494612
+    second: fx_bomber_stream_night_34_35
+  - first:
+      213: 3617559313529890992
+    second: fx_bomber_stream_night_34_36
+  - first:
+      213: -93464616111646380
+    second: fx_bomber_stream_night_34_37
+  - first:
+      213: -2095813458708559171
+    second: fx_bomber_stream_night_34_38
+  - first:
+      213: -7550729389752950724
+    second: fx_bomber_stream_night_34_39
+  - first:
+      213: -669520292883471568
+    second: fx_bomber_stream_night_34_40
+  - first:
+      213: 5741021024151324190
+    second: fx_bomber_stream_night_34_41
+  - first:
+      213: -5395303169952063128
+    second: fx_bomber_stream_night_34_42
+  - first:
+      213: -5603344616615493577
+    second: fx_bomber_stream_night_34_43
+  - first:
+      213: 6913646434263343318
+    second: fx_bomber_stream_night_34_44
+  - first:
+      213: -6310837304289359311
+    second: fx_bomber_stream_night_34_45
+  - first:
+      213: 755665823641125933
+    second: fx_bomber_stream_night_34_46
+  - first:
+      213: -5510653466070433869
+    second: fx_bomber_stream_night_34_47
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 1
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 16
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationMethod: 0
+  spriteTessellationDetail: -1
+  spriteGeometrySubdivision: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: fx_bomber_stream_night_34_0
+      rect:
+        serializedVersion: 2
+        x: 7
+        y: 252
+        width: 12
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 99f52fb0d67559000800000000000000
+      internalID: 42035897393373081
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_bomber_stream_night_34_1
+      rect:
+        serializedVersion: 2
+        x: 131
+        y: 255
+        width: 21
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b13b3742d95e10630800000000000000
+      internalID: 3891644016109007643
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_bomber_stream_night_34_2
+      rect:
+        serializedVersion: 2
+        x: 175
+        y: 261
+        width: 12
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7f087dd839c301300800000000000000
+      internalID: 220742986178724087
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_bomber_stream_night_34_3
+      rect:
+        serializedVersion: 2
+        x: 295
+        y: 252
+        width: 12
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b14e7658cdbcf21b0800000000000000
+      internalID: -5679096457099484133
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_bomber_stream_night_34_4
+      rect:
+        serializedVersion: 2
+        x: 419
+        y: 255
+        width: 21
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 91de4f3874ea999e0800000000000000
+      internalID: -1614067369255834343
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_bomber_stream_night_34_5
+      rect:
+        serializedVersion: 2
+        x: 463
+        y: 261
+        width: 12
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1fe83278b37ed11d0800000000000000
+      internalID: -3378289902601662735
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_bomber_stream_night_34_6
+      rect:
+        serializedVersion: 2
+        x: 145
+        y: 238
+        width: 12
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c34f4b2601f40cfa0800000000000000
+      internalID: -5782534989749619652
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_bomber_stream_night_34_7
+      rect:
+        serializedVersion: 2
+        x: 161
+        y: 248
+        width: 12
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: adc3bf02d27da60e0800000000000000
+      internalID: -2275770072855528230
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_bomber_stream_night_34_8
+      rect:
+        serializedVersion: 2
+        x: 281
+        y: 239
+        width: 12
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b26aea703933ff810800000000000000
+      internalID: 1801215082553583147
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_bomber_stream_night_34_9
+      rect:
+        serializedVersion: 2
+        x: 433
+        y: 230
+        width: 12
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1a1ca10919a0f9fb0800000000000000
+      internalID: -4638977470864113247
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_bomber_stream_night_34_10
+      rect:
+        serializedVersion: 2
+        x: 449
+        y: 248
+        width: 12
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 035297798e3be6160800000000000000
+      internalID: 7020746680672265520
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_bomber_stream_night_34_11
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 226
+        width: 19
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e495b72b6370ffe90800000000000000
+      internalID: -6989860165151663794
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_bomber_stream_night_34_12
+      rect:
+        serializedVersion: 2
+        x: 111
+        y: 238
+        width: 8
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 81368500844ba3c00800000000000000
+      internalID: 881214898440790808
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_bomber_stream_night_34_13
+      rect:
+        serializedVersion: 2
+        x: 128
+        y: 230
+        width: 8
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fe74ed8fcf9b04fd0800000000000000
+      internalID: -2359681708583925777
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_bomber_stream_night_34_14
+      rect:
+        serializedVersion: 2
+        x: 175
+        y: 235
+        width: 12
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e9813c05cb41a22a0800000000000000
+      internalID: -6761569091502008162
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_bomber_stream_night_34_15
+      rect:
+        serializedVersion: 2
+        x: 303
+        y: 238
+        width: 8
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b5a1397e74e2bec80800000000000000
+      internalID: -8292483402509903269
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_bomber_stream_night_34_16
+      rect:
+        serializedVersion: 2
+        x: 320
+        y: 230
+        width: 8
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0b16698214c4e7a40800000000000000
+      internalID: 5367811648609739184
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_bomber_stream_night_34_17
+      rect:
+        serializedVersion: 2
+        x: 337
+        y: 238
+        width: 8
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ce2317f61afd0ca60800000000000000
+      internalID: 7692394048001225452
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_bomber_stream_night_34_18
+      rect:
+        serializedVersion: 2
+        x: 463
+        y: 235
+        width: 12
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bab72b66adb11a3b0800000000000000
+      internalID: -5503086644830241877
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_bomber_stream_night_34_19
+      rect:
+        serializedVersion: 2
+        x: 19
+        y: 224
+        width: 8
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f62847d27d365f5f0800000000000000
+      internalID: -723562389291367825
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_bomber_stream_night_34_20
+      rect:
+        serializedVersion: 2
+        x: 31
+        y: 217
+        width: 27
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4e00c2b4342cb9d70800000000000000
+      internalID: 9051041470410916068
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_bomber_stream_night_34_21
+      rect:
+        serializedVersion: 2
+        x: 103
+        y: 229
+        width: 8
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f3251753136752b00800000000000000
+      internalID: 803178062277595711
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_bomber_stream_night_34_22
+      rect:
+        serializedVersion: 2
+        x: 120
+        y: 224
+        width: 12
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cda2152e65e25ac80800000000000000
+      internalID: -8312186586543346980
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_bomber_stream_night_34_23
+      rect:
+        serializedVersion: 2
+        x: 136
+        y: 222
+        width: 9
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d780f4db693fcfa10800000000000000
+      internalID: 1944696967863928957
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_bomber_stream_night_34_24
+      rect:
+        serializedVersion: 2
+        x: 140
+        y: 217
+        width: 14
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cb3db0772db5681d0800000000000000
+      internalID: -3348888313404861508
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_bomber_stream_night_34_25
+      rect:
+        serializedVersion: 2
+        x: 211
+        y: 224
+        width: 8
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ce3b5777ba0cc0630800000000000000
+      internalID: 3894699620444779500
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_bomber_stream_night_34_26
+      rect:
+        serializedVersion: 2
+        x: 223
+        y: 217
+        width: 27
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3d7e4cc7dc0693e40800000000000000
+      internalID: 5636642844308727763
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_bomber_stream_night_34_27
+      rect:
+        serializedVersion: 2
+        x: 295
+        y: 226
+        width: 12
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b9e39ec734e029900800000000000000
+      internalID: 689629375962365595
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_bomber_stream_night_34_28
+      rect:
+        serializedVersion: 2
+        x: 312
+        y: 219
+        width: 16
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bedff73da1666cd80800000000000000
+      internalID: -8230779003569439253
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_bomber_stream_night_34_29
+      rect:
+        serializedVersion: 2
+        x: 328
+        y: 223
+        width: 9
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: beaccdf3f00fa2310800000000000000
+      internalID: 1381180184029088491
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_bomber_stream_night_34_30
+      rect:
+        serializedVersion: 2
+        x: 337
+        y: 220
+        width: 9
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7db2c32de9f02e1f0800000000000000
+      internalID: -1017233391025902633
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_bomber_stream_night_34_31
+      rect:
+        serializedVersion: 2
+        x: 403
+        y: 224
+        width: 8
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0f46fd3d98c758370800000000000000
+      internalID: 8324196417671226608
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_bomber_stream_night_34_32
+      rect:
+        serializedVersion: 2
+        x: 415
+        y: 195
+        width: 65
+        height: 40
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1669f2cdd21f2c4c0800000000000000
+      internalID: -4268584317523880351
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_bomber_stream_night_34_33
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 195
+        width: 19
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 110c6d9959f7a7f00800000000000000
+      internalID: 1115344138235461649
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_bomber_stream_night_34_34
+      rect:
+        serializedVersion: 2
+        x: 19
+        y: 206
+        width: 8
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 62a47e8a0168f1560800000000000000
+      internalID: 7286690128220080678
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_bomber_stream_night_34_35
+      rect:
+        serializedVersion: 2
+        x: 28
+        y: 210
+        width: 8
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ca8159bd94b7cda90800000000000000
+      internalID: -7287814539845494612
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_bomber_stream_night_34_36
+      rect:
+        serializedVersion: 2
+        x: 36
+        y: 201
+        width: 8
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0b8eadc6707243230800000000000000
+      internalID: 3617559313529890992
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_bomber_stream_night_34_37
+      rect:
+        serializedVersion: 2
+        x: 75
+        y: 195
+        width: 44
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 459d8954d62f3bef0800000000000000
+      internalID: -93464616111646380
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_bomber_stream_night_34_38
+      rect:
+        serializedVersion: 2
+        x: 128
+        y: 215
+        width: 8
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dba813e63cc2ae2e0800000000000000
+      internalID: -2095813458708559171
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_bomber_stream_night_34_39
+      rect:
+        serializedVersion: 2
+        x: 171
+        y: 195
+        width: 40
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c306ca020ab663790800000000000000
+      internalID: -7550729389752950724
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_bomber_stream_night_34_40
+      rect:
+        serializedVersion: 2
+        x: 211
+        y: 206
+        width: 8
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 033e3c447d265b6f0800000000000000
+      internalID: -669520292883471568
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_bomber_stream_night_34_41
+      rect:
+        serializedVersion: 2
+        x: 220
+        y: 210
+        width: 8
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e16c69844343caf40800000000000000
+      internalID: 5741021024151324190
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_bomber_stream_night_34_42
+      rect:
+        serializedVersion: 2
+        x: 228
+        y: 201
+        width: 8
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 861e77b3a580025b0800000000000000
+      internalID: -5395303169952063128
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_bomber_stream_night_34_43
+      rect:
+        serializedVersion: 2
+        x: 267
+        y: 195
+        width: 44
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 730498c42cbec32b0800000000000000
+      internalID: -5603344616615493577
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_bomber_stream_night_34_44
+      rect:
+        serializedVersion: 2
+        x: 363
+        y: 195
+        width: 40
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6d0a9e84dc432ff50800000000000000
+      internalID: 6913646434263343318
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_bomber_stream_night_34_45
+      rect:
+        serializedVersion: 2
+        x: 403
+        y: 206
+        width: 8
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 13a8c8278e66b68a0800000000000000
+      internalID: -6310837304289359311
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_bomber_stream_night_34_46
+      rect:
+        serializedVersion: 2
+        x: 412
+        y: 210
+        width: 8
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d24480b101aac7a00800000000000000
+      internalID: 755665823641125933
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fx_bomber_stream_night_34_47
+      rect:
+        serializedVersion: 2
+        x: 420
+        y: 201
+        width: 8
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3bfb89a8ed93683b0800000000000000
+      internalID: -5510653466070433869
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable: {}
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

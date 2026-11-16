@@ -42,7 +42,20 @@ const M = {
   blackLeather: R('#0d0b0a', '#1d1a17', '#332e29', '#5a534b'),
   hairGold: R('#6a4614', '#a87a26', '#dcb144', '#f8e08a'),
   petrol: R('#132326', '#1f3a3b', '#2f5753', '#477a70'),
-  weldLens: R('#173322', '#2c5e3c', '#4f9a62', '#a8e0b0')
+  weldLens: R('#173322', '#2c5e3c', '#4f9a62', '#a8e0b0'),
+  // Nurse Lan: warm brown hair, cream seersucker dress with brown pin stripes, khaki first-aid bag.
+  hairBrown: R('#2a160b', '#4f2c16', '#7a4826', '#a3693b'),
+  seersucker: R('#8d8270', '#c1b7a2', '#e4ddca', '#f7f2e4'),
+  seerStripe: R('#76624d', '#9f8869', '#c0a988', '#d9c7a6'),
+  medBag: R('#352c1c', '#5a4b30', '#7f6d47', '#a49062'),
+  // Act 0, May 1940: Jonas at 18 (straw hair, flying-school cadet tunic) and Daan (wool cap, oatmeal jumper).
+  hairStraw: R('#5e4a1e', '#9a7f3a', '#cdb268', '#ecd99a'),
+  cadet: R('#1c2733', '#2f4152', '#48607a', '#6a849c'),
+  cadetTrouser: R('#191c23', '#2b3039', '#434a56', '#5d6572'),
+  knit: R('#4a4032', '#7a6c55', '#a5967a', '#c6b99c'),
+  capWine: R('#2a0f10', '#4a1a1a', '#6e2a26', '#8f4238'),
+  capWineCuff: R('#4a1a1a', '#8f4238', '#8f4238', '#a85a4c'),
+  cord: R('#2a1c12', '#46301f', '#63462f', '#805e42')
 };
 
 module.exports = {

@@ -40,7 +40,7 @@ namespace PixelVocabFlight
             int size = UiKit.Px(22);
             inputText.fontSize = size;
             float width = MeasureWidth(inputText, inputText.text);
-            while (width > 428 && size > UiKit.Px(12)) { size -= 2; inputText.fontSize = size; width = MeasureWidth(inputText, inputText.text); }
+            while (width > 428 && size > UiKit.Px(12)) { size = UiKit.StepDown(size); inputText.fontSize = size; width = MeasureWidth(inputText, inputText.text); }
             float caretHeight = Mathf.Round(size * .78f / 2) * 2;
             caret.rectTransform.sizeDelta = new Vector2(4, caretHeight);
             caret.rectTransform.anchoredPosition = new Vector2(Mathf.Round(inputText.rectTransform.anchoredPosition.x + width + 2), -Mathf.Round((52 - caretHeight) / 2));

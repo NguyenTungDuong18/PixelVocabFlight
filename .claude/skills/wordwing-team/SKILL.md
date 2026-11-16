@@ -20,6 +20,11 @@ Báo cáo với người dùng bằng **tiếng Việt**. **Không commit / push
 | `ww-pixel` | Sprite pixel art sinh bằng code | `Tools/PixelForge/*.cjs` (và đầu ra forge sinh tự động) |
 | `ww-vocab` | Dữ liệu từ vựng, nghĩa, chủ đề, phát âm, lọc/chọn từ | `SourceAssets/Vocabulary/**`, `Tools/Vocabulary/{Prepare-Oxford-Data,Build-Oxford-Vocabulary}.cjs`, `Tools/Vocabulary/Generate-Pronunciation.ps1`, `Scripts/Logic/Vocabulary/**`, `Scripts/Unity/Data/VocabularyCatalog.cs`, `Data/Vocabulary/**`, `Audio/Pronunciation/**` |
 | `ww-verify` | Chạy kiểm tra, build, smoke, soát ảnh. **Không sửa source** | Chỉ ghi vào `Tools/Smoke/*` và scratchpad |
+| `ww-research` | Tra mạng tư liệu thật (hình dáng, kích thước, màu, chuyển động) và quy đổi sang thông số game. **Không sửa file** | Không sở hữu file nào |
+
+Model: `ww-pixel` chạy Opus effort high (cố định, không theo model của điều phối); các agent còn lại chạy Sonnet effort high (frontmatter trong `.claude/agents/`).
+
+**Khi nào gọi `ww-research`**: model, nhân vật, hiệu ứng hay chuyển động **mới** dựa trên vật thật (công trình, máy bay, xe, quân phục 1944, dáng làm việc…), hoặc người dùng chê "trông không giống". Gọi trước `ww-pixel` (đợt 1), rồi dán nguyên báo cáo vào prompt của `ww-pixel` (đợt 2). Bỏ qua khi chỉ sửa màu, dịch vài pixel, hoặc đối tượng đã có tư liệu trong `Docs/history/*` mục Tham khảo.
 
 (`Scripts/...` = `Game/Assets/_Project/Scripts/...`, `Editor/...` = `Game/Assets/_Project/Editor/...`.)
 
@@ -62,7 +67,8 @@ Nếu một thay đổi cần sửa file thuộc mảng khác (ví dụ luật m
   2. Phần hợp đồng liên quan, nguyên văn.
   3. Danh sách file được phép sửa (và nhắc không sửa file ngoài danh sách; nếu cần thì ghi vào báo cáo).
   4. Điều kiện xong: ví dụ "RulesChecks pass", "forge chạy không lỗi", "biên dịch được theo hợp đồng".
-  5. Yêu cầu báo cáo theo mẫu: file đã sửa, tóm tắt thay đổi, giả định đã đặt, việc cần mảng khác làm, kết quả kiểm tra đã chạy.
+  5. Việc có vẽ hình (`ww-pixel`): nhắc tuân theo `Docs/map/art/quality-bar.md`, nộp ảnh trước/sau và kết quả checklist. Hình chưa đạt chuẩn thì gửi lại, không chuyển sang kiểm tra.
+  6. Yêu cầu báo cáo theo mẫu: file đã sửa, tóm tắt thay đổi, giả định đã đặt, việc cần mảng khác làm, kết quả kiểm tra đã chạy.
 - Có thể nhắc người dùng một dòng: đang giao cho những agent nào.
 
 ### Bước 4: Kiểm chứng

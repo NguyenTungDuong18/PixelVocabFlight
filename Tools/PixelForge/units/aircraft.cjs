@@ -190,17 +190,8 @@ function bomberGunFrames() {
     return c;
   });
 }
-function enemyTracerFrames() {
-  const c = new Canvas(4, 12);
-  for (let y = 0; y < 12; y++) {
-    const col = y < 3 ? FI[4] : y < 7 ? RD[4] : withAlpha(RD[3], 210 - (y - 7) * 40);
-    c.put(1, y, col); c.put(2, y, col);
-    if (y > 1 && y < 7) { c.put(0, y, withAlpha(RD[3], 120)); c.put(3, y, withAlpha(RD[3], 120)); }
-  }
-  return [c];
-}
 
 module.exports = {
   propeller, fighterBody, fighterFrames, bomberBody, bomberFrames, bomberBankFrames,
-  bomberGunFrames, enemyTracerFrames
+  bomberGunFrames
 };

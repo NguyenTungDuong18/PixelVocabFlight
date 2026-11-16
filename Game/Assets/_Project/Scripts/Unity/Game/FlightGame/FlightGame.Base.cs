@@ -111,6 +111,7 @@ namespace PixelVocabFlight
         // Dialogue choice (button, digit or W/S + E). Mission actions apply before the next node is shown.
         public void ChooseDialogue(int index)
         {
+            if (mode == Mode.Story) { ChooseStoryDialogue(index); return; }
             if (mode != Mode.Base || !dialogue.Open || view.Dialogue.Typing) return;
             if (index < 0 || index >= dialogue.Choices.Count) return;
             string pending = null;

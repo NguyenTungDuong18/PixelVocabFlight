@@ -2,6 +2,12 @@
 
 > Bản đồ mã nguồn chi tiết (file nào làm gì, hằng số, pipeline, lệnh build/test): [Docs/00-Codebase-Map.md](Docs/00-Codebase-Map.md).
 
+**Sau 0.15 — Phim mở màn dựng sẵn:** 10 giây mở game là một đoạn phim pixel dựng từng khung bằng camera 3D: dòng hơn 140 oanh tạc cơ dưới lưới flak, tiêm kích ta bổ nhào từ phía mặt trời, xả súng, cánh oanh tạc cơ nổ đứt trong slow-motion, quần vòng, bay xuyên cầu lửa rồi logo đập vào; sau đó lặp 8 giây làm nền menu. Dựng lại bằng `node Tools/PixelForge/cinema/film.cjs`. Chi tiết: [Docs/history/25-Title-Film.md](Docs/history/25-Title-Film.md).
+
+**Sau 0.15 — Cutscene mở đầu điện ảnh (đã thay bằng mục trên):** cảnh không chiến 10 giây mở game giờ gồm 6 cú máy cắt liên tục: toàn cảnh có flak, đuổi sau đuôi, đối đầu, cận ngang, xác rơi và vụ nổ lớn. Có viền đen, rung máy quay và chớp trắng. Cảnh kết thúc khi máy bay ta từ xa tiến tới rồi giữ khoảng cách làm nền menu. Menu chính và trang con nằm lệch trái sát mép, trượt vào từng hàng. Khung lựa chọn được vẽ lại thành tấm thép olive dày có đinh tán đồng và đèn. Chi tiết: [Docs/history/24-Title-Cinematic.md](Docs/history/24-Title-Cinematic.md).
+
+**Sau 0.15 — Hiệu ứng, hội thoại, bộ chữ:** vẽ lại mọi hiệu ứng theo chuẩn pixelfx (nổ, khói, tia lửa, tên lửa, dấu nhiệm vụ…) và thêm 12 hiệu ứng thư viện từ pixelfx. Hộp thoại mới khung gỗ, ke đồng, giấy kem. Hai bộ chữ pixel tự làm: `WordwingVi` cho tiếng Việt (đủ dấu chồng) và `WordwingEn` kiểu máy chữ cho từ tiếng Anh. Khu y tế (trạm, bệnh viện lều, bệnh viện gạch) và Y tá Lan vẽ lại làm bản thử chất lượng. Chi tiết: [Docs/history/23-Effects-Dialog-Fonts.md](Docs/history/23-Effects-Dialog-Fonts.md).
+
 **Sau 0.15 — Thư viện model căn cứ:** vẽ lại toàn bộ nhà, cây và đồ vật của căn cứ theo hướng ấm áp kiểu Stardew Valley nhưng mang chất 1944. Thư viện tăng từ 43 lên 247 model 4 hướng: nhiều tòa doanh trại/HQ/bệnh viện, hệ thống kho, nhà máy chế tạo máy bay, sân bay lớn (hangar T2, Bellman, blister, tháp chỉ huy, nhà ga), 24 máy bay đỗ, 40 loại cây/bụi/đá có đung đưa, thùng gỗ, thùng dầu, đồ nghề xưởng, hiệu ứng lá rơi và kỹ sư thiên tài tóc vàng. Model mới chưa đặt lên bản đồ. Chi tiết: [Docs/history/22-Model-Library.md](Docs/history/22-Model-Library.md).
 
 **Sau 0.15 — Sắp xếp mã nguồn:** không đổi gameplay. Code tách `Logic/` (C# thuần) và `Unity/`; class và module lớn chia thành nhiều file nhỏ theo phần việc (`partial class` trong thư mục cùng tên, module PixelForge có thư mục con). Chi tiết: [Docs/history/21-Codebase-Restructure.md](Docs/history/21-Codebase-Restructure.md).
@@ -12,7 +18,7 @@
 
 **Bản 0.13 — Pixel 1944:** toàn bộ máy bay, tàu, rocket, tiếp tế, hiệu ứng và giao diện được vẽ lại thành pixel art lấy cảm hứng Thế chiến II, lưu từng khung hình trong `Game/Assets/_Project/Art/Resources/Pixel`. Màn hình chờ mới là sân bay dã chiến nhìn từ trên xuống, chọn chiến trường bằng phím 1–4 và cất cánh bằng Enter. Đã thống nhất thuật ngữ GIÁP, đổi tia laser thành đạn vạch, thêm rung màn hình khi trúng đòn. Đã build Windows và qua 54/54 smoke test. Xem [báo cáo 0.13](Docs/history/18-Pixel-Art-1944.md); vẽ lại đồ họa bằng `node Tools/PixelForge/forge.cjs`. Các mục phiên bản cũ bên dưới giữ lại để tra lịch sử.
 
-Game bắn máy bay pixel art học từ vựng tiếng Anh, viết bằng C# và Unity.
+Game pixel art Thế chiến II theo cốt truyện, viết bằng C# và Unity. Chế độ gõ từ tiếng Anh để bắn máy bay (luật hiện có trong code) chỉ còn là một mini game; các màn bay trong truyện có cơ chế riêng, đang ở khâu thiết kế.
 
 **Trạng thái:** bản 0.10 sửa tàu xoay mũi tại chỗ trước khi rời đi, thân tàu đi đúng hướng mũi. Nền biển gốc được giảm kích thước khoảng 35%, có thêm lớp biển rộng đồng phong cách để phủ kín hai bên. Xem [thay đổi và kiểm tra 0.10](Docs/history/16-Carrier-Heading-and-Ocean-Scale.md). Giữ thời gian thả quân 20 giây, nhịp sinh 12 giây, tên lửa giảm tốc 20%, hiệu ứng nước, sprite trong suốt và đủ 5.981 mục học Oxford.
 
