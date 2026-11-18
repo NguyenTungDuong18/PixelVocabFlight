@@ -22,8 +22,11 @@ PixelVocabFlight/
 │  ├─ Build-Windows.ps1, Test-Windows.ps1
 │  ├─ PixelForge/            forge.cjs + module; module lớn có thư mục con world/ characters/ units/ ui/ terrain/
 │  │  └─ cinema/             bộ dựng phim mở màn (film.cjs; không do forge gọi), xem art/cinema.md
-│  ├─ BlenderForge/          render.cjs + opening_hands.py + makehuman/ (lưới tay CC0) cho tay cảnh mở
+│  ├─ BlenderForge/          render.cjs + opening_hands.py + handChecks.cjs (10 check tay trên lưới thật) + makehuman/ (lưới tay CC0) cho tay cảnh mở
 │  ├─ RulesChecks/           Program.cs, InteractionChecks.cs, Combat/, World/
+│  ├─ AudioChecks/           ghi bản trộn âm thanh intro và 90 s nền menu ra WAV + số đo + tự kiểm (dùng Scripts/Unity/Audio/Cinema)
+│  ├─ AudioImport/           giải mã MP3 trong SourceAssets/Audio/Cinema, cắt + xử lý → Audio/SFX/Cinema/Resources/CinemaSfx/*.bytes
+│  ├─ MusicForge/            soạn nhạc nền bằng code (Score*.cs) + sampler SFZ + reverb → Audio/Music/Resources/Music/*.wav; mẫu VSCO 2 CE tải về samples/ (ngoài git)
 │  ├─ UnityCompileChecks/(+ Logic/)
 │  ├─ Vocabulary/            Prepare-Oxford, Build-Oxford, Generate-Pronunciation, PdfAudit/
 │  ├─ ArtImport/             node_modules/sharp

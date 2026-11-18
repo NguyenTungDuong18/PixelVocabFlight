@@ -1,6 +1,6 @@
 # Bản đồ mã nguồn WORDWING (mục lục)
 
-> Bản **0.15.0**: smoke 344 check; RulesChecks 49.857 gameplay + căn cứ, 13 interaction, 16.588 walkable, 2.720 story, 1.576 manifest. Thư viện 247 model căn cứ (43 đang đặt trên map).
+> Bản **0.15.0**: smoke 369 check; RulesChecks 49.857 gameplay + căn cứ, 13 interaction, 16.588 walkable, 2.720 story, 1.576 manifest. Thư viện 247 model căn cứ (43 đang đặt trên map).
 > **Người dùng muốn sửa một thứ cụ thể (lời thoại, cảnh, bàn tay, phòng, menu, save…)? Mở [overview/where-to-edit.md](map/overview/where-to-edit.md) trước**: bảng "muốn sửa gì → file nào".
 > **Cách đọc tiết kiệm token:** chỉ mở đúng một file trong bảng dưới. Mỗi file một chủ đề, dưới khoảng 5 KB. Thư mục tài liệu soi gương thư mục code: code ở `Scripts/Logic/World/` thì đọc `map/logic/world.md`, code ở `Scripts/Unity/Flight/` thì đọc `map/unity/` (`flight-view.md`, `board.md`…).
 > Số dòng ghi trong file là để ước lượng; vị trí cụ thể nên tìm bằng Grep theo tên hàm hoặc hằng.

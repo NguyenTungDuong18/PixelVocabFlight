@@ -21,7 +21,8 @@ function box(src, dst, r) {
   }
 }
 
-// post: { flash 0..1 (white), tint [r,g,b] flash colour, impact (bool: 2-tone impact frame), ca (px), vignette, gain, lift, white 0..1 (cloud white-out), whiteSeed, dirt [{x,y,r,a}], bars }
+// post: { flash 0..1 (white), tint [r,g,b] flash colour, impact (bool: 2-tone impact frame), ca (px), vignette, gain, lift, white 0..1 (cloud white-out), whiteSeed, dirt [{x,y,r,a}], bars,
+//         bloom (bloom multiplier, 1 = normal), amber 0..1 (warm grade after a blast), grade [r,g,b] }
 function finish(fr, post = {}, out = new Uint8Array(N)) {
   const col = fr.col, heat = fr.heat, add = fr.add, glow = fr.glow, o = [0, 0, 0];
   // fire: heat -> ramp, laid over the picture; everything bright feeds the bloom
@@ -37,10 +38,11 @@ function finish(fr, post = {}, out = new Uint8Array(N)) {
     glow[i * 3] = gr + lum; glow[i * 3 + 1] = gg + lum * .8; glow[i * 3 + 2] = gb + lum * .5;
     col[i * 3] += add[i * 3]; col[i * 3 + 1] += add[i * 3 + 1]; col[i * 3 + 2] += add[i * 3 + 2];
   }
+  const bk = post.bloom || 1;                                       // blasts double the bloom for a few frames
   box(glow, blurB, 3);
-  for (let i = 0; i < N * 3; i++) col[i] += blurB[i] * .24;
+  for (let i = 0; i < N * 3; i++) col[i] += blurB[i] * .24 * bk;
   box(blurB, glow, 9);
-  for (let i = 0; i < N * 3; i++) col[i] += glow[i] * .3;
+  for (let i = 0; i < N * 3; i++) col[i] += glow[i] * .3 * bk;
   // anamorphic streak: a wide horizontal smear of the hottest light
   if (post.streak !== 0) {
     for (let y = 0; y < H; y++) {
@@ -53,7 +55,8 @@ function finish(fr, post = {}, out = new Uint8Array(N)) {
     }
   }
   const gain = post.gain || 1, lift = post.lift || 0, vig = post.vignette === undefined ? .3 : post.vignette, fl = post.flash || 0, ft = post.tint || [1, 1, 1];
-  const white = post.white || 0, ca = Math.round(post.ca || 0), tintC = post.grade || [1, 1, 1], shx = Math.round(post.shx || 0), shy = Math.round(post.shy || 0);
+  const am = post.amber || 0, g0 = post.grade || [1, 1, 1], tintC = [g0[0] * (1 + .14 * am), g0[1] * (1 + .02 * am), g0[2] * (1 - .22 * am)];   // amber: the whole frame warms just after a blast
+  const white = post.white || 0, ca = Math.round(post.ca || 0), shx = Math.round(post.shx || 0), shy = Math.round(post.shy || 0);
   for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
     const i = y * W + x;
     const sx = clamp(x + shx, 0, W - 1), sy = clamp(y + shy, 0, H - 1), j = sy * W + sx;
@@ -63,13 +66,20 @@ function finish(fr, post = {}, out = new Uint8Array(N)) {
       rampAt(RAMP.cloud, .62 + .3 * n, o);
       r += (o[0] - r) * a; g += (o[1] - g) * a; b += (o[2] - b) * a;
     }
-    if (post.wash) for (const w of post.wash) {                        // flying through fire / smoke: turbulence rushing outward
+    // flying through fire / smoke: turbulence rushing outward. Stack several with different speed/scale for depth:
+    // w = { a, t, seed, fire, ember, hole (opening at the centre, x300 px), speed (outward rush, 5), scale (feature
+    //       frequency, 1; < 1 = big soft near layer), max (alpha cap), tone (ramp shift), streak (share of rays with embers), warm (smoke lit red) }
+    if (post.wash) for (const w of post.wash) {
       if (w.a <= 0) continue;
-      const ux = x - W / 2, uy = y - H / 2, rr = Math.hypot(ux, uy) + 1, zo = 1 / (1 + w.t * 2.2 % 1 * 0), ang = Math.atan2(uy, ux);
-      const n = C.fbm3(Math.cos(ang) * 2 + w.seed, Math.sin(ang) * 2, Math.log(rr) * 2.4 - w.t * 5, 73) * .62 + C.fbm2(x / 38 + w.seed, y / 30 + w.t * 3, 75) * .38;
-      const a = clamp(w.a * 1.9 - (1 - w.a) * n * 2.1 - (w.hole ? clamp(1 - rr / (w.hole * 300)) : 0));
+      const ux = x - W / 2, uy = y - H / 2, rr = Math.hypot(ux, uy) + 1, ang = Math.atan2(uy, ux), sp = w.speed || 5, sk = w.scale || 1;
+      if (w.streak && rr > 12) {                                        // embers streaking out along the line of flight
+        const cell = Math.floor((ang / (2 * Math.PI) + .5) * 240), hs = C.ih(cell, w.seed | 0, 5, 79);
+        if (hs < w.streak) { const ph = Math.log(rr) * 1.4 - w.t * sp * .45 + hs * 37, f = ph - Math.floor(ph); if (f < .2) { const k = (1 - f / .2) * w.a * Math.min(1, rr / 60); r += (1.25 - r) * k; g += (.62 - g) * k; b += (.2 - b) * k; } }
+      }
+      const n = C.fbm3(Math.cos(ang) * 2 * sk + w.seed, Math.sin(ang) * 2 * sk, Math.log(rr) * 2.4 * sk - w.t * sp, 73) * .62 + C.fbm2(x / 38 * sk + w.seed, y / 30 * sk + w.t * 3, 75) * .38;
+      const a = clamp(w.a * 1.9 - (1 - w.a) * n * 2.1 - (w.hole ? clamp(1 - rr / (w.hole * 300)) * 1.6 : 0)) * (w.max === undefined ? 1 : w.max);
       if (a <= 0) continue;
-      if (w.fire) rampAt(RAMP.fire, Math.max(0, n * 1.5 - .28) + (1 - rr / 300) * .1, o); else { rampAt(RAMP.smoke, .04 + n * .34, o); if (w.ember && n > .7) { o[0] += (n - .7) * 3; o[1] += (n - .7) * 1.1; } }
+      if (w.fire) rampAt(RAMP.fire, Math.max(0, n * 1.5 - .28) + (1 - rr / 300) * .1 + (w.tone || 0), o); else { rampAt(RAMP.smoke, .04 + n * .34 + (w.tone || 0), o); if (w.ember && n > .7) { o[0] += (n - .7) * 3; o[1] += (n - .7) * 1.1; } if (w.warm) { o[0] += w.warm * .42; o[1] += w.warm * .12; o[2] += w.warm * .03; } }   // warm: soot still lit by the fire it swallows
       r += (o[0] - r) * a; g += (o[1] - g) * a; b += (o[2] - b) * a;
     }
     if (post.sight) {                                                  // reflector gunsight: ring, pips and centre dot

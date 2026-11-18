@@ -1,0 +1,101 @@
+<!doctype html>
+<!-- Xem phim mở màn ngoài game: mở file này bằng trình duyệt, kéo thả Game/Assets/_Project/Art/Resources/Cinema/title_intro.bytes vào.
+     Đọc định dạng WWC1 và WWC2 do film.cjs ghi (xem đầu film.cjs). Tùy chọn: chọn file WAV (do Tools/AudioChecks ghi) để nghe đồng bộ với hình.
+     Phím: Space phát/dừng, ←/→ 1 frame, Shift+←/→ 1 giây, Home/End. -->
+<html lang="vi"><head><meta charset="utf-8"><title>Xem intro</title>
+<style>
+  body { background:#111; color:#ddd; font:14px sans-serif; margin:16px; }
+  canvas { image-rendering:pixelated; width:100%; max-width:1280px; background:#000; display:block; }
+  .bar { display:flex; gap:8px; align-items:center; margin-top:8px; max-width:1280px; flex-wrap:wrap; }
+  input[type=range] { flex:1; min-width:200px; }
+  #drop { border:2px dashed #555; padding:24px; text-align:center; max-width:1280px; }
+  .cue { color:#fc6; }
+</style></head><body>
+<div id="drop">Kéo thả <b>title_intro.bytes</b> vào đây, hoặc <input type="file" id="file" accept=".bytes"></div>
+<canvas id="cv" hidden></canvas>
+<div class="bar" id="bar" hidden>
+  <button id="play">▶</button>
+  <input type="range" id="seek" min="0" value="0">
+  <span id="info"></span>
+  <label>tốc độ <select id="speed"><option>0.25</option><option>0.5</option><option selected>1</option><option>2</option></select></label>
+  <label><input type="checkbox" id="loop" checked> lặp đoạn loop</label>
+  <label>âm thanh (WAV, tùy chọn) <input type="file" id="wav" accept=".wav,audio/wav"></label>
+</div>
+<div class="bar"><span id="cues" class="cue"></span></div>
+<audio id="snd" preload="auto"></audio>
+<script>
+const $ = id => document.getElementById(id);
+const KINDS = ['shot', 'burst', 'boom', 'bigboom', 'whoosh', 'flak', 'title', 'barsoff', 'hit', 'cannon', 'gunners', 'flaknear', 'heavypass', 'rumble', 'fire', 'fireball'];
+let M = null, frames = [], cur = 0, playing = false, last = 0, acc = 0;
+const snd = $('snd'), hasSnd = () => !!snd.src;
+
+async function load(buf) {
+  const v = new DataView(buf), u16 = o => v.getUint16(o, true);
+  const sig = new TextDecoder('latin1').decode(new Uint8Array(buf, 0, 4));
+  if (sig !== 'WWC1' && sig !== 'WWC2') return alert('Không phải file WWC1/WWC2');
+  const ver = sig === 'WWC2' ? 2 : 1, cs = ver === 2 ? 6 : 3;
+  const [w, h, fps, n, loopStart, palN, cueN] = [0,1,2,3,4,5,6].map(i => u16(4 + i * 2));
+  let o = 18;
+  const pal = new Uint8Array(buf, o, palN * 3); o += palN * 3;
+  const cues = [];
+  for (let i = 0; i < cueN; i++, o += cs) cues.push(ver === 2 ? { k: v.getUint8(o), f: u16(o + 1), pan: v.getInt8(o + 3), level: v.getUint8(o + 4), dur: v.getUint8(o + 5) } : { k: v.getUint8(o), f: u16(o + 1), pan: 0, level: 100, dur: 0 });
+  const offs = []; for (let i = 0; i <= n; i++, o += 4) offs.push(v.getUint32(o, true));
+  const data = o;
+  M = { w, h, fps, n, loopStart, cues, ver };
+  // Giải nén trước toàn bộ sang RGBA để tua tức thì (540 frame nhỏ, vài chục MB).
+  frames = await Promise.all(offs.slice(0, n).map(async (a, f) => {
+    const raw = new Uint8Array(await new Response(new Blob([new Uint8Array(buf, data + a, offs[f + 1] - a)])
+      .stream().pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer());
+    const img = new ImageData(w, h);
+    for (let i = 0; i < raw.length; i++) { const p = raw[i] * 3; img.data.set([pal[p], pal[p + 1], pal[p + 2], 255], i * 4); }
+    return img;
+  }));
+  const cv = $('cv'); cv.width = w; cv.height = h; cv.hidden = false; $('bar').hidden = false; $('drop').hidden = true;
+  $('seek').max = n - 1; show(0);
+}
+
+const cueText = c => `${KINDS[c.k] || 'cue ' + c.k}${M.ver === 2 ? ` (pan ${c.pan}, level ${c.level}${c.dur ? ', dur ' + c.dur : ''})` : ''}`;
+function show(f) {
+  cur = Math.max(0, Math.min(M.n - 1, f));
+  $('cv').getContext('2d').putImageData(frames[cur], 0, 0);
+  $('seek').value = cur;
+  const here = M.cues.filter(c => c.f === cur).map(cueText).join(', ');
+  $('info').innerHTML = `WWC${M.ver} · frame ${cur}/${M.n - 1} · ${(cur / M.fps).toFixed(2)} s${cur >= M.loopStart ? ' · loop' : ''} <span class="cue">${here}</span>`;
+  $('cues').textContent = M.cues.filter(c => c.f <= cur && c.f > cur - 15).map(c => `${c.f}: ${cueText(c)}`).join(' · ');
+}
+function syncSnd() { if (hasSnd()) { snd.currentTime = Math.min(snd.duration || 1e9, cur / M.fps); snd.playbackRate = +$('speed').value; } }
+
+function tick(t) {
+  if (!playing) return;
+  acc += (t - last) / 1000 * M.fps * +$('speed').value; last = t;
+  while (acc >= 1) {
+    acc--; let f = cur + 1;
+    if (f >= M.n) { if ($('loop').checked) { f = M.loopStart; show(f); syncSnd(); continue; } else { setPlay(false); return; } }
+    show(f);
+  }
+  if (hasSnd() && !snd.paused && Math.abs(snd.currentTime * M.fps - cur) > 2 && snd.currentTime < (snd.duration || 0)) syncSnd();   // keep picture and sound within 2 frames
+  requestAnimationFrame(tick);
+}
+function setPlay(p) {
+  playing = p; $('play').textContent = p ? '⏸' : '▶';
+  if (p) { last = performance.now(); acc = 0; if (hasSnd()) { syncSnd(); snd.play().catch(() => {}); } requestAnimationFrame(tick); }
+  else if (hasSnd()) snd.pause();
+}
+
+$('file').onchange = e => e.target.files[0].arrayBuffer().then(load);
+$('wav').onchange = e => { const f = e.target.files[0]; if (!f) return; if (snd.src) URL.revokeObjectURL(snd.src); snd.src = URL.createObjectURL(f); if (M) syncSnd(); };
+$('speed').onchange = () => { if (hasSnd()) snd.playbackRate = +$('speed').value; };
+document.ondragover = e => e.preventDefault();
+document.ondrop = e => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (/\.wav$/i.test(f.name)) { $('wav').files = e.dataTransfer.files; $('wav').onchange({ target: { files: [f] } }); } else f.arrayBuffer().then(load); };
+$('play').onclick = () => setPlay(!playing);
+$('seek').oninput = e => { setPlay(false); show(+e.target.value); syncSnd(); };
+document.onkeydown = e => {
+  if (!M) return;
+  const step = e.shiftKey ? M.fps : 1;
+  if (e.key === ' ') { e.preventDefault(); setPlay(!playing); }
+  else if (e.key === 'ArrowRight') { setPlay(false); show(cur + step); syncSnd(); }
+  else if (e.key === 'ArrowLeft') { setPlay(false); show(cur - step); syncSnd(); }
+  else if (e.key === 'Home') { show(0); syncSnd(); }
+  else if (e.key === 'End') { show(M.n - 1); syncSnd(); }
+};
+</script></body></html>

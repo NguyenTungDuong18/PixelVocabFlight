@@ -4,7 +4,7 @@ using UnityEngine.UI;
 
 namespace PixelVocabFlight
 {
-    // The intro and the background of the main menu: a pre-rendered pixel film (Resources/Cinema/title_intro.bytes, format WWC1,
+    // The intro and the background of the main menu: a pre-rendered pixel film (Resources/Cinema/title_intro.bytes, format WWC1 or WWC2,
     // 480x270 at 30 fps; see TitleScene.Film.cs) played full screen at x4. Frames [0, LoopStart) are the intro (about 10 s, any key
     // skips it); frames [LoopStart, FrameCount) loop behind the menu. Shake, flashes, impact frames and sun glare are baked into the
     // frames. Unity only draws the letterbox with the skip hint and the logo slam, and turns the film's cues (gunfire, explosions,
@@ -12,8 +12,15 @@ namespace PixelVocabFlight
     // Partial files: Film (loading, decoding, cues), Overlay (letterbox, logo).
     public sealed partial class TitleScene
     {
-        // Cue kinds in the film file.
-        public const int CueShot = 0, CueBurst = 1, CueBoom = 2, CueBigBoom = 3, CueWhoosh = 4, CueFlak = 5, CueTitle = 6, CueBarsOff = 7, CueHit = 8;
+        // Cue kinds in the film file (CinemaKind has the same numbers for the soundtrack). Shot and BarsOff are silent.
+        //   Shot: start of a scene. Burst: our wing guns (dur). Boom: engine catches fire. BigBoom: big blast beside us. Whoosh: fighter passes
+        //   the lens. Flak: far flak. Title: the logo hit. Hit: bullets on metal. Cannon: enemy 20 mm (dur). Gunners: bombers' guns far away
+        //   (dur). FlakNear: close flak with shrapnel. HeavyPass: bomber passing overhead. Rumble: bombs far below (dur). Fire: burning fuel
+        //   close by (dur). Fireball: flying through the fireball (dur).
+        public const int CueShot = CinemaKind.Shot, CueBurst = CinemaKind.Burst, CueBoom = CinemaKind.Boom, CueBigBoom = CinemaKind.BigBoom,
+            CueWhoosh = CinemaKind.Whoosh, CueFlak = CinemaKind.Flak, CueTitle = CinemaKind.Title, CueBarsOff = CinemaKind.BarsOff, CueHit = CinemaKind.Hit,
+            CueCannon = CinemaKind.Cannon, CueGunners = CinemaKind.Gunners, CueFlakNear = CinemaKind.FlakNear, CueHeavyPass = CinemaKind.HeavyPass,
+            CueRumble = CinemaKind.Rumble, CueFire = CinemaKind.Fire, CueFireball = CinemaKind.Fireball;
 
         private const float W = StoryLayout.Width, H = StoryLayout.Height;
         private const float BarHeight = 108;

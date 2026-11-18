@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEngine;
@@ -30,23 +31,55 @@ namespace PixelVocabFlight
             Check(TitleScene.LogoScaleAt(0) == 6 && TitleScene.LogoScaleAt(1) == 6 && TitleScene.LogoScaleAt(2) == 5 && TitleScene.LogoScaleAt(3) == 5 && TitleScene.LogoScaleAt(4) == 4, "menu-intro-logo-slams-x6-x5-then-x4");
             yield return SmokeUntil(() => scene.Time > .5f, 14);
             Check(smokeOk && scene.Frame > 5 && scene.Frame < scene.LoopStart && scene.LetterboxVisible && scene.LogoAlpha == 0, "menu-intro-frames-advance-with-time-letterbox-on-logo-hidden:" + scene.Frame);
+            // The film waits (time 0) until its soundtrack is built, so the first picture and the first sound come together (a failed build counts as "nothing to wait for").
+            Check(introSoundOnFirstFrame == 1, "menu-intro-has-sound-from-the-first-frame:" + introSoundOnFirstFrame + "/" + audioPlayer.CinemaReadySeconds.ToString("0.00") + "s");
+            // The soundtrack: two stems baked on a worker thread from the film's cues, started together with the film. The checks read the
+            // state of the audio object and the baked samples, not the sound card (a machine without one passes the sync check vacuously).
+            var audio = audioPlayer;
+            Check(SmokeCueFormats(scene), "menu-film-reads-six-byte-cues-and-keeps-three-byte-cues:" + scene.FilmVersion + "/" + scene.Cues.Count);
+            yield return SmokeUntil(() => audio.CinemaReady || audio.CinemaFailed, 15);
+            var stems = audio.Cinema;
+            Check(smokeOk && stems != null && !audio.CinemaFailed && CinemaStems.Rate == 44100 && CinemaStems.Channels == 2 && stems.Frames == CinemaDsp.N(scene.IntroSeconds + 3)
+                && stems.Ambience.Length == stems.Frames * 2 && stems.Effects.Length == stems.Frames * 2, "menu-intro-stems-baked-in-the-background-stereo-44k:" + (stems != null ? stems.Frames : -1));
+            // The sound of the film comes from recordings (Audio/SFX/Cinema/Resources/CinemaSfx): every file loads, and both stems carry sound.
+            var bank = FlightAudio.CinemaBankForTest;
+            Check(bank != null && bank.Problems().Length == 0 && bank.Count >= CinemaBank.Required.Length && bank["wind"].Seconds > 9 && bank["engine"].Seconds > 3,
+                "menu-intro-recordings-bank-loads-every-file-and-kit:" + (bank != null ? bank.Count + "/" + bank.Problems() : "none"));
+            double ambRms = stems != null ? stems.AmbienceRms(0, scene.IntroSeconds) : 0, fxRms = stems != null ? stems.EffectsRms(0, scene.IntroSeconds) : 0;
+            Check(ambRms > .003 && fxRms > .003 && ambRms < .5 && fxRms < .5, "menu-intro-stems-carry-sound-and-are-not-silent:" + ambRms.ToString("0.0000") + "/" + fxRms.ToString("0.0000"));
+            yield return SmokeUntil(() => audio.CinemaPlaying, 3);
+            Check(smokeOk && audio.CinemaStarts >= 1 && audio.CinemaStemsActive && audio.CinemaFade > .9f, "menu-intro-stems-start-with-the-film:" + audio.CinemaStarts);
+            Check(!audio.CinemaSourcesPlaying || Mathf.Abs(audio.CinemaSourceTime - scene.Time) < .25f, "menu-intro-stems-stay-in-step-with-the-film:" + audio.CinemaSourceTime + "/" + scene.Time);
+            float bigBoomAt = scene.CueTime(TitleScene.CueBigBoom);
+            Check(stems != null && bigBoomAt > 0 && stems.Duck(0) > .99f && stems.Duck(bigBoomAt) < .25f && stems.AmbienceRms(bigBoomAt - .1, bigBoomAt) < stems.AmbienceRms(bigBoomAt - .4, bigBoomAt - .1),
+                "menu-intro-bed-ducks-and-pre-sucks-before-a-big-blast:" + bigBoomAt);
+            float minDuck = 1;
             int shots = scene.ShotCount;
             for (int n = 1; n <= shots; n++)
             {
                 float mid = scene.ShotMid(n - 1);
                 yield return SmokeUntil(() => scene.Time >= mid, 20);
+                minDuck = Mathf.Min(minDuck, audio.CinemaDuck);
                 Check(smokeOk && scene.Shot == n - 1 && scene.Frame < scene.LoopStart, "menu-intro-shot-" + n + "-reached-at-its-middle");
                 SmokeCapture("menu-intro-shot-" + n + ".png");
             }
+            Check(minDuck > 0 && minDuck < .5f, "menu-intro-wind-loop-is-pressed-down-after-a-big-blast:" + minDuck);
             float titleAt = scene.CueTime(TitleScene.CueTitle), barsAt = scene.CueTime(TitleScene.CueBarsOff);
             yield return SmokeUntil(() => scene.Time >= titleAt + .3f, 20);
-            Check(smokeOk && scene.LogoAlpha == 1 && scene.LogoScale == 4 && !audioPlayer.StoryLoopOn("engines"), "menu-intro-title-cue-shows-the-logo-and-fades-the-engines");
+            // After the Title cue the engines, hum and wind of the stem settle (nothing but the wind loop and the echoes remain).
+            Check(smokeOk && scene.LogoAlpha == 1 && scene.LogoScale == 4 && stems != null && stems.AmbienceRms(titleAt + 1.4, titleAt + 1.9) < stems.AmbienceRms(titleAt - .5, titleAt - .1) * .1,
+                "menu-intro-title-cue-shows-the-logo-and-fades-the-engines");
+            // The title music starts on the logo hit (scheduled on the audio clock from the film time of the Title cue). Without the files: no music and no error.
+            bool hasMusic = !audio.MusicMissing;
+            Check(hasMusic ? audio.MusicStarts >= 1 && audio.MusicWanted && audio.MusicVolume > 0 && (!audio.MusicIntroPlaying || (Mathf.Abs(audio.MusicIntroTime - (scene.Time - titleAt)) < .35f && Mathf.Abs((float)(AudioSettings.dspTime - audio.MusicBeginDsp) - (scene.Time - titleAt)) < .35f))
+                : !audio.MusicWanted && audio.MusicStarts == 0, "menu-music-starts-on-the-logo" + (hasMusic ? ":" + audio.MusicStarts + "/" + audio.MusicIntroTime.ToString("0.00") : "/no-music-file"));
             yield return SmokeUntil(() => scene.Time >= Mathf.Max(barsAt + .8f, scene.IntroSeconds - .15f), 20);
-            Check(smokeOk && !scene.Finished && !scene.LetterboxVisible && scene.Explosions >= 3 && introBooms == scene.Explosions && audioPlayer.StorySoundCount > 3,
+            Check(smokeOk && !scene.Finished && !scene.LetterboxVisible && scene.Explosions >= 3 && introBooms == scene.Explosions && audio.CinemaStarts >= 1,
                 "menu-intro-letterbox-retracts-and-three-explosions-sound-before-the-end:" + scene.Explosions + "/" + introBooms);
             yield return SmokeUntil(() => mode == Mode.Menu, 10);
             storySpeed = 5;
             Check(smokeOk && scene.Finished && scene.LogoAlpha == 1 && !scene.LetterboxVisible && menu.Visible && scene.Frame >= scene.LoopStart, "menu-intro-ends-on-the-logo-then-the-main-menu");
+            Check(audio.CinemaStemsActive && audio.CinemaPlaying && audio.CinemaDuck == 1, "menu-intro-end-lets-the-echoes-ring-on");
             Check(menu.ItemCount == 4 && menu.ItemRect(3).xMax < 0, "menu-main-rows-start-off-screen-left");
             yield return null; yield return null;
             Check(menu.ItemCount == 4 && menu.ItemText(0) == "Chơi mới" && menu.ItemText(1) == "Chọn đoạn" && menu.ItemText(2) == "Cài đặt" && menu.ItemText(3) == "Thoát", "menu-main-lists-new-segments-settings-quit-without-saves:" + menu.ItemCount);
@@ -66,6 +99,9 @@ namespace PixelVocabFlight
             yield return SmokeUntil(() => scene.Time >= scene.IntroSeconds + 2, 20);
             Check(smokeOk && scene.Frame >= scene.LoopStart + scene.Fps && scene.Frame < scene.FrameCount, "menu-intro-loop-plays-on:" + scene.Frame);
             SmokeCapture("menu-intro-loop.png");
+            // Behind the menu only the menu bed sounds (the intro's wind loop has faded out): the stems' echoes (3 s past the intro) have rung out.
+            yield return SmokeUntil(() => !audio.CinemaStemsActive, 8);
+            Check(smokeOk && !audio.CinemaPlaying && audio.MenuBedWanted && !audio.StoryLoopOn("wind") && !audio.StoryLoopOn("engines"), "menu-after-the-intro-only-the-menu-bed-remains");
             storySpeed = 5;
             int lastFrame = scene.Frame; bool wrapped = false, inLoop = true; float wrapEnd = Time.realtimeSinceStartup + 12;
             while (!wrapped && Time.realtimeSinceStartup < wrapEnd)
@@ -76,17 +112,39 @@ namespace PixelVocabFlight
                 wrapped = frame < lastFrame; lastFrame = frame;
             }
             Check(wrapped && inLoop && lastFrame - scene.LoopStart <= 8, "menu-intro-loop-wraps-back-to-the-loop-start:" + lastFrame + "/" + scene.LoopStart);
+            // The bed is generated for ever, never a 10 s loop: far events at random times and the wind changing pieces. It is mixed on the audio
+            // thread, so without a sound device (MenuBedSeconds stays 0) there is nothing to measure and only the state is checked.
+            yield return SmokeUntil(() => audio.MenuBedEvents >= 1 && audio.MenuBedWindChanges >= 1, 16);
+            bool noDevice = !smokeOk && audio.MenuBedSeconds <= 0;
+            Check((smokeOk || noDevice) && !audio.MenuBedFailed && audio.MenuBedWanted && audio.MenuBedLevel > .9f && (noDevice || audio.MenuBedPlaying),
+                "menu-bed-plays-and-varies:" + audio.MenuBedEvents + "/" + audio.MenuBedWindChanges + "/" + audio.MenuBedSeconds.ToString("0.0") + "s" + (noDevice ? "/no-sound-device" : ""));
+            // The loop takes over exactly at the end of the intro clip (scheduled to the sample), plays for ever, and the intro source is done.
+            // isPlaying is already true for a source that is only scheduled, so wait for the audio clock to pass the hand-over (MusicLoopDsp) before looking at who plays.
+            smokeDeadline += 12;
+            yield return SmokeUntil(() => audio.MusicMissing || AudioSettings.dspTime >= audio.MusicLoopDsp + .2, 12);
+            double dspDiffSamples = (audio.MusicLoopDsp - audio.MusicBeginDsp) * 44100 - FlightAudio.MusicIntroSamples;
+            Check(hasMusic ? smokeOk && audio.MusicLoopLooping && audio.MusicLoopSamplesLoaded == FlightAudio.MusicLoopSamples && audio.MusicIntroSamplesLoaded == FlightAudio.MusicIntroSamples
+                    && Math.Abs(dspDiffSamples) < .5 && (noDevice || (audio.MusicLoopPlaying && !audio.MusicIntroPlaying))
+                : !audio.MusicWanted, "menu-music-loops-after-the-intro" + (hasMusic ? ":intro=" + audio.MusicIntroSamplesLoaded + ",loop=" + audio.MusicLoopSamplesLoaded + ",dspDiff=" + dspDiffSamples.ToString("0.00") + "smp,looping=" + audio.MusicLoopLooping
+                    + ",loopPlaying=" + audio.MusicLoopPlaying + ",introPlaying=" + audio.MusicIntroPlaying + ",waited=" + smokeOk + (noDevice ? ",no-sound-device" : "") : "/no-music-file"));
 
             // Intro: any key skips straight to the menu.
             EnterBoot();
-            yield return SmokeUntil(() => scene.Time > .6f, 4);
+            yield return SmokeUntil(() => scene.Time > .6f && audio.CinemaPlaying, 4);
+            Check(smokeOk && audio.CinemaStemsActive, "menu-intro-stems-start-again-on-a-second-run");
+            int startsBeforeSkip = audio.MusicStarts;
             yield return SmokeKey(Key.Space);
             yield return SmokeUntil(() => mode == Mode.Menu, 4);
+            Check(hasMusic ? audio.MusicWanted && audio.MusicStarts == startsBeforeSkip + 1 : !audio.MusicWanted, "menu-music-starts-at-once-when-the-intro-is-skipped-before-the-logo" + (hasMusic ? "" : "/no-music-file"));
             Check(smokeOk && scene.Finished && scene.Frame >= scene.LoopStart && scene.LogoAlpha == 1 && !scene.LetterboxVisible, "menu-intro-any-key-skips-to-the-loop-with-the-logo");
+            // A skip fades both stems out in 0.15 s; only the wind loop (no longer ducked) is left.
+            Check(!audio.CinemaPlaying && audio.CinemaDuck == 1, "menu-intro-skip-ends-the-stems-and-the-duck");
+            yield return SmokeUntil(() => !audio.CinemaStemsActive, 2);
+            Check(smokeOk && audio.CinemaFade <= 0 && audio.MenuBedWanted && !audio.StoryLoopOn("wind"), "menu-intro-skip-fades-the-stems-out-and-the-menu-bed-comes-in");
 
             // ---- Settings: volumes, resolution, full screen; applied and saved at once ----
             yield return SmokeMenuPick("Cài đặt"); yield return SmokeKey(Key.Enter);
-            Check(menu.PageTitle == "Cài đặt" && menu.ItemCount == 6 && menu.ItemText(0) == "Âm lượng tổng" && menu.ItemText(3) == "Độ phân giải" && menu.ItemText(4) == "Toàn màn hình", "menu-settings-lists-three-volumes-resolution-fullscreen");
+            Check(menu.PageTitle == "Cài đặt" && menu.ItemCount == 7 && menu.ItemText(0) == "Âm lượng tổng" && menu.ItemText(3) == "Âm lượng nhạc" && menu.ItemText(4) == "Độ phân giải" && menu.ItemText(5) == "Toàn màn hình", "menu-settings-lists-four-volumes-resolution-fullscreen");
             yield return SmokeKey(Key.A);
             Check(settings.master == 95 && Mathf.Abs(audioPlayer.MasterGain - .95f) < .001f, "menu-settings-master-volume-steps-by-5:" + settings.master);
             yield return SmokeKey(Key.S); yield return SmokeKey(Key.A); yield return SmokeKey(Key.A);
@@ -94,18 +152,23 @@ namespace PixelVocabFlight
             var onDisk = GameSettings.Load(profileDir);
             Check(settings.ambient == 90 && settings.effects == 95 && onDisk.master == 95 && onDisk.ambient == 90 && onDisk.effects == 95 && File.Exists(Path.Combine(profileDir, GameSettings.FileName)), "menu-settings-volumes-saved-to-settings-json");
             Check(Mathf.Abs(audioPlayer.AmbientGain - .9f) < .001f && Mathf.Abs(audioPlayer.EffectsGain - .95f) < .001f, "menu-settings-volumes-reach-the-audio");
+            // The music volume: default 70, steps by 5, saved, reaches the audio; an old settings.json without the key keeps 70.
+            Check(GameSettings.DefaultMusic == 70 && settings.music == 70 && Mathf.Abs(audioPlayer.MusicGain - .7f) < .001f && JsonUtility.FromJson<GameSettings>("{\"master\":50}").music == 70, "menu-settings-music-volume-defaults-to-70-and-old-files-keep-it");
             yield return SmokeKey(Key.S); yield return SmokeKey(Key.D);
-            Check(settings.resolution == 0 && menu.ItemValue(3) == "1280×720" && GameSettings.Load(profileDir).resolution == 0, "menu-settings-resolution-changes-and-is-saved:" + menu.ItemValue(3));
+            Check(settings.music == 75 && GameSettings.Load(profileDir).music == 75 && Mathf.Abs(audioPlayer.MusicGain - .75f) < .001f, "menu-settings-music-volume-steps-by-5-and-is-saved:" + settings.music);
+            yield return SmokeKey(Key.S); yield return SmokeKey(Key.D);
+            Check(settings.resolution == 0 && menu.ItemValue(4) == "1280×720" && GameSettings.Load(profileDir).resolution == 0, "menu-settings-resolution-changes-and-is-saved:" + menu.ItemValue(4));
             yield return SmokeKey(Key.A);
-            Check(settings.resolution == GameSettings.DefaultResolution && menu.ItemValue(3) == "1920×1080", "menu-settings-default-resolution-is-full-hd");
+            Check(settings.resolution == GameSettings.DefaultResolution && menu.ItemValue(4) == "1920×1080", "menu-settings-default-resolution-is-full-hd");
             yield return SmokeKey(Key.S); yield return SmokeKey(Key.D);
-            Check(!settings.fullscreen && menu.ItemValue(4) == "Tắt", "menu-settings-fullscreen-toggles");
+            Check(!settings.fullscreen && menu.ItemValue(5) == "Tắt", "menu-settings-fullscreen-toggles");
             yield return SmokeKey(Key.D);
             Check(settings.fullscreen, "menu-settings-fullscreen-back-on");
             Check(menu.ItemFontSize(0) >= 32, "menu-settings-rows-use-large-text");
             yield return SmokeMenuShot("menu-settings.png");
             yield return SmokeKey(Key.Escape);
             Check(menu.PageTitle == "" && menu.ItemText(0) == "Chơi mới", "menu-esc-goes-back-to-the-main-menu");
+            Check(hasMusic ? audio.MusicWanted && audio.MusicStarts == startsBeforeSkip + 1 : !audio.MusicWanted, "menu-music-keeps-playing-through-the-menu-pages" + (hasMusic ? "" : "/no-music-file"));
 
             // ---- New game in slot 2: autosave at the start of the first segment ----
             yield return SmokeMenuPick("Chơi mới"); yield return SmokeKey(Key.Enter);
@@ -114,6 +177,10 @@ namespace PixelVocabFlight
             yield return SmokeKey(Key.S); yield return SmokeKey(Key.Enter);
             yield return SmokeUntil(() => mode == Mode.Story && storySlot == 1 && storyRunner.Current != null && storyRunner.Current.Id == "open.P1.01" && view.Story.Current == storyRunner.Current && !view.Story.Transitioning, 8);
             Check(smokeOk && !view.Menu.Visible && view.Story.Visible && view.Story.BadgeText == "", "menu-new-game-starts-the-story-in-slot-2");
+            yield return SmokeUntil(() => audio.MenuBedLevel <= 0, 3);
+            Check(smokeOk && !audio.MenuBedWanted && !audio.MenuBedPlaying, "menu-bed-fades-out-when-the-story-starts");
+            yield return SmokeUntil(() => audio.MusicLevel <= 0, 4);
+            Check(smokeOk && !audio.MusicWanted && !audio.MusicLoopPlaying && !audio.MusicIntroPlaying, "menu-music-fades-out-when-the-story-starts" + (hasMusic ? "" : "/no-music-file"));
             yield return SmokeUntil(() => saves.Load(1) != null, 3);
             var first = saves.Load(1);
             Check(smokeOk && first.beatId == "open.P1.01" && File.Exists(saves.PathOf(1)) && saves.PathOf(1).StartsWith(smokeOutput), "menu-segment-start-saves-slot-2");
@@ -141,6 +208,9 @@ namespace PixelVocabFlight
             yield return SmokeKey(Key.Escape);
             yield return SmokeMenuPick("Về màn hình chính"); yield return SmokeKey(Key.Enter);
             Check(mode == Mode.Menu && menu.ItemText(0) == "Tiếp tục" && menu.ItemCount == 6, "menu-leaving-the-story-shows-continue:" + menu.ItemCount);
+            Check(audio.MenuBedWanted && !audio.StoryLoopOn("wind"), "menu-leaving-the-story-brings-the-menu-bed-back");
+            yield return SmokeUntil(() => audio.MusicMissing || audio.MusicLevel > .99f, 6);
+            Check(hasMusic ? smokeOk && audio.MusicWanted && audio.MusicStarts == startsBeforeSkip + 2 && !audio.MusicIntroPlaying && (noDevice || audio.MusicLoopPlaying) : !audio.MusicWanted, "menu-music-restarts-from-the-loop-when-back-from-the-story" + (hasMusic ? "" : "/no-music-file"));
             var saved = saves.Load(1);
             Check(saved != null && saved.beatId == "m1.P1.01" && saved.ToSnapshot().Flags[Act0Content.PrideFlag] == 1 && saved.playSeconds > 0 && saved.Segment.Number == "0.2", "menu-save-keeps-segment-flags-and-play-time:" + (saved != null ? saved.PlayTimeText : "none"));
             yield return SmokeMenuShot("menu-main-with-continue.png");
@@ -190,6 +260,24 @@ namespace PixelVocabFlight
             Check(saves.Load(0).savedTicks == before && !File.Exists(saves.PathOf(1)), "menu-trial-mode-never-writes-a-save");
             for (int i = 0; i < StorySaves.Slots; i++) saves.Delete(i);
             storySpeed = 5;
+        }
+
+        // The film's cue table: a hand-made WWC2 array (6-byte cues: kind, frame, pan, level, dur) is read in frame order and drops cues of
+        // the loop; a WWC1 film (3-byte cues) gives pan 0, level 100, dur 0; the film in the game exposes every cue it has.
+        private static bool SmokeCueFormats(TitleScene scene)
+        {
+            var b = new List<byte> { (byte)'W', (byte)'W', (byte)'C', (byte)'2' };
+            void U16(int v) { b.Add((byte)(v & 255)); b.Add((byte)(v >> 8)); }
+            U16(480); U16(270); U16(30); U16(12); U16(8); U16(1); U16(3);
+            b.AddRange(new byte[] { 1, 2, 3 });
+            b.AddRange(new byte[] { 1, 5, 0, 156, 200, 18, 3, 1, 0, 100, 100, 0, 6, 9, 0, 0, 0, 0 });   // Burst (pan -100, level 200, dur 18), BigBoom, a cue past the loop start
+            for (int i = 0; i < 26; i++) U16(0);
+            bool six = CinemaFilm.TryParse(b.ToArray(), out var f, out _) && f.Version == 2 && f.Cues.Count == 2 && f.Cues[0].Kind == CinemaKind.BigBoom && f.Cues[0].Frame == 1 && f.Cues[0].Pan == 100
+                && f.Cues[1].Kind == CinemaKind.Burst && f.Cues[1].Pan == -100 && f.Cues[1].Level == 200 && f.Cues[1].Dur == 18;
+            bool bad = !CinemaFilm.TryParse(new byte[] { 1, 2, 3 }, out _, out _) && !CinemaFilm.TryParse(new byte[40], out _, out _);
+            bool real = scene.Cues.Count > 0 && scene.FilmVersion >= 1;
+            foreach (var cue in scene.Cues) real &= scene.FilmVersion == 2 || (cue.Pan == 0 && cue.Level == 100 && cue.Dur == 0);
+            return six && bad && real;
         }
 
         // A page screenshot once its rows have finished sliding in (keeps the result of the last SmokeUntil).

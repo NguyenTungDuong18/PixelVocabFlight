@@ -16,16 +16,20 @@ function blender() {
   throw new Error('Blender not found: set BLENDER to blender.exe');
 }
 
-const preview = process.argv[2] === 'preview';
-const out = preview ? path.join(__dirname, 'preview') : BH.DIR;
+// The mesh is posed in story/handRig.cjs; Blender gets the posed vertices of every frame.
+// verts: only build the mesh and write every frame's vertices (read back from Blender) to
+// <tmp>/wordwing-opening-verts/verts.json (seconds, no render), for Tools/BlenderForge/handChecks.cjs.
+const mode = process.argv[2] === 'preview' ? 'preview' : process.argv[2] === 'verts' ? 'verts' : 'gbuffer', preview = mode === 'preview';
+const out = preview ? path.join(__dirname, 'preview') : mode === 'verts' ? path.join(os.tmpdir(), 'wordwing-opening-verts') : BH.DIR;
 fs.mkdirSync(out, { recursive: true });
-if (!preview) for (const f of fs.readdirSync(out)) if (/\.(png|json)$/.test(f)) fs.rmSync(path.join(out, f));
+if (mode === 'gbuffer') for (const f of fs.readdirSync(out)) if (/\.(png|json)$/.test(f)) fs.rmSync(path.join(out, f));
 const poses = BH.exportPoses(), posesFile = path.join(os.tmpdir(), 'wordwing-opening-poses.json');
 fs.writeFileSync(posesFile, JSON.stringify(poses));
 execFileSync(blender(), ['-b', '--factory-startup', '--python', path.join(__dirname, 'opening_hands.py'), '--',
-  path.join(__dirname, 'makehuman'), posesFile, out, preview ? 'preview' : 'gbuffer', preview ? process.argv[3] || 'hand:19' : 'hand:all,lid:all'],
+  posesFile, out, mode, preview ? process.argv[3] || 'hand:19' : 'hand:all,lid:all'],
   { stdio: ['ignore', 'ignore', 'inherit'] });
-if (!preview) {
+if (mode === 'verts') console.log(`OpeningHands verts -> ${path.join(out, 'verts.json')}`);
+if (mode === 'gbuffer') {
   const metaFile = path.join(out, 'meta.json'), meta = JSON.parse(fs.readFileSync(metaFile, 'utf8'));
   meta.hash = BH.hashOf(poses);
   fs.writeFileSync(metaFile, JSON.stringify(meta));

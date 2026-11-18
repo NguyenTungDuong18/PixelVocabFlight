@@ -8,11 +8,11 @@ namespace PixelVocabFlight
     // Clips are made in code on first use (FlightAudio.StoryClips.cs). No music, and the radio never says a clear word.
     public sealed partial class FlightAudio
     {
-        private sealed class Loop { public AudioSource Source; public float Target, Rate; }
+        private sealed class Loop { public AudioSource Source; public float Target, Rate, Level; }   // Level: the fading volume (with master and ambient); the wind is also pressed down by the intro (CinemaDuck)
 
         private static readonly Dictionary<string, float> LoopVolume = new Dictionary<string, float>
         {
-            { "rain", .5f }, { "radio", .3f }, { "frogs", .35f }, { "clock", .22f }, { "drone", .6f }, { "wind", .22f }, { "engines", .3f },
+            { "rain", .5f }, { "radio", .3f }, { "frogs", .35f }, { "clock", .22f }, { "drone", .6f }, { "wind", CinemaMix.WindLoopVolume }, { "engines", .3f },
         };
         private readonly Dictionary<string, Loop> loops = new Dictionary<string, Loop>();
         private readonly Dictionary<string, AudioClip> storyClips = new Dictionary<string, AudioClip>();
@@ -69,9 +69,10 @@ namespace PixelVocabFlight
         public void Clack() { ClackCount++; Shot("clack", .35f); }
 
         // Percent values from GameSettings (applied at once, also to loops already playing).
-        public void ApplyVolumes(int master, int ambient, int effectsPercent)
+        public void ApplyVolumes(int master, int ambient, int effectsPercent, int music = GameSettings.DefaultMusic)
         {
             masterGain = Mathf.Clamp01(master / 100f); ambientGain = Mathf.Clamp01(ambient / 100f); effectsGain = Mathf.Clamp01(effectsPercent / 100f);
+            musicGain = Mathf.Clamp01(music / 100f);
             if (voice) voice.volume = .9f * masterGain * effectsGain;
             if (effects) effects.volume = .22f * masterGain * effectsGain;
             if (storyShot) storyShot.volume = .8f * masterGain * effectsGain;
@@ -79,12 +80,16 @@ namespace PixelVocabFlight
 
         public void StopStory()
         {
-            foreach (var loop in loops.Values) { loop.Target = 0; if (loop.Source) { loop.Source.volume = 0; loop.Source.Stop(); } }
+            foreach (var loop in loops.Values) { loop.Target = 0; loop.Level = 0; if (loop.Source) { loop.Source.volume = 0; loop.Source.Stop(); } }
             if (storyShot) storyShot.Stop();
+            EndCinema();
+            StopMusic();     // fades out in 1.2 s
+            StopMenuBed();   // fades out in 0.3 s (the loops above are cut at once)
         }
 
         private void MuteStory(bool muted)
         {
+            MuteCinema(muted); MuteBed(muted); MuteMusic(muted);
             if (storyShot) storyShot.mute = muted;
             foreach (var loop in loops.Values) if (loop.Source) loop.Source.mute = muted;
         }
@@ -105,23 +110,31 @@ namespace PixelVocabFlight
                 loops[id] = loop;
             }
             loop.Target = target;
-            loop.Rate = Mathf.Abs(target - loop.Source.volume) / Mathf.Max(.01f, seconds);
+            loop.Rate = Mathf.Abs(target - loop.Level) / Mathf.Max(.01f, seconds);
             if (target > 0 && !loop.Source.isPlaying) loop.Source.Play();
         }
 
         private void Update()
         {
-            foreach (var loop in loops.Values)
+            UpdateCinema(); UpdateMenuBed(); UpdateMusic();
+            foreach (var pair in loops)
             {
+                var loop = pair.Value;
                 if (!loop.Source || !loop.Source.isPlaying) continue;
-                loop.Source.volume = Mathf.MoveTowards(loop.Source.volume, loop.Target * masterGain * ambientGain, Mathf.Max(loop.Rate, .05f) * Time.unscaledDeltaTime);
-                if (loop.Target <= 0 && loop.Source.volume <= 0) loop.Source.Stop();
+                loop.Level = Mathf.MoveTowards(loop.Level, loop.Target * masterGain * ambientGain, Mathf.Max(loop.Rate, .05f) * Time.unscaledDeltaTime);
+                loop.Source.volume = loop.Level * (pair.Key == "wind" ? cinemaDuck : 1);
+                if (loop.Target <= 0 && loop.Level <= 0) loop.Source.Stop();
             }
         }
 
         private AudioClip StoryClip(string id)
         {
-            if (!storyClips.TryGetValue(id, out var clip) || !clip) { clip = BuildStoryClip(id); storyClips[id] = clip; }
+            if (!storyClips.TryGetValue(id, out var clip) || !clip)
+            {
+                // The intro's own wind (same samples as the stems were built around) when the soundtrack is already built.
+                clip = id == "wind" && cinema != null && cinema.Wind != null ? MakeStereo(id, cinema.Wind) : BuildStoryClip(id);
+                storyClips[id] = clip;
+            }
             return clip;
         }
     }

@@ -48,6 +48,17 @@ Luật:
 - `meta.json` giữ mã băm của tư thế. Sửa tư thế mà chưa render lại thì forge cảnh báo và quay về tay SDF vẽ bằng code (vẫn chạy được khi máy không có Blender).
 - Tìm Blender: biến `BLENDER`, rồi `~/Tools/blender/*/blender.exe` (bản portable 4.2 LTS, không cần cài).
 - Xem thử bản render có ánh sáng: `node Tools/BlenderForge/render.cjs preview lid:16,hand:19` → `Tools/BlenderForge/preview/` (không dùng trong game).
+- Lưới được đặt tư thế bằng JS (`story/handRig.cjs`: skinning dual-quaternion, trọng số ngón cứng theo đốt; `story/handSolve.cjs`: giải tư thế theo điểm chạm, có giới hạn khớp). Blender chỉ nhận đỉnh lưới rồi render. Điểm chạm từng khung khai trong bảng `CONTACTS` của `openingHands.cjs`.
+- Kiểm sau khi sửa tư thế: `node Tools/BlenderForge/handChecks.cjs --js` (nhanh, không cần Blender); bản đầy đủ: `render.cjs`, forge, `render.cjs verts`, rồi `handChecks.cjs --png [-v]`. Có 10 check, in PASS/FAIL:
+  1. Không xuyên (≥ −0,3 px).
+  2. Điểm chạm nằm trong 0..1 px.
+  3. Điểm ghim trượt ≤ 0,5 px/khung.
+  4. Đốt cứng (≤ 3 %).
+  5. Giới hạn khớp và tỉ lệ DIP/PIP.
+  6. Mượt; khung giữ trùng từng pixel.
+  7. Tay nghỉ: xếp tầng, lòng vòm, ngón cái cách trục ngón trỏ ≤ 19 px.
+  8. 8b xòe ≤ 10°; 8c tay giữ/nghỉ khép ngón (khe ≤ 5 px, hình chiếu ngón ≤ 75 %, ngón cái lộ ≥ 150 px); 8d ngón không ép thì PIP ≥ 15°.
+- Chuyển động tay không dùng run mỗi khung (ở 8 fps thành lắc đều, nhìn giả); lực thể hiện bằng khung giữ y hệt, bước nhích, `press`/`tendon`. Độ mở khi với tay nằm ở ngón cái, bốn ngón luôn khép và hơi gập.
 
 ## Sửa cockpit
 

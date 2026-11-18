@@ -34,7 +34,8 @@ namespace PixelVocabFlight
             yield return SmokeUntil(() => s.BeatTime >= at || storyRunner.Current != beat, beat.Seconds + 6);
             if (storyRunner.Current == beat)
             {
-                if (beat.Id == "open.P1.04") { string hand = "cut_open_tin_hand"; Check(!PixelSprites.Has(hand) || s.LayerSpriteName(hand) == hand + "_" + (PixelSprites.FrameCount(hand) - 1), id + "-hand-rests-on-the-lid"); }
+                // Both hands hold still from frame 12 (openingHands.cjs); at 2.1 s the 8 fps strip is at frame ~16, not yet the last.
+                if (beat.Id == "open.P1.04") { string hand = "cut_open_tin_hand", n = s.LayerSpriteName(hand) ?? ""; Check(!PixelSprites.Has(hand) || (int.TryParse(n.Substring(n.LastIndexOf('_') + 1), out int f) && f >= 12), id + "-hand-rests-on-the-lid"); }
                 SmokeCapture(shot);
             }
             yield return SmokeUntil(() => storyRunner.Current != beat, beat.Seconds + 6);

@@ -1,6 +1,7 @@
 'use strict';
-// The opening's hands as a real mesh: Tools/BlenderForge renders the MakeHuman (CC0) hands posed on
-// the joints of openingHands.cjs into G-buffer passes under SourceAssets/Blender/OpeningHands/:
+// The opening's hands as a real mesh: handRig.cjs poses the MakeHuman (CC0) arm for each pose of
+// openingHands.cjs (dual-quaternion skinning, stiff finger weights); Tools/BlenderForge renders those
+// vertices into G-buffer passes under SourceAssets/Blender/OpeningHands/:
 //   <part>_<i>_pos.png   16-bit world point (x/512, y/512, (z+64)/320), alpha = hand covers the pixel
 //   <part>_<i>_nrm.png   16-bit normal * .5 + .5
 //   <part>_<i>_idao.png  R: hand number / 10 (1-based, order of scene.hands), G: occlusion among the hands
@@ -11,19 +12,21 @@ const fs = require('fs'), path = require('path'), crypto = require('crypto');
 const { readPng } = require('./pngRead.cjs');
 const H = require('./hand.cjs');
 const OH = require('./openingHands.cjs');
+const RIG = require('./handRig.cjs');
 
 const DIR = path.join(__dirname, '../../../SourceAssets/Blender/OpeningHands');
 const r3 = a => a.map(v => +v.toFixed(3));
 
-// Every frame's hands as world joints + frame + sleeve (game coords): the input of the Blender render.
+// Every frame's hands as the posed mesh (handRig.cjs) + its joints + the sleeve (game coords): the
+// input of the Blender render (faces once per side).
 function exportPoses() {
+  const R = RIG.load();
   const hand = pose => {
-    const F = H.frame(pose), S = H.skeleton(pose), { sleeve } = H.build(pose);
-    const W = j => r3([0, 1, 2].map(i => F.P[i] + F.U[i] * j[0] + F.V[i] * j[1] + F.W[i] * j[2]));
-    return { left: !!pose.left, P: r3(F.P), U: r3(F.U), V: r3(F.V), W: r3(F.W), fingers: S.fingers.map(f => f.J.map(W)), thumb: S.thumb.J.map(W), sleeve: [r3(sleeve.start), r3(sleeve.end), sleeve.r] };
+    const p = RIG.posed(pose), { sleeve } = H.build(pose);
+    return { left: !!pose.left, co: Array.from(p.co, v => +v.toFixed(3)), joints: p.joints, sleeve: [r3(sleeve.start), r3(sleeve.end), sleeve.r] };
   };
   const scenes = s => s.map(({ deg, hands }) => ({ deg, hands: hands.map(hand) }));
-  return { hand: scenes(OH.handScenes()), lid: scenes(OH.lidScenes()) };
+  return { meshes: { R: { faces: R.R.faces, co: Array.from(R.R.co.flat(), v => +v.toFixed(4)) }, L: { faces: R.L.faces, co: Array.from(R.L.co.flat(), v => +v.toFixed(4)) } }, hand: scenes(OH.handScenes()), lid: scenes(OH.lidScenes()) };
 }
 const hashOf = poses => crypto.createHash('sha1').update(JSON.stringify(poses)).digest('hex').slice(0, 16);
 

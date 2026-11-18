@@ -3,13 +3,21 @@ using UnityEngine;
 namespace PixelVocabFlight
 {
     // Synthesis of the story sounds (22.05 kHz mono). Loops are built to repeat without a click: noise needs nothing,
-    // tonal drones use whole numbers of cycles per loop.
+    // tonal drones use whole numbers of cycles per loop. The wind and the old intro ids (engines, burst, boom, bigboom, whoosh, flak, hit,
+    // title) come from Audio/Cinema (44.1 kHz stereo) through CinemaClips.ForStoryId.
     public sealed partial class FlightAudio
     {
         private const int StoryRate = 22050;
 
         private static AudioClip BuildStoryClip(string id)
         {
+            if (CinemaClips.IsStoryId(id))
+            {
+                var bank = StoryBank();
+                var film = bank != null ? CinemaClips.ForStoryId(id, bank) : null;
+                if (film != null) return MakeStereo(id, CinemaClips.Interleave(film));
+                return Make(id, new float[StoryRate / 10]);   // no recordings: a short silence rather than a wrong sound (the warning is in the log)
+            }
             switch (id)
             {
                 case "rain": return Make(id, Rain(4f));
@@ -17,17 +25,8 @@ namespace PixelVocabFlight
                 case "frogs": return Make(id, Frogs(6f));
                 case "clock": return Make(id, Clock(2f));
                 case "drone": return Make(id, Drone(4f));
-                case "wind": return Make(id, Wind(6f));
-                case "engines": return Make(id, Engines(4f));
-                case "burst": return Make(id, Burst(.7f));
-                case "boom": return Make(id, Boom(1.5f));
-                case "bigboom": return Make(id, BigBoom(1.8f));
-                case "whoosh": return Make(id, Whoosh(.6f));
-                case "flak": return Make(id, Flak(.35f));
-                case "hit": return Make(id, Hit(.3f));
-                case "title": return Make(id, TitleHit(2.4f));
-                case "tin_touch": return Make(id, TinTouch(1.7f));
-                case "tin_open": return Make(id, TinOpen(2.9f));
+                case "tin_touch": return Make(id, TinTouch(1.6f));
+                case "tin_open": return Make(id, TinOpen(3.2f));
                 case "cloth": return Make(id, Cloth(.7f));
                 case "note": return Make(id, Note(2.8f));
                 default: return Make("clack", TypeKey(.05f));
@@ -38,6 +37,14 @@ namespace PixelVocabFlight
         {
             var clip = AudioClip.Create("Story " + name, samples.Length, 1, StoryRate, false);
             clip.SetData(samples, 0);
+            return clip;
+        }
+
+        // Interleaved stereo at 44.1 kHz.
+        private static AudioClip MakeStereo(string name, float[] interleaved)
+        {
+            var clip = AudioClip.Create("Story " + name, interleaved.Length / 2, 2, CinemaDsp.Rate, false);
+            clip.SetData(interleaved, 0);
             return clip;
         }
 
@@ -162,116 +169,115 @@ namespace PixelVocabFlight
             return s;
         }
 
-        // Night wind: low-passed noise that swells and falls (6 s loop).
-        private static float[] Wind(float seconds)
+        // Fleshy knock: low-passed noise body + a short click (flesh or wood). cutoff in Hz, decay in 1/s, attack in s (soft skin 3-6 ms, hard knock ~1 ms).
+        private static void Thump(float[] s, float at, float level, float cutoff, float decay, int seed, float attack = .0012f)
         {
-            var s = new float[(int)(StoryRate * seconds)];
-            var random = new System.Random(606);
-            float low = 0, mid = 0;
-            for (int i = 0; i < s.Length; i++)
+            var random = new System.Random(seed);
+            float a = 1 - Mathf.Exp(-2 * Mathf.PI * cutoff / StoryRate), l1 = 0, l2 = 0;
+            int start = (int)(at * StoryRate), n = (int)(StoryRate * Mathf.Min(.4f, 8f / decay));
+            for (int k = 0; k < n && start + k < s.Length; k++)
             {
-                float t = (float)i / StoryRate;
-                float n = Noise(random);
-                low += (n - low) * .015f; mid += (n - mid) * .06f;
-                s[i] = (low * 6f + (mid - low) * .8f) * (.55f + .45f * Mathf.Sin(2 * Mathf.PI * t / seconds + .5f)) * .5f;
+                float t = (float)k / StoryRate;
+                l1 += (Noise(random) - l1) * a; l2 += (l1 - l2) * a;
+                float body = (l2 * 7f + Mathf.Sin(2 * Mathf.PI * cutoff * .4f * t) * .35f) * Mathf.Exp(-t * decay) * Mathf.Min(1, t / attack);
+                s[start + k] += (body + Noise(random) * Mathf.Exp(-t * 700) * .4f * Mathf.Min(1, t / attack)) * level;
             }
-            return s;
         }
 
-        // Two radial engines of a dogfight (4 s loop): buzzing sawtooth stacks at 88 and 94 Hz (whole cycles), beating slowly.
-        private static float[] Engines(float seconds)
+        // Thin tin shell: several inharmonic modes (pitch scaled by `pitch`), each fading at its own rate; a 1 ms noise tick opens it.
+        private static void Ring(float[] s, float at, float level, float pitch, float[] hz, float[] amp, float[] decay, int seed)
         {
-            var s = new float[(int)(StoryRate * seconds)];
-            var random = new System.Random(1010);
-            float low = 0;
-            for (int i = 0; i < s.Length; i++)
+            var random = new System.Random(seed);
+            int start = (int)(at * StoryRate), n = (int)(StoryRate * .5f);
+            for (int k = 0; k < n && start + k < s.Length; k++)
             {
-                float t = (float)i / StoryRate, sum = 0;
-                for (int h = 1; h <= 6; h++) sum += (Mathf.Sin(2 * Mathf.PI * 88 * h * t) + Mathf.Sin(2 * Mathf.PI * 94 * h * t + h)) / h;
-                low += (Noise(random) - low) * .05f;
-                s[i] = (sum * .16f + low * 1.2f) * (.85f + .15f * Mathf.Sin(2 * Mathf.PI * 2 * t)) * .5f;
+                float t = (float)k / StoryRate, v = 0;
+                for (int m = 0; m < hz.Length; m++) v += Mathf.Sin(2 * Mathf.PI * hz[m] * pitch * t) * amp[m] * Mathf.Exp(-t * decay[m]);
+                s[start + k] += (v + Noise(random) * Mathf.Exp(-t * 1500) * 1.2f) * level;
             }
-            return s;
         }
 
-        // An aircraft blowing up: a sharp crack, then low-passed noise rolling off over a sub thump that sinks from 70 to 35 Hz.
-        private static float[] Boom(float seconds)
+        // Band-passed noise (a resonator sweeping hz0 -> hz1): cloth, tin rubbing on tin, hinge squeal. gate = depth of the
+        // jittery saw (stick-slip, 0 = none) at gateHz; rise > 0 swells like k^rise and stops short, rise = 0 is a soft hump.
+        private static void Scrape(float[] s, float at, float length, float level, float hz0, float hz1, float bandwidth, float gate, float gateHz, float rise, int seed)
         {
-            var s = new float[(int)(StoryRate * seconds)];
-            var random = new System.Random(1212);
-            float low = 0, phase = 0;
-            for (int i = 0; i < s.Length; i++)
+            var random = new System.Random(seed);
+            int start = (int)(at * StoryRate), n = (int)(StoryRate * length);
+            float y1 = 0, y2 = 0, a = 0, b = 0, c = 0, saw = 0;
+            for (int k = 0; k < n && start + k < s.Length; k++)
             {
-                float t = (float)i / StoryRate;
-                low += (Noise(random) - low) * Mathf.Lerp(.5f, .06f, Mathf.Clamp01(t / .5f));   // the noise darkens as it fades
-                phase += Mathf.Lerp(70, 35, Mathf.Clamp01(t / 1.2f)) / StoryRate;
-                float crack = Noise(random) * Mathf.Exp(-t * 60);
-                s[i] = Mathf.Clamp((crack * .6f + low * 1.6f * Mathf.Exp(-t * 3.2f) + Mathf.Sin(2 * Mathf.PI * phase) * .7f * Mathf.Exp(-t * 2.4f)) * .7f, -1, 1);
+                float t = (float)k / StoryRate, p = (float)k / n;
+                if ((k & 31) == 0) Resonator(Mathf.Lerp(hz0, hz1, p), bandwidth, out a, out b, out c);
+                float f = a * Noise(random) + b * y1 + c * y2; y2 = y1; y1 = f;
+                float env = rise > 0 ? Mathf.Pow(p, rise) * Mathf.Min(1, (n - k) / (StoryRate * .015f)) : Mathf.Pow(Mathf.Sin(Mathf.PI * p), 2);
+                saw += gateHz * (1 + .3f * Mathf.Sin(t * 61)) / StoryRate; saw -= (int)saw;
+                s[start + k] += f * env * level * (1 - gate * saw);
             }
-            return s;
         }
 
-        // A short burst of machine guns: eight cracks 55 ms apart, each a noise snap on a low thump.
-        private static float[] Burst(float seconds)
+        private static void Normalize(float[] s, float peak)
         {
-            var s = new float[(int)(StoryRate * seconds)];
-            var random = new System.Random(1111);
-            for (int shot = 0; shot < 8; shot++)
-            {
-                int start = (int)(StoryRate * shot * .055f);
-                for (int k = 0; k < 1400 && start + k < s.Length; k++)
-                    s[start + k] += (Noise(random) * .55f + Mathf.Sin(2 * Mathf.PI * 170 * k / StoryRate) * .45f) * Mathf.Exp(-k * .006f);
-            }
-            return s;
+            float max = 0;
+            foreach (float v in s) max = Mathf.Max(max, Mathf.Abs(v));
+            if (max > 0) for (int i = 0; i < s.Length; i++) s[i] *= peak / max;
         }
 
-        // Two palms meeting the sides of a biscuit tin (cut_open_tin_hand @8: the right hand at frame 10,
-        // the left three frames later at 13): two soft knocks, each with a faint metal ring.
+        private static readonly float[] TinHz = { 1150, 1730, 2410, 3330, 4570, 5900 };
+        private static readonly float[] TinAmp = { .5f, .4f, .35f, .25f, .2f, .12f };
+        private static readonly float[] TinDecay = { 22, 28, 34, 42, 55, 70 };
+
+        // Hands closing on a biscuit tin (cut_open_tin_hand @8, beat 3 s): the right palm and fingertips slap the
+        // right wall at 0.75 s (frame 6), the tin shivers and the base shifts on the wood (0.875-1.0 s), the left hand
+        // lands softer at 1.125 s (frame 9). Each touch is followed by a sleeve rustle.
         private static float[] TinTouch(float seconds)
         {
             var s = new float[(int)(StoryRate * seconds)];
-            for (int i = 0; i < s.Length; i++)
-            {
-                float v = 0;
-                foreach (float at in new[] { 1.25f, 1.625f })
-                {
-                    float t = (float)i / StoryRate - at;
-                    if (t < 0) continue;
-                    v += Mathf.Sin(2 * Mathf.PI * 140 * t) * Mathf.Exp(-t * 60) * .45f
-                       + (Mathf.Sin(2 * Mathf.PI * 1650 * t) * .3f + Mathf.Sin(2 * Mathf.PI * 2480 * t) * .18f) * Mathf.Exp(-t * 48);
-                }
-                s[i] = v;
-            }
+            Thump(s, .75f, .9f, 380, 55, 11, .005f);                 // skin, not a hard knock: 5 ms attack
+            Ring(s, .75f, .05f, 1f, TinHz, TinAmp, TinDecay, 12);    // tin ring about 12 dB under the body
+            Scrape(s, .78f, .1f, .05f, 3000, 2200, 2500, 0, 0, 0, 13);
+            Scrape(s, .88f, .12f, .04f, 240, 180, 300, .5f, 45, 0, 14);
+            Thump(s, 1.125f, .8f, 300, 50, 15, .004f);
+            Ring(s, 1.125f, .03f, .93f, TinHz, TinAmp, TinDecay, 16);
+            Scrape(s, 1.155f, .09f, .04f, 2800, 2000, 2500, 0, 0, 0, 17);
+            Normalize(s, .6f);
             return s;
         }
 
-        // The stuck lid (cut_open_tin_lid @8): the pinch takes hold at frame 8 (1.0 s); then stick-slip
-        // groans in bursts while the hand heaves, louder each try; at frame 20 (2.5 s) it lets go with a
-        // short ring.
+        private static readonly float[] LidHz = { 420, 1340, 2600 };       // lid ring, modes 1 : 3.2 : 6.2
+        private static readonly float[] LidAmp = { .6f, .4f, .25f };
+
+        // The stuck lid (cut_open_tin_lid @8, beat 4 s): sleeve rustle as the right hand comes round (0.25-0.6 s); at
+        // 0.625 s (frame 5) the fingertips hook the rolled rim (nail "tach") and the thumb pad lands on the front wall (dull
+        // tap); then the uneven strain: three small tin ticks, growing, at 0.75 s (frame 6), 1.0 s (frame 8) and 1.125 s
+        // (frame 9, with a faint "tonk" of flexing tin); frame 7 is silent. The lid snaps off at 1.25 s (frame 10, the
+        // loudest event: tick + air "p" + ringing lid), a short hinge squeal, the finger pads catch the underside at
+        // 1.375 s (frame 11) and push it to the stop at 1.875 s (frame 15), the fingers slide off at 2.0 s (frame 16), and
+        // the hand settles on the table: middle and ring tips at 2.625 s (frame 21), heel and the other tips at 2.75 s
+        // (frame 22, the main thump), the thumb's side at 2.875 s (frame 23).
         private static float[] TinOpen(float seconds)
         {
             var s = new float[(int)(StoryRate * seconds)];
-            var random = new System.Random(707);
-            float phase = 0;
-            const float Start = 1f, Pop = 2.5f;
-            for (int i = 0; i < s.Length; i++)
-            {
-                float t = (float)i / StoryRate, v = 0;
-                if (t >= Start && t < Pop - .03f)
-                {
-                    float k = (t - Start) / (Pop - Start);
-                    phase += (520 + 520 * k + Mathf.Sin(t * 37) * 40) / StoryRate;
-                    float stick = .5f + .5f * Mathf.Sin(2 * Mathf.PI * 13 * t);
-                    float tries = Mathf.Max(0, Mathf.Sin(2 * Mathf.PI * 2 * (t - Start)));   // one groan per heave, two a second
-                    v += (Mathf.Sin(2 * Mathf.PI * phase) * .3f + Noise(random) * .07f) * stick * tries * (.35f + .65f * k) * Mathf.Min(1, (Pop - .03f - t) / .06f);
-                }
-                else if (t >= Pop)
-                {
-                    float p = t - Pop;
-                    v += (Mathf.Sin(2 * Mathf.PI * 1100 * p) * .45f + Mathf.Sin(2 * Mathf.PI * 2300 * p) * .25f + Noise(random) * .12f) * Mathf.Exp(-p * 38);
-                }
-                s[i] = v;
-            }
+            Scrape(s, .25f, .35f, .05f, 2600, 3400, 2500, 0, 0, 0, 21);
+            Ring(s, .625f, .5f, 1.55f, TinHz, TinAmp, new[] { 90f, 100, 110, 120, 140, 160 }, 22);
+            Thump(s, .64f, .35f, 320, 60, 38, .004f);               // thumb pad on the front wall
+            Scrape(s, .75f, .008f, .2f, 2000, 2000, 1500, 0, 0, 0, 23);
+            Scrape(s, 1.0f, .01f, .42f, 2800, 2800, 1500, 0, 0, 0, 24);
+            Scrape(s, 1.125f, .012f, .8f, 3500, 3500, 1500, 0, 0, 0, 25);
+            Ring(s, 1.125f, .12f, 1f, new[] { 260f, 420, 580 }, new[] { .6f, .45f, .3f }, new[] { 38f, 45, 55 }, 31);
+            Ring(s, 1.25f, 1f, 1f, TinHz, TinAmp, TinDecay, 26);
+            Ring(s, 1.25f, .45f, 1f, LidHz, LidAmp, new[] { 12f, 16, 22 }, 32);
+            Thump(s, 1.25f, .7f, 900, 120, 27);
+            Thump(s, 1.25f, .5f, 200, 90, 33);                      // air "p", ~30 ms
+            Scrape(s, 1.27f, .3f, .1f, 2700, 2000, 160, .6f, 55, 0, 28);
+            Thump(s, 1.375f, .55f, 300, 70, 39, .005f);             // finger pads catch the underside
+            Ring(s, 1.375f, .08f, 1f, LidHz, LidAmp, new[] { 20f, 26, 32 }, 35);
+            Ring(s, 1.875f, .4f, 1.4f, TinHz, TinAmp, new[] { 60f, 70, 80, 95, 110, 130 }, 29);
+            Ring(s, 1.875f, .25f, 1f, LidHz, LidAmp, new[] { 9f, 12, 16 }, 34);
+            Scrape(s, 2.0f, .06f, .05f, 1800, 1200, 1500, 0, 0, 0, 37);
+            Thump(s, 2.625f, .2f, 220, 45, 36, .006f);
+            Thump(s, 2.75f, .8f, 170, 32, 30);
+            Thump(s, 2.875f, .25f, 200, 40, 40, .006f);
+            Normalize(s, .7f);
             return s;
         }
 

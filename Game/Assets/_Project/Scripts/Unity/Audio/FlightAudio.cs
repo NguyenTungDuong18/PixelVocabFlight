@@ -83,7 +83,7 @@ namespace PixelVocabFlight
             effects.PlayOneShot(clip, .35f);
         }
         public void Footstep(bool running) { FootstepCount++; effects.PlayOneShot(footstep, running ? .5f : .32f); }
-        public void Pause(bool paused) { if (paused) { voice.Pause(); effects.Pause(); } else { voice.UnPause(); effects.UnPause(); } }
+        public void Pause(bool paused) { if (paused) { voice.Pause(); effects.Pause(); } else { voice.UnPause(); effects.UnPause(); } PauseBed(paused); PauseMusic(paused); }
         public void Stop() { voice.Stop(); effects.Stop(); StopStory(); }
 
         public void ToggleMute()

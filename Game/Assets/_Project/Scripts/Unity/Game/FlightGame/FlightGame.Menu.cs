@@ -33,7 +33,9 @@ namespace PixelVocabFlight
             profileDir = ProfileFolder();
             settings = GameSettings.Load(profileDir);
             saves = new StorySaves(profileDir);
-            audioPlayer.ApplyVolumes(settings.master, settings.ambient, settings.effects);
+            audioPlayer.ApplyVolumes(settings.master, settings.ambient, settings.effects, settings.music);
+            var film = view.Menu.Scene;
+            audioPlayer.PrepareIntro(film.Cues, film.Fps, film.IntroSeconds);   // bakes the intro's two stems on a worker thread
             if (!smokeMode) ApplyResolution();   // the smoke window stays 1280x800 whatever the file says
         }
 
@@ -47,7 +49,7 @@ namespace PixelVocabFlight
         private void ApplySettings(bool screen)
         {
             settings.Clamped();
-            audioPlayer.ApplyVolumes(settings.master, settings.ambient, settings.effects);
+            audioPlayer.ApplyVolumes(settings.master, settings.ambient, settings.effects, settings.music);
             settings.Save(profileDir);
             if (screen && !smokeMode) ApplyResolution();
         }
@@ -65,32 +67,48 @@ namespace PixelVocabFlight
             if (dialogue.Open) CloseDialogue(); else view.Dialogue.Hide();
             storyPaused = false; menuBack = null; introBooms = 0;
             view.Menu.ShowBoot();
-            audioPlayer.StorySound("wind"); audioPlayer.StorySound("engines");
+            // The film stands still on its first frame (time 0, no cue) until the soundtrack is built, so the first picture and the first sound
+            // come together; after BootHoldSeconds it runs anyway and the stems join late. The wind loop starts with the film.
+            bootStartedAt = Time.unscaledTime; bootHolding = audioPlayer.CinemaPending; introSoundOnFirstFrame = -1;
+            if (!bootHolding) audioPlayer.StorySound("wind");   // the only real loop; the engines, guns and blasts are in the baked stems (FlightAudio.Cinema.cs)
         }
+
+        private const float BootHoldSeconds = 6;
+        private float bootStartedAt;
+        private bool bootHolding;
+        private int introSoundOnFirstFrame = -1;   // smoke test: 1 = the stems were sounding (or could not be built) on the first frame the film ran, 0 = not, -1 = not run yet
 
         private void UpdateBoot()
         {
             var scene = view.Menu.Scene;
-            view.Menu.Animate(MenuDelta);
+            if (bootHolding)
+            {
+                bool timedOut = Time.unscaledTime - bootStartedAt > BootHoldSeconds;
+                if (!audioPlayer.CinemaPending || timedOut)
+                {
+                    bootHolding = false;
+                    Debug.Log("Phim mở màn chờ âm thanh " + (Time.unscaledTime - bootStartedAt).ToString("0.00") + " s" + (audioPlayer.CinemaPending ? " (hết hạn, phim chạy trước, âm thanh vào sau)" : ""));
+                    audioPlayer.StorySound("wind");
+                }
+            }
+            view.Menu.Animate(bootHolding ? 0 : MenuDelta);
             while (scene.TakeCue(out int cue)) PlayCue(cue);
             bool skip = (keyboard != null && keyboard.anyKey.wasPressedThisFrame) || (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame);
-            if (skip && scene.Time > .2f) scene.Finish();
+            bool skippable = scene.Time > .2f || (bootHolding && Time.unscaledTime - bootStartedAt > .2f);
+            if (skip && skippable) { scene.Finish(); audioPlayer.IntroEnded(true); }   // skipped: the stems fade out in 0.15 s, the menu bed comes in
+            else if (scene.Finished) audioPlayer.IntroEnded(false);                    // played out: their echoes ring on, the menu bed swells in under them
+            else if (!bootHolding)
+            {
+                audioPlayer.IntroTick(scene.Time);                                     // keeps the stems in step with the film, ducks the wind
+                if (introSoundOnFirstFrame < 0 && scene.Time > 0) introSoundOnFirstFrame = audioPlayer.CinemaStemsActive || audioPlayer.CinemaFailed ? 1 : 0;
+            }
             if (scene.Finished) EnterMenu();
         }
 
-        // The film's cues become sounds (Shot and BarsOff are silent). The Title cue ends the dogfight: the engines fade, only the wind stays.
+        // The film's cues are already in the stems (FlightAudio.Cinema.cs); here they only feed the counters the smoke test reads.
         private void PlayCue(int cue)
         {
-            switch (cue)
-            {
-                case TitleScene.CueBurst: audioPlayer.StorySound("burst"); break;
-                case TitleScene.CueBoom: introBooms++; audioPlayer.StorySound("boom"); break;
-                case TitleScene.CueBigBoom: introBooms++; audioPlayer.StorySound("bigboom"); break;
-                case TitleScene.CueWhoosh: audioPlayer.StorySound("whoosh"); break;
-                case TitleScene.CueFlak: audioPlayer.StorySound("flak"); break;
-                case TitleScene.CueHit: audioPlayer.StorySound("hit"); break;
-                case TitleScene.CueTitle: audioPlayer.StorySound("-engines"); audioPlayer.StorySound("title"); break;
-            }
+            if (cue == TitleScene.CueBoom || cue == TitleScene.CueBigBoom) introBooms++;
         }
 
         // ---- Main menu ----
@@ -98,9 +116,8 @@ namespace PixelVocabFlight
         {
             bool fromBoot = mode == Mode.Boot;
             SetMode(Mode.Menu); storyPaused = false; Time.timeScale = 1; Cursor.visible = true;
-            if (!fromBoot) { audioPlayer.Stop(); view.Menu.ShowBoot(); audioPlayer.StorySound("wind"); }
+            if (!fromBoot) { audioPlayer.Stop(); view.Menu.ShowBoot(); audioPlayer.StartMenuBed(.6f); audioPlayer.StartMenuMusic(2f); }   // back from the story: the bed, not the intro's wind
             view.Menu.Scene.Finish();
-            audioPlayer.StorySound("-engines");
             ShowMainMenu();
         }
 
@@ -205,6 +222,7 @@ namespace PixelVocabFlight
                 VolumeEntry("Âm lượng tổng", () => settings.master, v => settings.master = v),
                 VolumeEntry("Âm lượng môi trường", () => settings.ambient, v => settings.ambient = v),
                 VolumeEntry("Âm lượng hiệu ứng", () => settings.effects, v => settings.effects = v),
+                VolumeEntry("Âm lượng nhạc", () => settings.music, v => settings.music = v),
                 new MenuEntry
                 {
                     Text = "Độ phân giải", Value = () => settings.ResolutionText,

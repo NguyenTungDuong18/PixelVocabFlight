@@ -43,3 +43,6 @@ Thumbs.db
 .DS_Store
 
 
+
+# MusicForge sample cache (VSCO 2 CE, ~1 GB; `dotnet run --project Tools/MusicForge -c Release -- fetch`)
+/Tools/MusicForge/samples/

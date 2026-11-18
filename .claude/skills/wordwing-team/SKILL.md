@@ -75,7 +75,8 @@ Nếu một thay đổi cần sửa file thuộc mảng khác (ví dụ luật m
 
 Sau khi các implementer báo xong, giao cho `ww-verify`:
 
-- **4a. Kiểm tra nhanh** (luôn chạy): forge (nếu `ww-pixel` có sửa) → `dotnet build Tools/UnityCompileChecks` (yêu cầu 0 lỗi, 0 cảnh báo) → `cd Tools/RulesChecks && dotnet run`.
+- **Luật người dùng: chỉ kiểm phần đã tác động.** Chỉ chạy công cụ kiểm tra liên quan tới file đã sửa, không chạy lại toàn bộ game.
+- **4a. Kiểm tra nhanh**: forge (nếu `ww-pixel` có sửa sprite) → `dotnet build Tools/UnityCompileChecks` (nếu có sửa .cs; yêu cầu 0 lỗi, 0 cảnh báo) → `cd Tools/RulesChecks && dotnet run` (chỉ khi sửa `Scripts/Logic/**`, dữ liệu từ vựng hoặc manifest) → `Tools/AudioChecks` (chỉ khi sửa `Audio/Cinema/*.cs` hoặc bộ mẫu).
 - **4b. Build + smoke** (khoảng 10 + 1 phút): chạy khi thay đổi ảnh hưởng runtime Unity (view, UI, sprite, âm thanh, luồng game) hoặc khi lên phiên bản. Bỏ qua nếu chỉ đổi luật thuần đã có RulesChecks phủ, hoặc người dùng bảo bỏ qua. Cho `ww-verify` biết những ảnh smoke nào cần soát kỹ (ví dụ `02b-cockpit-typing` khi sửa cockpit).
 - Chỉ chạy **một** `ww-verify` mỗi lúc: build dùng chung `Tools/BuildWorkspace` và exe.
 

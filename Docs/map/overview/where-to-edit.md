@@ -24,16 +24,21 @@ Mở đúng 1–2 file trong bảng rồi tìm bằng Grep theo mã khung (vd. `
 | --- | --- |
 | Đăng ký tên, số khung, fps của tranh truyện | `PF/story.cjs` |
 | Cảnh mở: nền bàn, nắp hộp, **bóng mưa** (`fx_rain_shadow`), chữ viết tay | `PF/story/opening.cjs` |
-| Cảnh mở: hai tay từng khung (tay phải ôm cao, tay trái cầm hông hộp, đến sau, kẹp mép nắp, gồng run, bật nắp, rút tay) | `PF/story/openingHands.cjs` (`handScenes` 20 khung, `lidScenes` 30 khung; độ run `shiver`/`quiver`, góc nắp `LID`) |
-| Khung xương tay, tay trái (`left`), ngón ôm theo va chạm (`wrap`, `clear`, `aimThumb`) | `PF/story/hand.cjs` (sửa xong chạy `node Tools/BlenderForge/render.cjs` rồi forge) |
+| Cảnh mở: hai tay từng khung. P1.04: tay phải chạm khung 6, tay trái khung 9, đứng yên 12–19. P1.05: ngón cái tì thành trước và ngón 2–4 dưới mép nắp ở khung 5; gồng 6–9 (giữ-nhích, không run); bật khung 10; đệm ngón đỡ nắp từ khung 11, đẩy tới chốt ở khung 15; buông khung 16; đặt tay xuống bàn khung 21–23 | `PF/story/openingHands.cjs` (`handScenes` 20 khung, `lidScenes` 30 khung, góc nắp `LID`, điểm chạm `CONTACTS`). Đổi khung chạm thì sửa cả mốc âm thanh `TinTouch`/`TinOpen`; sửa xong chạy `handChecks.cjs` (`art/add-sprites.md`) |
+| Khung xương tay, đặt tư thế lưới, bộ giải điểm chạm | `PF/story/hand.cjs`, `PF/story/handRig.cjs`, `PF/story/handSolve.cjs` (sửa xong chạy `node Tools/BlenderForge/render.cjs` rồi forge) |
 | Lưới tay thật (MakeHuman CC0, render bằng Blender), cách đặt xương theo tư thế | `Tools/BlenderForge/opening_hands.py`; ghép vào cảnh: `PF/story/blenderHands.cjs` + `sceneCells` trong `PF/story/opening.cjs` (`art/add-sprites.md`) |
 | Chất da tay (mảng phẳng, gân, tĩnh mạch, nếp khớp) | `shadeHand` trong `PF/story/tin.cjs` |
-| Tiếng chạm hộp / nắp kẹt rồi bật (khớp khung 10 và 13 của tay, khung 20 của nắp) | `Unity/Audio/FlightAudio.StoryClips.cs` (`TinTouch`, `TinOpen`) |
+| Tiếng chạm hộp (0,75 s / 1,125 s), móc mép + ngón cái tì 0,625 s, gồng, nắp bật 1,25 s, ngón đỡ nắp 1,375 s, chạm chốt 1,875 s, tay xuống bàn 2,625–2,875 s | `Unity/Audio/FlightAudio.StoryClips.cs` (`TinTouch`, `TinOpen`, helper `Thump`/`Ring`) |
 | Hộp thiếc, nắp, 6 món đồ bên trong | `PF/story/tin.cjs` |
 | Cận cảnh ảnh chú Floris, mẩu giấy khăn tay | `PF/story/m1cuts.cjs` |
 | Cảnh mái nhà, đèn làng, đoàn bom đêm, máy bay số 7 | `PF/story/m1roof.cjs` |
 | **Phim mở màn** (intro 10 s + nền menu): cảnh quay, góc máy, lúc nổ, cue âm thanh | `PF/cinema/shots.cjs`, rồi chạy `node Tools/PixelForge/cinema/film.cjs` (`map/art/cinema.md`) |
-| Phim mở màn: model máy bay / hiệu ứng nổ, flak, khói, đạn vạch / trời và mây / lóa, bloom | `PF/cinema/models.cjs` / `fx.cjs` / `sky.cjs`, `world.cjs` / `post.cjs` |
+| Phim mở màn: model máy bay / hiệu ứng nổ, flak, khói, đạn vạch / trời và mây / lóa, bloom | `PF/cinema/models.cjs` / `fx.cjs` / `sky.cjs`, `world.cjs`, `clouds.cjs` / `post.cjs` |
+| Phim mở màn: thành phố cảng, bờ biển, cột khói / chuỗi bom, cao xạ ở hậu cảnh / độ rung khi nổ | `PF/cinema/ground.cjs` / `battle.cjs` / `shots.cjs` (`KICK`) |
+| Phim mở màn: tiếng động cơ, súng, nổ, gió, cách trộn | `Scripts/Unity/Audio/Cinema/*.cs` (`map/unity/audio.md`), nghe thử bằng `Tools/AudioChecks` |
+| Nhạc nền (giai điệu, hợp âm, phối khí, mức từng đoạn) | `Tools/MusicForge/Score*.cs`, chạy `build` + `check`; cách phát/âm lượng: `Scripts/Unity/Audio/FlightAudio.Music.cs` |
+| Nền âm thanh menu (gió, chiến trận xa) | `Scripts/Unity/Audio/Cinema/CinemaMenuBed.cs`, `FlightAudio.MenuBed.cs` |
+| Phim mở màn: đổi bản ghi âm / đoạn cắt / xử lý từng tiếng | `Tools/AudioImport/Recipe*.cs` + MP3 trong `SourceAssets/Audio/Cinema/`, chạy lại AudioImport; ghi nguồn vào `Audio/SFX/Cinema/LICENSE.md` |
 | Bảng màu, kích thước tranh 480×270 | `PF/story/common.cjs`; bộ dựng 3D `PF/story/scene3d.cjs`; phông chữ viết tay `PF/story/script.cjs` |
 | Đồ trong phòng nội trú (`prop_dorm_*`, đồ treo tường, cửa sổ, thảm), sàn gỗ | `PF/world/dorm.cjs` |
 | Dáng đi/chạy/ngồi của Jonas trẻ (`pilot_young`) và Daan | `PF/characters/cycles.cjs`, danh sách nhân vật `PF/characters/roster.cjs` |

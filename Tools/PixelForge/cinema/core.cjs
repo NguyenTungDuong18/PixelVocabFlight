@@ -45,6 +45,14 @@ function noise2(x, y, s = 0) {
   return a + (b - a) * fx + (c - a) * fy + (a - b - c + d) * fx * fy;
 }
 const fbm2 = (x, y, s = 0) => noise2(x, y, s) * .55 + noise2(x * 2.1, y * 2.1, s + 7) * .3 + noise2(x * 4.3, y * 4.3, s + 13) * .15;
+// value noise whose lattice wraps every n cells in y (n = 0: no wrap); the looping ground tiles with the cloud deck
+function noise2p(x, y, n, s = 0) {
+  const xi = Math.floor(x), yi = Math.floor(y), y0 = n ? ((yi % n) + n) % n : yi, y1 = n ? (y0 + 1) % n : yi + 1;
+  let fx = x - xi, fy = y - yi;
+  fx = fx * fx * (3 - 2 * fx); fy = fy * fy * (3 - 2 * fy);
+  const a = ih(xi, y0, 0, s), b = ih(xi + 1, y0, 0, s), c = ih(xi, y1, 0, s), d = ih(xi + 1, y1, 0, s);
+  return a + (b - a) * fx + (c - a) * fy + (a - b - c + d) * fx * fy;
+}
 const fbm3 = (x, y, z, s = 0) => noise3(x, y, z, s) * .55 + noise3(x * 2.1, y * 2.1, z * 2.1, s + 7) * .3 + noise3(x * 4.3, y * 4.3, z * 4.3, s + 13) * .15;
 // smooth 1D noise in -1..1 (camera shake, bobbing)
 const wob = (t, s = 0) => noise2(t, s * 17.3, 91) * 2 - 1;
@@ -84,7 +92,7 @@ const velOf = (fn, t, e = .02) => mul(sub(fn(t + e), fn(t - e)), 1 / (2 * e));
 // ---------------------------------------------------------------- palette (dusk battle: ramps dark -> light)
 const RAMPS = {
   sky: ['#0d1430', '#141f42', '#1c2c57', '#263a6b', '#34497c', '#4a5788', '#665f8f', '#876890', '#a8708c', '#c97c80', '#e58d6c', '#f6a65c', '#ffc169', '#ffdb8c', '#fff0b8'],
-  cloud: ['#1b2040', '#272c50', '#383a63', '#4f4873', '#6c5782', '#8e688b', '#b47b8b', '#d5917f', '#eeaa78', '#fbc582', '#ffdfa2', '#fff3cf'],
+  cloud: ['#1b2040', '#272c50', '#353a66', '#464a7d', '#5e5890', '#7c5c98', '#a56a9a', '#cf7f8f', '#f2907c', '#ffb27a', '#ffd9a0', '#fff1cf'],   // dusk cumulus: blue-violet shade -> rose -> peach -> warm cream (research r3)
   smoke: ['#0b0a0e', '#17151a', '#252228', '#37323a', '#4c4650', '#655e69', '#827a84', '#a39ba2', '#c6bfc2'],
   fire: ['#3a0d0a', '#6b1a0e', '#a02c12', '#d04a16', '#ee6f1c', '#fb9a2a', '#ffc246', '#ffe27c', '#fff6c2', '#ffffff'],
   olive: ['#10140e', '#1b2216', '#28311d', '#364226', '#475531', '#5b6b41', '#76855a'],
@@ -99,6 +107,16 @@ const RAMPS = {
   sea: ['#080d1c', '#0e1730', '#162445', '#22355c', '#35507a'],
   roundel: ['#d9772c', '#1f2f5c', '#f2efe4', '#7a3a14', '#0f1838'],
   tracer: ['#ff4020', '#ff7a30', '#b6ff8a', '#5fd870', '#eafff0'],
+  // the ground under the raid (battle.cjs / ground.cjs): dusk land, rubble, oil smoke, fire-lit smoke
+  land: ['#121419', '#191c24', '#20242e', '#282c39', '#323544', '#3d3d4b'],
+  rubble: ['#2a2224', '#3b3130', '#4a4038', '#5d5046', '#726252'],
+  soot: ['#141113', '#1e1a1c', '#2b2426', '#3a302f', '#4a3c38', '#5b4b46', '#6b5a55', '#7a6a6a', '#968683', '#b8aaa3', '#d8d0c8'],
+  ember: ['#3a1812', '#5c2416', '#80321a', '#a8481f', '#cc672c', '#e8a060'],
+  // the ports (ground.cjs, sky.cjs water): rivers and docks mirroring the fire-lit dusk, dark hulls, a ship's pale bridge
+  port: ['#2a2742', '#45365a', '#6a4468', '#8f5272', '#b2607a', '#cc6e7c', '#e08a78', '#eea486', '#f6c49c'],
+  dock: ['#1a1c26', '#c8c0b0'],
+  // light flak from the ground (battle.cjs): self-destruct smoke, tracer tail, glow, muzzle flash, hot core
+  flak: ['#6a6070', '#ff6a20', '#ffb040', '#ffe8a0', '#fff6d8'],
   ink: ['#05060a', '#0c0e14']
 };
 const RAMP = {};
@@ -136,5 +154,5 @@ const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5].map(v => (v
 
 module.exports = {
   W, H, FPS, DEG, TAU, add, sub, mul, mad, dot, cross, len, norm, mix3, clamp, lerp, smooth, sstep, pulse, hex,
-  ih, rnd, noise2, noise3, fbm2, fbm3, wob, makeCam, flyBasis, tumble, toWorld, velOf, RAMP, PALETTE, rampAt, nearest, BAYER
+  ih, rnd, noise2, noise2p, noise3, fbm2, fbm3, wob, makeCam, flyBasis, tumble, toWorld, velOf, RAMP, PALETTE, rampAt, nearest, BAYER
 };

@@ -5,9 +5,11 @@ using UnityEngine;
 
 namespace PixelVocabFlight
 {
-    // The film: loading the WWC1 file, decoding one frame at a time, the cue list. All little-endian:
-    //   'W','W','C','1', u16 width, height, fps, frameCount, loopStart, paletteCount, cueCount,
-    //   paletteCount x (R,G,B), cueCount x (u8 kind, u16 frame), (frameCount+1) x u32 frame offsets (from the start of the data),
+    // The film: loading the WWC1/WWC2 file (header and cues are read by CinemaFilm, shared with Tools/AudioChecks), decoding one frame at a
+    // time, the cue list. All little-endian:
+    //   'W','W','C','1' or '2', u16 width, height, fps, frameCount, loopStart, paletteCount, cueCount,
+    //   paletteCount x (R,G,B), cueCount x (WWC1: u8 kind, u16 frame; WWC2: u8 kind, u16 frame, i8 pan, u8 level, u8 dur),
+    //   (frameCount+1) x u32 frame offsets (from the start of the data),
     //   data: per frame raw DEFLATE of width*height palette indices, rows top to bottom.
     // The bytes and textures belong to the instance (no statics), so a disabled Domain Reload cannot leave a dead object behind.
     public sealed partial class TitleScene
@@ -28,6 +30,11 @@ namespace PixelVocabFlight
         private float barsOffTime = -1, titleTime = -1;
         private readonly List<float> shotStarts = new List<float>();
 
+        private IReadOnlyList<CinemaCue> cueList = new CinemaCue[0];
+
+        // Every intro cue with its pan, level and duration (what the soundtrack is built from).
+        public IReadOnlyList<CinemaCue> Cues => cueList;
+        public int FilmVersion { get; private set; }
         public int FrameCount { get; private set; }
         public int LoopStart { get; private set; }
         public int Fps => fps;
@@ -71,8 +78,6 @@ namespace PixelVocabFlight
             loaded = false;
         }
 
-        private static int U16(byte[] d, int at) => d[at] | d[at + 1] << 8;
-
         private void LoadFilm()
         {
             try
@@ -80,20 +85,12 @@ namespace PixelVocabFlight
                 var asset = Resources.Load<TextAsset>(FilmPath);
                 if (!asset) { Fail("thiếu file"); return; }
                 var d = asset.bytes;
-                if (d.Length < 18 || d[0] != 'W' || d[1] != 'W' || d[2] != 'C' || d[3] != '1') { Fail("sai chữ ký"); return; }
-                int w = U16(d, 4), h = U16(d, 6), f = U16(d, 8), frames = U16(d, 10), loop = U16(d, 12), colours = U16(d, 14), cues = U16(d, 16);
-                if (w == 0 || h == 0 || f == 0 || colours == 0 || colours > 256 || loop == 0 || loop >= frames) { Fail("tiêu đề không hợp lệ"); return; }
-                int p = 18, offsetsAt = p + colours * 3 + cues * 3;
-                dataStart = offsetsAt + (frames + 1) * 4;
-                if (dataStart > d.Length) { Fail("file bị cụt"); return; }
-                for (int i = 0; i < colours; i++, p += 3) palette[i] = new Color32(d[p], d[p + 1], d[p + 2], 255);
+                if (!CinemaFilm.TryParse(d, out var info, out string why)) { Fail(why); return; }
+                int w = info.Width, h = info.Height, f = info.Fps, frames = info.FrameCount, loop = info.LoopStart, offsetsAt = info.OffsetsAt;
+                dataStart = info.DataStart;
+                for (int i = 0, p = info.PaletteAt; i < info.Colours; i++, p += 3) palette[i] = new Color32(d[p], d[p + 1], d[p + 2], 255);
                 var kinds = new List<byte>(); var at = new List<int>();
-                for (int i = 0; i < cues; i++, p += 3)
-                {
-                    int frame = U16(d, p + 1);
-                    if (frame >= loop) continue;   // only the intro has cues; the loop is silent
-                    kinds.Add(d[p]); at.Add(frame);
-                }
+                foreach (var cue in info.Cues) { kinds.Add((byte)cue.Kind); at.Add(cue.Frame); }   // only the intro has cues; the loop is silent
                 var table = new uint[frames + 1];
                 for (int i = 0; i <= frames; i++, offsetsAt += 4)
                 {
@@ -102,7 +99,7 @@ namespace PixelVocabFlight
                 }
                 data = d; offsets = table; width = w; height = h; fps = f; FrameCount = frames; LoopStart = loop;
                 indices = new byte[w * h]; pixels = new Color32[w * h];
-                cueKind = kinds.ToArray(); cueFrame = at.ToArray();
+                cueKind = kinds.ToArray(); cueFrame = at.ToArray(); cueList = info.Cues; FilmVersion = info.Version;
                 for (int i = 0; i < cueKind.Length; i++)
                 {
                     float time = cueFrame[i] / (float)fps;

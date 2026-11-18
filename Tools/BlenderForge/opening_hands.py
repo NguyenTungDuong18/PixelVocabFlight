@@ -1,127 +1,34 @@
-# Run by render.cjs: blender -b --factory-startup --python opening_hands.py -- <mh dir> <poses.json> <out dir> <gbuffer|preview> [part:i|part:all,...]
-# Builds both forearms+hands from the MakeHuman CC0 base mesh (makehuman/), poses them on the joints
-# exported from hand.cjs (game coords: x right, y toward the viewer, z up; Blender y = -game y).
+# Run by render.cjs: blender -b --factory-startup --python opening_hands.py -- <poses.json> <out dir> <gbuffer|preview|verts> [part:i|part:all,...]
+# Renders both forearms+hands: the MakeHuman CC0 mesh (makehuman/) already posed and skinned frame by
+# frame in story/handRig.cjs (game coords: x right, y toward the viewer, z up; Blender y = -game y).
+# Blender only builds the mesh from those vertices (+ subdivision) and renders it.
 # gbuffer: the passes story/blenderHands.cjs reads. preview: a plain lit render with stand-in tin, 3x.
-# Bones keep MakeHuman's proportions: the palm turns as the code hand's frame, each finger and thumb
-# bone swings to point along the code skeleton's segment, the forearm lies along the code sleeve.
+# verts: the mesh as Blender holds it (no subdivision), every frame, for Tools/BlenderForge/handChecks.cjs.
 import bpy, json, sys, math
 from mathutils import Vector, Matrix
 
 argv = sys.argv[sys.argv.index('--') + 1:]
-MH, POSES, OUT, MODE = argv[:4]
-FRAMES = argv[4] if len(argv) > 4 else 'hand:19'
+POSES, OUT, MODE = argv[:3]
+FRAMES = argv[3] if len(argv) > 3 else 'hand:19'
 G2B = lambda p: Vector((p[0], -p[1], p[2]))
 
-# ---------------------------------------------------------------- MakeHuman data
-verts, faces, grp = [], [], None
-for line in open(MH + '/base.obj'):
-    if line.startswith('v '): verts.append(tuple(map(float, line.split()[1:4])))
-    elif line.startswith('g '): grp = line.split()[1].strip()
-    elif line.startswith('f ') and grp == 'body': faces.append([int(t.split('/')[0]) - 1 for t in line.split()[1:]])
-skel = json.load(open(MH + '/default.mhskel'))
-weights = json.load(open(MH + '/default_weights.mhw'))['weights']
-def joint(name):
-    ix = skel['joints'][name]
-    return sum((Vector(verts[i]) for i in ix), Vector()) / len(ix)
-NAMES = ['lowerarm01', 'lowerarm02', 'wrist'] + ['metacarpal%d' % i for i in range(1, 5)] + ['finger%d-%d' % (f, k) for f in range(1, 6) for k in range(1, 4)]
-
-def build_arm(side):
-    names = [n + '.' + side for n in NAMES]
-    vw = {}
-    for n in names:
-        for i, w in weights[n]: vw.setdefault(i, {})[n] = w
-    keep = {i for i, d in vw.items() if sum(d.values()) > .5}
-    fs = [f for f in faces if all(i in keep for i in f)]
-    used = sorted({i for f in fs for i in f}); remap = {o: k for k, o in enumerate(used)}
+def build_arm(side, mesh):
+    co = mesh['co']
     me = bpy.data.meshes.new('arm' + side)
-    me.from_pydata([verts[i] for i in used], [], [[remap[i] for i in f] for f in fs])
+    me.from_pydata([(co[i], -co[i + 1], co[i + 2]) for i in range(0, len(co), 3)], [], mesh['faces'])
     me.shade_smooth()
     ob = bpy.data.objects.new('arm' + side, me)
-    for n in names:
-        g = ob.vertex_groups.new(name=n)
-        for i, w in weights[n]:
-            if i in remap: g.add([remap[i]], w, 'REPLACE')
-    ad = bpy.data.armatures.new('rig' + side)
-    rig = bpy.data.objects.new('rig' + side, ad)
-    bpy.context.scene.collection.objects.link(rig); bpy.context.scene.collection.objects.link(ob)
-    bpy.context.view_layer.objects.active = rig
-    bpy.ops.object.mode_set(mode='EDIT')
-    for n in names:
-        b = skel['bones'][n]; eb = ad.edit_bones.new(n)
-        eb.head, eb.tail = joint(b['head']), joint(b['tail'])
-    for n in names:
-        p = skel['bones'][n]['parent']
-        if p in names: ad.edit_bones[n].parent = ad.edit_bones[p]
-    bpy.ops.object.mode_set(mode='OBJECT')
-    ob.parent = rig
-    m = ob.modifiers.new('rig', 'ARMATURE'); m.object = rig
-    m.use_deform_preserve_volume = True     # dual quaternions: the thenar and web keep their volume when the thumb swings wide
+    bpy.context.scene.collection.objects.link(ob)
     s = ob.modifiers.new('sub', 'SUBSURF'); s.levels = 1; s.render_levels = 2
-    return rig, ob
+    return ob
 
-# ---------------------------------------------------------------- posing
-def pose(rig, side, h, s):
-    rig.scale = (s, s, s)
-    B = rig.data.bones; nm = lambda n: n + '.' + side
-    rest = {n: B[nm(n)].matrix_local.copy() for n in NAMES}
-    head = lambda n: B[nm(n)].head_local.copy()
-    u = (head('finger3-1') - head('wrist')).normalized()
-    v = head('finger2-1') - head('finger5-1'); v = (v - u * v.dot(u)).normalized()
-    w = u.cross(v) * (1 if side == 'R' else -1)
-    Rr = Matrix((u, v, w)).transposed()
-    Rt = Matrix((G2B(h['U']), G2B(h['V']), G2B(h['W']))).transposed()
-    R = (Rt @ Rr.inverted()).to_4x4()
-    Kr, Kt = head('finger3-1'), G2B(h['fingers'][1][0]) / s
-    A = lambda p: (R.to_3x3() @ (p - Kr)) + Kt
-    rot = lambda M: M.to_3x3().to_4x4()
-    Mp = {}
-    for n in ['wrist', 'metacarpal1', 'metacarpal2', 'metacarpal3', 'metacarpal4']:
-        Mp[n] = Matrix.Translation(A(rest[n].translation)) @ R @ rot(rest[n])
-    def frame_of(y, up):   # columns: across, along the bone, toward the nail
-        up = (up - y * up.dot(y)).normalized()
-        return Matrix((y.cross(up), y, up)).transposed()
-    # The thumb's nail faces half toward the index side (as in shadeHand): its bones get a full
-    # orientation from that, not a bare swing from rest, which twisted the base and pinched the
-    # web into a spike when the thumb reached far from its rest direction.
-    nail_r = (v * .62 + w * .78).normalized()
-    nail_t = (G2B(h['V']) * .62 + G2B(h['W']) * .78).normalized()
-    def chain(prefix, J, thumb=False):
-        for k in range(1, 4):
-            n = '%s-%d' % (prefix, k); par = skel['bones'][nm(n)]['parent'][:-2]
-            inh = Mp[par] @ rest[par].inverted() @ rest[n]
-            dt = (G2B(J[k]) - G2B(J[k - 1])).normalized()
-            if thumb:
-                yr = (rest[n].to_3x3() @ Vector((0, 1, 0))).normalized()
-                turn = (frame_of(dt, nail_t) @ frame_of(yr, nail_r).inverted()).to_4x4()
-                Mp[n] = Matrix.Translation(inh.translation) @ turn @ rot(rest[n])
-            else:
-                y0 = (inh.to_3x3() @ Vector((0, 1, 0))).normalized()
-                Mp[n] = Matrix.Translation(inh.translation) @ y0.rotation_difference(dt).to_matrix().to_4x4() @ rot(inh)
-    for f in range(4): chain('finger%d' % (f + 2), h['fingers'][f])
-    chain('finger1', h['thumb'], True)
-    # Forearm: turns with the hand, lies along the sleeve, ends at the wrist.
-    axis = (G2B(h['sleeve'][0]) - G2B(h['sleeve'][1])).normalized()
-    end = Mp['wrist'].translation
-    for n in ['lowerarm02', 'lowerarm01']:
-        r0 = R @ rot(rest[n]); y0 = (r0.to_3x3() @ Vector((0, 1, 0))).normalized()
-        r1 = y0.rotation_difference(axis).to_matrix().to_4x4() @ r0
-        start = end - axis * B[nm(n)].length
-        Mp[n] = Matrix.Translation(start) @ r1; end = start
-    for n in NAMES:
-        p = B[nm(n)].parent
-        pn = p.name[:-2] if p else None
-        basis = rest[n].inverted() @ Mp[n] if pn is None else rest[n].inverted() @ rest[pn] @ Mp[pn].inverted() @ Mp[n]
-        rig.pose.bones[nm(n)].matrix_basis = basis
-    # Posed joints back in game coords, for the shading details (nails, knuckles, creases).
-    gp = lambda v: [round(v.x * s, 3), round(-v.y * s, 3), round(v.z * s, 3)]
-    tail = lambda n: Mp[n] @ Vector((0, B[nm(n)].length, 0))
-    ch = lambda f: [gp(Mp['%s-%d' % (f, k)].translation) for k in (1, 2, 3)] + [gp(tail(f + '-3'))]
-    return {'fingers': [ch('finger%d' % f) for f in range(2, 6)], 'thumb': ch('finger1')}
-
-def mh_scale(rig, side, h):
-    B = rig.data.bones
-    mh = (B['finger2-1.' + side].head_local - B['finger5-1.' + side].head_local).length
-    return (Vector(h['fingers'][0][0]) - Vector(h['fingers'][3][0])).length / mh
+def pose(ob, h):
+    co = h['co']
+    flat = [0.0] * len(co)
+    flat[0::3] = co[0::3]; flat[1::3] = [-y for y in co[1::3]]; flat[2::3] = co[2::3]
+    ob.data.vertices.foreach_set('co', flat)
+    ob.data.update()
+    return h['joints']
 
 def sleeve_obj(h, name):
     a, b, r = G2B(h['sleeve'][0]), G2B(h['sleeve'][1]), h['sleeve'][2]
@@ -233,12 +140,11 @@ def gbuffer(data, rigs):
         part, i = item.split(':')
         for idx in ([int(i)] if i != 'all' else range(len(data[part]))):
             fr = data[part][idx]; joints = []
-            for side in 'RL': rigs[side][1].hide_render = True
+            for side in 'RL': rigs[side].hide_render = True
             for h in fr['hands']:
-                side = 'L' if h['left'] else 'R'
-                rig, ob = rigs[side]; ob.hide_render = False
+                ob = rigs['L' if h['left'] else 'R']; ob.hide_render = False
                 ob.pass_index = len(joints) + 1
-                joints.append(pose(rig, side, h, mh_scale(rig, side, h)))
+                joints.append(pose(ob, h))
             meta['frames']['%s_%d' % (part, idx)] = joints
             for key, cam, res, spp in [('pos', main_cam, (480, 270), 1), ('nrm', main_cam, (480, 270), 1), ('idao', main_cam, (480, 270), 64), ('depth', lcam, (SHADOW['res'],) * 2, 1)]:
                 sc.camera = cam; sc.render.resolution_x, sc.render.resolution_y = res
@@ -248,14 +154,32 @@ def gbuffer(data, rigs):
                 bpy.ops.render.render(write_still=True)
     json.dump(meta, open(OUT + '/meta.json', 'w'))
 
+# verts: the mesh Blender renders (no subdivision) of every frame, read back from Blender, for the checks.
+def dump_verts(data, rigs):
+    out = {}
+    for side in 'RL': rigs[side].modifiers['sub'].show_viewport = False
+    for part in ('hand', 'lid'):
+        for idx, fr in enumerate(data[part]):
+            hands = []
+            for h in fr['hands']:
+                ob = rigs['L' if h['left'] else 'R']
+                pose(ob, h)
+                bpy.context.view_layer.update()
+                ev = ob.evaluated_get(bpy.context.evaluated_depsgraph_get()); me = ev.to_mesh(); M = ob.matrix_world
+                hands.append([round(c, 3) for v in me.vertices for c in (lambda w: (w.x, -w.y, w.z))(M @ v.co)])
+                ev.to_mesh_clear()
+            out['%s_%d' % (part, idx)] = hands
+    json.dump(out, open(OUT + '/verts.json', 'w'))
+
 def main():
     data = json.load(open(POSES))
     sc = bpy.context.scene
     for o in list(bpy.data.objects): bpy.data.objects.remove(o)
-    rigs = {side: build_arm(side) for side in 'RL'}
+    rigs = {side: build_arm(side, data['meshes'][side]) for side in 'RL'}
     if MODE == 'gbuffer': return gbuffer(data, rigs)
+    if MODE == 'verts': return dump_verts(data, rigs)
     skin = mat('skin', (.62, .45, .37), .55, .15); wool = mat('wool', (.05, .06, .08), .9)
-    for side in 'RL': rigs[side][1].data.materials.append(skin)
+    for side in 'RL': rigs[side].data.materials.append(skin)
     sc.render.engine = 'CYCLES'; sc.cycles.samples = 32; sc.cycles.device = 'CPU'
     sc.world = bpy.data.worlds.new('w'); sc.world.use_nodes = True
     sc.world.node_tree.nodes['Background'].inputs[1].default_value = .6
@@ -265,9 +189,10 @@ def main():
         part, i = item.split(':'); fr = data[part][int(i)]
         for o in [o for o in bpy.data.objects if o.name.startswith(('slv', 'Plane', 'Cube'))]: bpy.data.objects.remove(o)
         preview_props(fr['deg'])
+        for side in 'RL': rigs[side].hide_render = True
         for k, h in enumerate(fr['hands']):
-            side = 'L' if h['left'] else 'R'
-            pose(rigs[side][0], side, h, mh_scale(rigs[side][0], side, h))
+            ob = rigs['L' if h['left'] else 'R']; ob.hide_render = False
+            pose(ob, h)
             sleeve_obj(h, 'slv%d' % k).data.materials.append(wool)
         sc.render.filepath = '%s/%s_%s.png' % (OUT, part, i)
         bpy.ops.render.render(write_still=True)

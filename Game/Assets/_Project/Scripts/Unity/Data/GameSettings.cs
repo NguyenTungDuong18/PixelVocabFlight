@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace PixelVocabFlight
 {
-    // Player settings: three volumes (0-100, step 5), the window resolution and full screen. Saved as settings.json.
+    // Player settings: four volumes (master, ambient, effects, music; 0-100, step 5), the window resolution and full screen. Saved as settings.json.
     // The folder is Application.persistentDataPath, or a sub-folder of the smoke output with --smoke-test (never the user's).
     [Serializable]
     public sealed class GameSettings
@@ -16,6 +16,8 @@ namespace PixelVocabFlight
 
         public int version = 1;
         public int master = 100, ambient = 100, effects = 100;
+        public const int DefaultMusic = 70;
+        public int music = DefaultMusic;   // an old settings.json without this key keeps the default
         public int resolution = DefaultResolution;
         public bool fullscreen = true;
 
@@ -24,7 +26,7 @@ namespace PixelVocabFlight
 
         public GameSettings Clamped()
         {
-            master = Step(master); ambient = Step(ambient); effects = Step(effects);
+            master = Step(master); ambient = Step(ambient); effects = Step(effects); music = Step(music);
             resolution = Mathf.Clamp(resolution, 0, Resolutions.Length - 1);
             return this;
         }

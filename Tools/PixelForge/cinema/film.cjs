@@ -1,16 +1,18 @@
 'use strict';
 // node Tools/PixelForge/cinema/film.cjs [options]
 // Renders the title cinematic (shots.cjs) frame by frame on all cores and packs it for the game:
-//   Game/Assets/_Project/Art/Resources/Cinema/title_intro.bytes   (format WWC1, played by Unity/Menu/TitleScene)
+//   Game/Assets/_Project/Art/Resources/Cinema/title_intro.bytes   (format WWC2, played by Unity/Menu/TitleScene)
 // Options: --frames a-b   only these frames (no pack)        --step n     every n-th frame
 //          --sheet dir    contact sheets (3 x 4 frames, 1:1)  --png dir    single frames at 2x
 //          --jobs n       worker threads (default: cores - 2)
-// WWC1, little-endian: 'WWC1', u16 width, height, fps, frameCount, loopStart, paletteCount, cueCount;
-// palette (3 bytes each); cues (u8 kind, u16 frame); (frameCount + 1) u32 offsets into the data block;
-// data: per frame raw DEFLATE of width x height palette indices, rows top to bottom.
+// WWC2, little-endian: 'WWC2', u16 width, height, fps, frameCount, loopStart, paletteCount, cueCount;
+// palette (3 bytes each); cues, 6 bytes each, sorted by frame, all before loopStart:
+//   u8 kind (shots.cjs KIND), u16 frame, i8 pan (-100 left edge .. +100 right edge), u8 level (0-200, 100 = normal), u8 dur (frames, 0 = default of the kind);
+// (frameCount + 1) u32 offsets into the data block; data: per frame raw DEFLATE of width x height palette indices, rows top to bottom.
+// (WWC1 was the same with 3-byte cues: u8 kind, u16 frame.)
 const fs = require('fs'), path = require('path'), os = require('os'), zlib = require('zlib');
 const { Worker, isMainThread, parentPort, workerData } = require('worker_threads');
-const C = require('./core.cjs'), S = require('./sky.cjs'), Mo = require('./models.cjs'), Me = require('./mesh.cjs'), Fx = require('./fx.cjs'), Po = require('./post.cjs'), Shots = require('./shots.cjs');
+const C = require('./core.cjs'), S = require('./sky.cjs'), Mo = require('./models.cjs'), Me = require('./mesh.cjs'), Fx = require('./fx.cjs'), Po = require('./post.cjs'), Shots = require('./shots.cjs'), Cl = require('./clouds.cjs');
 const { W, H } = C;
 const OUT = path.join(__dirname, '../../../Game/Assets/_Project/Art/Resources/Cinema/title_intro.bytes');
 
@@ -21,9 +23,15 @@ function renderScene(fr, sc) {
     const tg = C.mad(C.mad(C.mad(c.pos, k.F, D), k.R, a * C.wob(t * 17, 1)), k.U, a * C.wob(t * 19, 2));
     c = { ...c, target: tg, roll: (c.roll || 0) + sc.shake * .0035 * C.wob(t * 13, 3) };
   }
+  if (sc.kicks && sc.kicks.length && sc.t < Shots.LOOP_START / C.FPS) {   // blasts: a jolt away from the blast, then a spring (never in the menu loop)
+    const k = C.makeCam(c); let x = 0, y = 0, roll = 0, zoom = 1;
+    for (const q of sc.kicks) { const r = Fx.kickAt(q, k); if (r) { x += r.x; y += r.y; roll += r.roll; zoom *= r.zoom; } }
+    const D = 100, tg = C.mad(C.mad(C.mad(c.pos, k.F, D), k.R, -x * D / k.f), k.U, y * D / k.f);
+    c = { ...c, target: tg, roll: (c.roll || 0) + roll, fov: (c.fov || 50) * zoom };
+  }
   const cam = C.makeCam(c);
   S.drawSky(fr, cam, sc.deck);
-  S.drawClouds(fr, cam, sc.clouds, sc.deck.off);
+  Cl.drawClouds(fr, cam, sc.clouds, sc.deck.off);
   sc.insts.forEach((it, i) => Me.drawMesh(fr, cam, it, i));
   Me.shade(fr, cam, sc.insts, sc.lights);
   Me.extras(fr, cam, sc.insts);
@@ -69,10 +77,11 @@ if (!isMainThread) {
     const packed = [], offs = new Uint32Array(Shots.FRAMES + 1); let o = 0;
     for (let f = 0; f < Shots.FRAMES; f++) { const z = zlib.deflateRawSync(Buffer.from(done.get(f)), { level: 9 }); packed.push(z); offs[f] = o; o += z.length; }
     offs[Shots.FRAMES] = o;
-    const head = Buffer.alloc(18); head.write('WWC1', 0, 'latin1');
+    const head = Buffer.alloc(18); head.write('WWC2', 0, 'latin1');
     [W, H, C.FPS, Shots.FRAMES, Shots.LOOP_START, C.PALETTE.length, Shots.CUES.length].forEach((v, i) => head.writeUInt16LE(v, 4 + i * 2));
     const pal = Buffer.from(C.PALETTE.flatMap(p => p.map(v => Math.round(v * 255))));
-    const cues = Buffer.alloc(Shots.CUES.length * 3); Shots.CUES.forEach(([k, f], i) => { cues.writeUInt8(k, i * 3); cues.writeUInt16LE(f, i * 3 + 1); });
+    const cues = Buffer.alloc(Shots.CUES.length * 6);
+    Shots.CUES.forEach((c, i) => { cues.writeUInt8(c.k, i * 6); cues.writeUInt16LE(c.f, i * 6 + 1); cues.writeInt8(c.pan, i * 6 + 3); cues.writeUInt8(c.level, i * 6 + 4); cues.writeUInt8(c.dur, i * 6 + 5); });
     fs.mkdirSync(path.dirname(OUT), { recursive: true });
     fs.writeFileSync(OUT, Buffer.concat([head, pal, cues, Buffer.from(offs.buffer), ...packed]));
     console.log('wrote ' + OUT + '  ' + (fs.statSync(OUT).size / 1048576).toFixed(2) + ' MB, ' + Shots.FRAMES + ' frames, ' + Shots.CUES.length + ' cues');

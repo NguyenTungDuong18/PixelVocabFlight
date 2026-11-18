@@ -22,6 +22,7 @@ Kịch bản, bản đồ và định hướng mỹ thuật (đang ở dạng kh
   - Đường băng (`runway.cjs`) ↔ `FlightView`
   - Số khung `bomber_guns` (`units/aircraft.cjs`) ↔ `FlightBoardView.GunDeployFrames`
   - Chân đế model (`def(...)` trong `world/*.cjs`) ↔ `WorldModels.cs` (RulesChecks đối chiếu qua manifest)
+- **Chỉ kiểm phần đã tác động:** làm xong chỉ chạy kiểm tra liên quan tới phần vừa sửa (ví dụ sửa âm thanh intro → compile + AudioChecks + smoke menu; sửa luật bay → RulesChecks), không chạy lại toàn bộ game. Build + smoke chỉ khi thay đổi chạm runtime Unity; smoke chạy cả bộ nhưng chỉ soát các check/ảnh của phần đã sửa.
 - Tính năng mới cần có check trong `Scripts/Unity/Game/FlightGame/FlightGame.Smoke.*.cs` (smoke test) hoặc RulesChecks.
 - Khi có thay đổi lớn hoặc lên phiên bản:
   - Thêm `Docs/history/NN-*.md` và đoạn đầu `README.md`.
@@ -35,11 +36,14 @@ Khi người dùng muốn sửa hoặc thêm tính năng, dùng skill `wordwing-
 
 ```text
 node Tools/PixelForge/forge.cjs                       # sinh lại sprite + manifest + preview
-node Tools/PixelForge/cinema/film.cjs                 # dựng lại phim mở màn (intro + nền menu) → Art/Resources/Cinema/title_intro.bytes; chạy sau khi sửa cinema/*.cjs
+node Tools/PixelForge/cinema/film.cjs                 # dựng lại phim mở màn (intro + nền menu) → Art/Resources/Cinema/title_intro.bytes; chạy sau khi sửa cinema/*.cjs (xem ngoài game: mở cinema/viewer.html)
 dotnet build Tools/UnityCompileChecks                 # biên dịch mọi .cs; yêu cầu 0 lỗi, 0 cảnh báo
 cd Tools/RulesChecks && dotnet run                    # test logic thuần (49.857 + 13 + 16.588 + 2.720 story + 1.576 manifest checks)
+cd Tools/AudioChecks && dotnet run -- ../Smoke/audio-intro   # trộn âm thanh intro theo cue của file phim → title_intro.wav + số đo + tự kiểm; chạy sau khi sửa cue hoặc Audio/Cinema/*.cs
+dotnet build Tools/AudioImport -c Release && dotnet Tools/AudioImport/bin/Release/net8.0/AudioImport.dll build   # dựng lại bộ mẫu âm thanh intro từ MP3 (SourceAssets/Audio/Cinema) → Audio/SFX/Cinema/Resources/CinemaSfx
+dotnet run --project Tools/MusicForge -c Release -- build   # soạn + dựng lại nhạc nền → Audio/Music/Resources/Music (lần đầu chạy `-- fetch` để tải mẫu VSCO 2 CE); `-- check` tự kiểm
 powershell -File Tools/Build-Windows.ps1              # khoảng 10 phút → Builds/Windows/Wordwing.exe
-powershell -File Tools/Test-Windows.ps1 -OutputFolder <tên>   # smoke 344 checks + ảnh trong Tools/Smoke/<tên>
+powershell -File Tools/Test-Windows.ps1 -OutputFolder <tên>   # smoke 369 checks + ảnh trong Tools/Smoke/<tên>
 ```
 
 - Xóa hoặc dùng thư mục smoke mới trước mỗi lần chạy, vì thư mục này không tự dọn.

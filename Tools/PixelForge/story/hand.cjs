@@ -9,17 +9,17 @@ const { capsule, sphere, ellipsoid, smin, len3, clamp } = require('./scene3d.cjs
 
 const HW = 66;
 const D = Math.PI / 180;
-// [knuckle u, knuckle v, length from knuckle to fingertip, base radius, tip radius, splay deg]
-// Knuckle arc: middle highest; index -.06 HW, ring -.09 HW, little -.2 HW.
-// Fingers are about as wide as the knuckle spacing (they touch at the web) and taper ~20%; a
-// relaxed hand barely fans (a few degrees) and the fingers converge as they curl (cascade sign).
+// [knuckle u, v, w, phalanx lengths (proximal, middle, distal), base radius, tip radius, splay deg], px.
+// Measured on the MakeHuman mesh Blender poses on these joints (render.cjs verts): its knuckles, bone
+// lengths and finger thickness, so contact solved here holds on the rendered hand. The mesh's last bone
+// ends at the skin, so the distal length here stops one tip radius short (J[3] is the tip's centre).
+// Fingers converge as they curl (cascade sign); a relaxed hand barely fans.
 const FINGERS = [
-  [1.15 - .06, .38, .945, .118, .094, 4],
-  [1.15, .125, 1.05, .12, .096, 0],
-  [1.15 - .09, -.13, .975, .115, .092, -4],
-  [1.15 - .2, -.37, .79, .102, .082, -9]
-].map(([u, v, L, r0, r1, sp]) => ({ u: u * HW, v: v * HW, L: L * HW, r0: r0 * HW, r1: r1 * HW, sp }));
-const SEG = [.42, .30, .28];                                   // proximal / middle / distal phalanx
+  [76.3, 27.8, .5, [20.0, 17.9, 18.3], 7.1, 5.4, 4],
+  [75.9, 8.25, 0, [25.2, 19.8, 19.6], 7.6, 5.4, 0],
+  [70.9, -6.7, 1.6, [22.3, 18.8, 19.4], 7.1, 5.2, -4],
+  [63.9, -21.05, .5, [17.0, 11.3, 14.5], 5.8, 4.3, -9]
+].map(([u, v, w, seg, r0, r1, sp]) => ({ u, v, w, seg: [seg[0], seg[1], seg[2] - r1], r0, r1, sp }));
 
 // Pose: { P: [x, y, z] wrist centre, yaw (deg, direction of the fingers on the table), pitch (deg,
 //   fingers down), roll (deg, thumb side up), tilt (deg about the world x axis), f: [[mcp, pip, dip, splay+] x4] deg,
@@ -43,31 +43,31 @@ const toWorld = (F, u, v, w) => [0, 1, 2].map(i => F.P[i] + F.U[i] * u + F.V[i] 
 function skeleton(pose) {
   const fingers = FINGERS.map((g, i) => {
     const [mcp, pip, dip, spx = 0] = pose.f[i], s = (g.sp + spx) * D;
-    const bone = g.L - g.r1, J = [[g.u, g.v, 0]];
+    const J = [[g.u, g.v, g.w]];
     let A = 0;
     [mcp, pip, dip].forEach((a, k) => {
       A += a * D;
       // Curling fingers point toward the middle of the wrist: the fan closes as flexion builds.
       const sk = s - Math.max(0, A) * g.v / HW * .5;
-      const l = bone * SEG[k], p = J[k];
+      const l = g.seg[k], p = J[k];
       J.push([p[0] + Math.cos(sk) * Math.cos(A) * l, p[1] + Math.sin(sk) * Math.cos(A) * l, p[2] - Math.sin(A) * l]);
     });
     return { J, r0: g.r0, r1: g.r1, rm: (g.r0 + g.r1) / 2 };
   });
-  // Thumb: carpometacarpal joint low on the radial side of the wrist; its metacarpal lies in the
-  // thenar mass, the free part (.7 of the middle finger) leaves the palm .4 HW below the index knuckle.
+  // Thumb: base and bone lengths of the mesh's thumb (as the fingers above); its first bone lies in
+  // the thenar mass, the free part leaves the palm below the index knuckle.
   const [abd, flex, mcp, ip] = pose.th;
-  const C = [.2 * HW, .2 * HW, -.1 * HW];
+  const C = [25.9, 25.6, -10.95];
   let a = (34 + abd) * D, b = (16 + flex) * D;                    // at rest the thumb lies along the index, not out like a fifth finger
   const dir = () => [Math.cos(b) * Math.cos(a), Math.sin(a) * Math.cos(b), -Math.sin(b)];
   const T = [C];
-  const lens = [.5 * HW, .4 * HW, .33 * HW];
+  const lens = [20.9, 28.5, 18.4 - 6.2];
   [0, mcp, ip].forEach((f, k) => {
     b += f * D * .8; a -= f * D * .45;                            // the thumb folds toward the palm as it flexes
     const d = dir(), p = T[k];
     T.push([p[0] + d[0] * lens[k], p[1] + d[1] * lens[k], p[2] + d[2] * lens[k]]);
   });
-  return { fingers, thumb: { J: T, r: [.12 * HW, .115 * HW, .1 * HW, .09 * HW] } };
+  return { fingers, thumb: { J: T, r: [11, 9.5, 7, 6.2] } };               // the mesh thumb is fat at the web
 }
 
 // Builds the hand (skin) and sleeve objects for scene3d. joints (optional, world coords
@@ -151,17 +151,24 @@ function build(pose, joints) {
   const wp = pts.map(p => toWorld(F, ...p)), pad = .2 * h;
   const box = [0, 1, 2].map(i => Math.min(...wp.map(p => p[i])) - pad).concat([0, 1, 2].map(i => Math.max(...wp.map(p => p[i])) + pad));
   const hand = { id: 'hand', hw: HW, box, sdf: skin, part, pose, frame: F, skeleton: S, toWorld: (u, v, w) => toWorld(F, u, v, w) };
-  // Sleeve: plain dark wool from just behind the wrist, out of the picture.
-  // The forearm keeps its own line (yaw only, rising gently to the elbow): the wrist does the bending.
-  const yw = pose.yaw * D, Uf = [Math.cos(yw), Math.sin(yw)];
-  const sa0 = toWorld(F, -.5 * h, 0, .04 * h), sa = [sa0[0] - Uf[0] * .14 * h, sa0[1] - Uf[1] * .14 * h, sa0[2]];
-  const sb = [sa[0] - Uf[0] * 6 * h, sa[1] - Uf[1] * 6 * h, sa[2] + 6 * h * .14], sr = .5 * h;
+  const { start: sa, end: sb, r: sr } = sleeveLine(pose);
   const sleeve = {
     id: 'sleeve', sdf: (x, y, z) => capsule(x, y, z, ...sa, ...sb, sr, sr * 1.15),
     box: [Math.min(sa[0], sb[0]) - sr * 1.2, Math.min(sa[1], sb[1]) - sr * 1.2, Math.min(sa[2], sb[2]) - sr * 1.2, Math.max(sa[0], sb[0]) + sr * 1.2, Math.max(sa[1], sb[1]) + sr * 1.2, Math.max(sa[2], sb[2]) + sr * 1.2],
     start: sa, end: sb, r: sr
   };
   return { hand, sleeve };
+}
+// Sleeve: plain dark wool from just behind the wrist, out of the picture.
+// The forearm keeps its own line (the hand's yaw, rising gently to the elbow): the wrist does the
+// bending. pose.arm = [yaw offset deg, rise per px] turns or raises the forearm itself (a hand
+// lifted to follow the lid, the forearm coming in from further right).
+function sleeveLine(pose) {
+  const F = frame(pose), h = HW, [ay, rise] = pose.arm || [0, .14];
+  const yw = (pose.yaw + ay) * D, Uf = [Math.cos(yw), Math.sin(yw)];
+  const sa0 = toWorld(F, -.5 * h, 0, .04 * h), sa = [sa0[0] - Uf[0] * .14 * h, sa0[1] - Uf[1] * .14 * h, sa0[2]];
+  const sb = [sa[0] - Uf[0] * 6 * h, sa[1] - Uf[1] * 6 * h, sa[2] + 6 * h * rise];
+  return { start: sa, end: sb, r: .5 * h };
 }
 
 // World positions of the fingertip pads (lowest point of each tip) and of the thumb tip.
@@ -268,4 +275,4 @@ function aimThumb(pose, sdf, target, [mcp, ip] = [20, 12], gap = .2) {
   return best ? { ...pose, th: best.th } : pose;
 }
 
-module.exports = { HW, build, tips, seat, wrap, clear, aimThumb, frame, skeleton };
+module.exports = { HW, build, tips, seat, wrap, clear, aimThumb, frame, skeleton, sleeveLine };

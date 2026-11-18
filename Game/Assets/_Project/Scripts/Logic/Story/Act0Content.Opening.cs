@@ -19,14 +19,15 @@ namespace PixelVocabFlight
             new StoryBeat { Id = "open.P1.02", Kind = StoryBeatKind.Text, Seconds = 2, Lines = new string[0], Sounds = new[] { "rain", "radio" } },
             // P1.03 the biscuit tin on the table.
             new StoryBeat { Id = "open.P1.03", Kind = StoryBeatKind.Cut, Seconds = 4, Sprite = TinBg, Layers = new[] { Rain } },
-            // P1.04 both hands come in and take the tin by its sides (the two palms knock at 1.25 s).
+            // P1.04 both hands come in and take the tin by its sides (right hand knocks at 0.75 s, left at 1.125 s).
             new StoryBeat
             {
                 Id = "open.P1.04", Kind = StoryBeatKind.Cut, Seconds = 3, Sprite = TinBg,
                 Layers = new[] { Rain, "cut_open_tin_hand" }, Sounds = new[] { "tin_touch" },
             },
-            // P1.05 the left hand braces, the right pinches the lid's front edge and strains (it shakes, the lid will not give),
-            // then it springs open at 2.5 s and the six things inside show; 4 s so the animation (30 frames @8) finishes and rests.
+            // P1.05 the left hand braces; the right thumb presses the front wall while the fingers hook the lid's lip
+            // at 0.625 s, strain for half a second, it springs open at 1.25 s, the fingers ride it to the stop, and the
+            // hand rests on the table by frame 23; 4 s so the animation (30 frames @8) finishes and rests.
             new StoryBeat
             {
                 Id = "open.P1.05", Kind = StoryBeatKind.Cut, Seconds = 4, Sprite = TinBg,
